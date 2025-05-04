@@ -1,8 +1,8 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/context/LanguageContext";
-import { Check, Upload } from "lucide-react";
+import { Check, Upload, Loader2 } from "lucide-react";
 import { 
   Select, 
   SelectContent, 
@@ -11,6 +11,10 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
+import { uploadIdentityDocument } from "@/utils/storageHelpers";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface VerificationProps {
   onComplete: () => void;
@@ -18,21 +22,67 @@ interface VerificationProps {
 
 export function Verification({ onComplete }: VerificationProps) {
   const { t, language } = useLanguage();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
   const [docType, setDocType] = useState("");
   const [frontUploaded, setFrontUploaded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const navigate = useNavigate();
+  const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const handleFileChange = () => {
-    setFrontUploaded(true);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+      setFrontUploaded(true);
+    }
   };
   
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (!file || !docType || !user) return;
+    
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    
+    try {
+      // Upload ID document to Storage
+      const publicUrl = await uploadIdentityDocument(user.id, file);
+      
+      // Save verification record in the database
+      const { error } = await supabase
+        .from('identity_verifications')
+        .insert({
+          user_id: user.id,
+          country_code: language === "ko" ? "KR" : "JP",
+          doc_type: docType,
+          id_front_url: publicUrl,
+          status: 'submitted',
+          submitted_at: new Date().toISOString()
+        });
+      
+      if (error) throw error;
+      
+      toast({
+        title: language === "ko" ? "신분증이 제출되었습니다" : "身分証明書が提出されました",
+        description: language === "ko" ? "검토 후 알림으로 알려드립니다" : "審査後、通知でお知らせします"
+      });
+      
       navigate('/home');
-    }, 1500);
+      
+    } catch (error) {
+      console.error("Error submitting verification:", error);
+      toast({
+        title: t("error.generic"),
+        description: t("error.try_again"),
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  const handleSkip = () => {
+    onComplete();
   };
   
   return (
@@ -87,7 +137,7 @@ export function Verification({ onComplete }: VerificationProps) {
             <label className="text-sm font-medium">
               {language === "ko" ? "신분증 앞면" : "身分証明書の表面"}
             </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center">
+            <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center relative">
               {frontUploaded ? (
                 <div className="flex flex-col items-center text-center">
                   <div className="w-12 h-12 rounded-full bg-pastel-mint flex items-center justify-center mb-3">
@@ -96,6 +146,20 @@ export function Verification({ onComplete }: VerificationProps) {
                   <p className="text-sm font-medium text-gray-700">
                     {language === "ko" ? "파일이 업로드되었습니다" : "ファイルがアップロードされました"}
                   </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-2"
+                    onClick={() => {
+                      setFrontUploaded(false);
+                      setFile(null);
+                      if (fileInputRef.current) {
+                        fileInputRef.current.value = '';
+                      }
+                    }}
+                  >
+                    {language === "ko" ? "다시 선택" : "再選択"}
+                  </Button>
                 </div>
               ) : (
                 <>
@@ -110,14 +174,15 @@ export function Verification({ onComplete }: VerificationProps) {
                   <p className="text-xs text-gray-400">
                     {language === "ko" ? "JPG, PNG, 최대 5MB" : "JPG、PNG、最大5MB"}
                   </p>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    onChange={handleFileChange}
-                  />
                 </>
               )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className={`absolute inset-0 w-full h-full opacity-0 cursor-pointer ${frontUploaded ? 'hidden' : ''}`}
+                onChange={handleFileChange}
+              />
             </div>
           </div>
         )}
@@ -126,7 +191,7 @@ export function Verification({ onComplete }: VerificationProps) {
       <div className="flex justify-between mt-8">
         <Button
           variant="outline"
-          onClick={onComplete}
+          onClick={handleSkip}
           className="rounded-full"
         >
           {language === "ko" ? "나중에 하기" : "後でする"}
@@ -138,7 +203,7 @@ export function Verification({ onComplete }: VerificationProps) {
         >
           {isSubmitting ? (
             <span className="flex items-center">
-              <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent"></span>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               {language === "ko" ? "제출 중..." : "送信中..."}
             </span>
           ) : (

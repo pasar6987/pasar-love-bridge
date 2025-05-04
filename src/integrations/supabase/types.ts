@@ -9,7 +9,182 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      identity_verifications: {
+        Row: {
+          country_code: string | null
+          doc_type: string | null
+          id: string
+          id_front_url: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          status: string | null
+          submitted_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          country_code?: string | null
+          doc_type?: string | null
+          id?: string
+          id_front_url: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          country_code?: string | null
+          doc_type?: string | null
+          id?: string
+          id_front_url?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "identity_verifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      language_skills: {
+        Row: {
+          id: string
+          language_code: string
+          proficiency: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          language_code: string
+          proficiency?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          language_code?: string
+          proficiency?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "language_skills_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_photos: {
+        Row: {
+          id: string
+          sort_order: number
+          uploaded_at: string | null
+          url: string
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          sort_order: number
+          uploaded_at?: string | null
+          url: string
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          sort_order?: number
+          uploaded_at?: string | null
+          url?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_photos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_interests: {
+        Row: {
+          id: string
+          interest: string
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          interest: string
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          interest?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_interests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          bio: string | null
+          birthdate: string | null
+          city: string | null
+          country_code: string | null
+          created_at: string | null
+          gender: string | null
+          id: string
+          is_verified: boolean | null
+          nickname: string | null
+          onboarding_completed: boolean | null
+          onboarding_step: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          bio?: string | null
+          birthdate?: string | null
+          city?: string | null
+          country_code?: string | null
+          created_at?: string | null
+          gender?: string | null
+          id: string
+          is_verified?: boolean | null
+          nickname?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          bio?: string | null
+          birthdate?: string | null
+          city?: string | null
+          country_code?: string | null
+          created_at?: string | null
+          gender?: string | null
+          id?: string
+          is_verified?: boolean | null
+          nickname?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

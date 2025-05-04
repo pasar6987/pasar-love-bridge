@@ -1,8 +1,9 @@
 
-import { useState } from "react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/context/LanguageContext";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
+import { useUploadPhotos } from "@/hooks/useUploadPhotos";
 
 interface PhotoUploadProps {
   onComplete: () => void;
@@ -10,33 +11,21 @@ interface PhotoUploadProps {
 
 export function PhotoUpload({ onComplete }: PhotoUploadProps) {
   const { t } = useLanguage();
-  const [photos, setPhotos] = useState<string[]>([]);
+  const { photos, isUploading, handleFileUpload, removePhoto } = useUploadPhotos();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    
-    const newPhotos = [...photos];
-    
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (file && file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          if (event.target?.result) {
-            newPhotos.push(event.target.result.toString());
-            setPhotos([...newPhotos]);
-          }
-        };
-        reader.readAsDataURL(file);
-      }
+  const handleButtonClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
   };
   
-  const removePhoto = (index: number) => {
-    const newPhotos = [...photos];
-    newPhotos.splice(index, 1);
-    setPhotos(newPhotos);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFileUpload(e.target.files);
+    // Reset the input value so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
   
   return (
@@ -69,48 +58,68 @@ export function PhotoUpload({ onComplete }: PhotoUploadProps) {
         ))}
         
         {photos.length < 6 && (
-          <label className="border-2 border-dashed border-gray-300 rounded-xl aspect-square flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+          <button
+            type="button"
+            onClick={handleButtonClick}
+            className="border-2 border-dashed border-gray-300 rounded-xl aspect-square flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+            disabled={isUploading}
+          >
             <div className="text-center p-4">
-              <div className="w-12 h-12 rounded-full bg-pastel-pink/20 flex items-center justify-center mx-auto mb-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  className="w-6 h-6 text-primary"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-              </div>
+              {isUploading ? (
+                <div className="w-12 h-12 rounded-full bg-pastel-pink/20 flex items-center justify-center mx-auto mb-2">
+                  <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                </div>
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-pastel-pink/20 flex items-center justify-center mx-auto mb-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    className="w-6 h-6 text-primary"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                </div>
+              )}
               <span className="text-sm font-medium text-gray-600">
                 {t("onboarding.photos.add")}
               </span>
             </div>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={handleFileChange}
-            />
-          </label>
+          </button>
         )}
       </div>
+      
+      {photos.length < 3 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-700">
+          {t("onboarding.photos.min_required")}
+        </div>
+      )}
       
       <div className="flex justify-end mt-8">
         <Button
           onClick={onComplete}
           className="pasar-btn"
-          disabled={photos.length === 0}
+          disabled={photos.length < 3 || isUploading}
         >
           {t("action.next")}
         </Button>
       </div>
+      
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleFileChange}
+        disabled={isUploading}
+      />
     </div>
   );
 }

@@ -1,287 +1,246 @@
 
-import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
-type Language = 'ko' | 'ja';
+type Language = "ko" | "ja";
 
-type LanguageContextType = {
-  language: Language;
-  setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
-};
+interface TranslationMap {
+  [key: string]: {
+    ko: string;
+    ja: string;
+  };
+}
 
-const translations: Record<string, Record<Language, string>> = {
-  // Common
-  'app.name': {
-    ko: 'Pasar',
-    ja: 'パサル',
+// Translation dictionary
+const translations: TranslationMap = {
+  // App name and common
+  "app.name": {
+    ko: "Pasar",
+    ja: "パサー"
   },
-  'app.tagline': {
-    ko: '한국 남성 × 일본 여성 매칭 서비스',
-    ja: '韓国人男性 × 日本人女性 マッチングサービス',
-  },
-  
-  // Auth
-  'auth.login': {
-    ko: '로그인',
-    ja: 'ログイン',
-  },
-  'auth.signup': {
-    ko: '회원가입',
-    ja: '会員登録',
-  },
-  'auth.email': {
-    ko: '이메일',
-    ja: 'メールアドレス',
-  },
-  'auth.password': {
-    ko: '비밀번호',
-    ja: 'パスワード',
-  },
-  'auth.forgotPassword': {
-    ko: '비밀번호를 잊으셨나요?',
-    ja: 'パスワードをお忘れですか？',
-  },
-  'auth.continueWith': {
-    ko: '다음으로 계속하기',
-    ja: 'こちらで続ける',
-  },
-  'auth.google': {
-    ko: '구글',
-    ja: 'Google',
+  "app.tagline": {
+    ko: "한국 남성 × 일본 여성 매칭 서비스",
+    ja: "韓国人男性 × 日本人女性 マッチングサービス"
   },
   
-  // Onboarding
-  'onboarding.welcome': {
-    ko: '환영합니다!',
-    ja: 'ようこそ！',
+  // Common actions
+  "action.next": {
+    ko: "다음",
+    ja: "次へ"
   },
-  'onboarding.step': {
-    ko: '단계',
-    ja: 'ステップ',
+  "action.back": {
+    ko: "이전",
+    ja: "戻る"
   },
-  'onboarding.photos.title': {
-    ko: '프로필 사진 업로드',
-    ja: 'プロフィール写真のアップロード',
+  "action.submit": {
+    ko: "제출하기",
+    ja: "送信する"
   },
-  'onboarding.photos.desc': {
-    ko: '최소 1장의 얼굴이 잘 보이는 사진을 업로드해주세요.',
-    ja: '顔がはっきり見える写真を最低1枚アップロードしてください。',
+  "action.save": {
+    ko: "저장하기",
+    ja: "保存する"
   },
-  'onboarding.photos.add': {
-    ko: '사진 추가하기',
-    ja: '写真を追加',
+  "action.cancel": {
+    ko: "취소",
+    ja: "キャンセル"
   },
-  'onboarding.basics.title': {
-    ko: '기본 정보',
-    ja: '基本情報',
+  "action.skip": {
+    ko: "건너뛰기",
+    ja: "スキップ"
   },
-  'onboarding.basics.name': {
-    ko: '이름',
-    ja: '名前',
-  },
-  'onboarding.basics.gender': {
-    ko: '성별',
-    ja: '性別',
-  },
-  'onboarding.basics.birthdate': {
-    ko: '생년월일',
-    ja: '生年月日',
-  },
-  'onboarding.basics.nationality': {
-    ko: '국적',
-    ja: '国籍',
-  },
-  'onboarding.basics.city': {
-    ko: '거주 도시',
-    ja: '居住都市',
-  },
-  'onboarding.questions.title': {
-    ko: '나에 대해 더 알려주세요',
-    ja: 'あなたについてもっと教えてください',
-  },
-  'onboarding.questions.job': {
-    ko: '직업',
-    ja: '職業',
-  },
-  'onboarding.questions.education': {
-    ko: '학력',
-    ja: '学歴',
-  },
-  'onboarding.questions.interests': {
-    ko: '관심사',
-    ja: '興味',
-  },
-  'onboarding.questions.languages': {
-    ko: '구사 언어',
-    ja: '言語スキル',
-  },
-  'onboarding.verification.title': {
-    ko: '본인 인증',
-    ja: '本人確認',
-  },
-  'onboarding.verification.desc': {
-    ko: '안전한 매칭을 위해 신분증 인증이 필요합니다.',
-    ja: '安全なマッチングのために身分証明書の確認が必要です。',
+  "action.edit": {
+    ko: "수정하기",
+    ja: "編集する"
   },
   
-  // Navigation
-  'nav.home': {
-    ko: '홈',
-    ja: 'ホーム',
+  // Authentication
+  "auth.login": {
+    ko: "로그인",
+    ja: "ログイン"
   },
-  'nav.matches': {
-    ko: '매치',
-    ja: 'マッチ',
+  "auth.signup": {
+    ko: "회원가입",
+    ja: "会員登録"
   },
-  'nav.chat': {
-    ko: '채팅',
-    ja: 'チャット',
+  "auth.google": {
+    ko: "Google로 계속하기",
+    ja: "Googleで続ける"
   },
-  'nav.profile': {
-    ko: '프로필',
-    ja: 'プロフィール',
+  "auth.logout": {
+    ko: "로그아웃",
+    ja: "ログアウト"
+  },
+  "auth.login_failed": {
+    ko: "로그인 실패",
+    ja: "ログイン失敗"
+  },
+  "auth.logout_failed": {
+    ko: "로그아웃 실패",
+    ja: "ログアウト失敗"
+  },
+  "auth.try_again": {
+    ko: "다시 시도해주세요",
+    ja: "もう一度お試しください"
   },
   
-  // Home
-  'home.recommendations': {
-    ko: '오늘의 추천',
-    ja: '本日のおすすめ',
+  // Onboarding steps
+  "onboarding.step": {
+    ko: "단계",
+    ja: "ステップ"
   },
-  'home.noMore': {
-    ko: '오늘의 추천을 모두 확인했습니다. 내일 다시 방문해주세요!',
-    ja: '本日のおすすめはすべて確認しました。また明日お越しください！',
+  "onboarding.photos.title": {
+    ko: "프로필 사진 등록",
+    ja: "プロフィール写真の登録"
+  },
+  "onboarding.photos.desc": {
+    ko: "매력적인 프로필 사진을 최소 3장 등록해주세요",
+    ja: "魅力的なプロフィール写真を最低3枚登録してください"
+  },
+  "onboarding.photos.add": {
+    ko: "사진 추가하기",
+    ja: "写真を追加"
+  },
+  "onboarding.photos.min_required": {
+    ko: "최소 3장의 사진이 필요합니다",
+    ja: "最低3枚の写真が必要です"
+  },
+  "onboarding.basics.title": {
+    ko: "기본 정보",
+    ja: "基本情報"
+  },
+  "onboarding.basics.desc": {
+    ko: "당신에 대한 기본 정보를 알려주세요",
+    ja: "あなたの基本情報を教えてください"
+  },
+  "onboarding.basics.name": {
+    ko: "닉네임",
+    ja: "ニックネーム"
+  },
+  "onboarding.basics.gender": {
+    ko: "성별",
+    ja: "性別"
+  },
+  "onboarding.basics.birthdate": {
+    ko: "생년월일",
+    ja: "生年月日"
+  },
+  "onboarding.basics.nationality": {
+    ko: "국적",
+    ja: "国籍"
+  },
+  "onboarding.basics.city": {
+    ko: "거주 도시",
+    ja: "居住都市"
+  },
+  "onboarding.questions.title": {
+    ko: "조금 더 알고 싶어요",
+    ja: "もう少し教えてください"
+  },
+  "onboarding.questions.job": {
+    ko: "직업",
+    ja: "職業"
+  },
+  "onboarding.questions.education": {
+    ko: "학력",
+    ja: "学歴"
+  },
+  "onboarding.questions.languages": {
+    ko: "언어 능력",
+    ja: "言語能力"
+  },
+  "onboarding.questions.interests": {
+    ko: "관심사",
+    ja: "興味・関心"
+  },
+  "onboarding.verification.title": {
+    ko: "신분증 인증 (선택)",
+    ja: "本人確認 (任意)"
+  },
+  "onboarding.verification.desc": {
+    ko: "신뢰할 수 있는 만남을 위한 신분증 인증을 진행해보세요",
+    ja: "信頼できる出会いのための本人確認を行いましょう"
   },
   
   // Profile
-  'profile.age': {
-    ko: '세',
-    ja: '歳',
+  "profile.about": {
+    ko: "자기소개",
+    ja: "自己紹介"
   },
-  'profile.about': {
-    ko: '소개',
-    ja: '自己紹介',
+  "profile.details": {
+    ko: "프로필 정보",
+    ja: "プロフィール情報"
   },
-  'profile.details': {
-    ko: '상세 정보',
-    ja: '詳細情報',
+  "profile.verified": {
+    ko: "인증됨",
+    ja: "認証済み"
   },
-  
-  // Actions
-  'action.next': {
-    ko: '다음',
-    ja: '次へ',
-  },
-  'action.back': {
-    ko: '이전',
-    ja: '戻る',
-  },
-  'action.save': {
-    ko: '저장',
-    ja: '保存',
-  },
-  'action.cancel': {
-    ko: '취소',
-    ja: 'キャンセル',
-  },
-  'action.send': {
-    ko: '전송',
-    ja: '送信',
-  },
-  'action.like': {
-    ko: '관심 있어요',
-    ja: '興味があります',
-  },
-  'action.pass': {
-    ko: '다음에',
-    ja: '今度',
+  "profile.pending": {
+    ko: "인증 진행중",
+    ja: "認証処理中"
   },
   
-  // Chat
-  'chat.newMatch': {
-    ko: '새로운 매치',
-    ja: '新しいマッチ',
+  // Error messages
+  "error.generic": {
+    ko: "오류가 발생했습니다",
+    ja: "エラーが発生しました"
   },
-  'chat.icebreaker': {
-    ko: '아이스브레이커 사용하기',
-    ja: 'アイスブレーカーを使う',
-  },
-  'chat.randomTopic': {
-    ko: '랜덤 주제',
-    ja: 'ランダムトピック',
-  },
-  'chat.translate': {
-    ko: '번역하기',
-    ja: '翻訳する',
-  },
-  'chat.writeMessage': {
-    ko: '메시지 작성...',
-    ja: 'メッセージを書く...',
-  },
-  
-  // Settings
-  'settings.title': {
-    ko: '설정',
-    ja: '設定',
-  },
-  'settings.account': {
-    ko: '계정',
-    ja: 'アカウント',
-  },
-  'settings.notifications': {
-    ko: '알림',
-    ja: '通知',
-  },
-  'settings.language': {
-    ko: '언어',
-    ja: '言語',
-  },
-  'settings.privacy': {
-    ko: '개인 정보',
-    ja: 'プライバシー',
-  },
-  'settings.help': {
-    ko: '도움말',
-    ja: 'ヘルプ',
-  },
-  'settings.logout': {
-    ko: '로그아웃',
-    ja: 'ログアウト',
+  "error.try_again": {
+    ko: "다시 시도해주세요",
+    ja: "もう一度お試しください"
   },
 };
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+interface LanguageContextProps {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string;
+}
 
-export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [language, setLanguage] = useState<Language>('ko');
+const LanguageContext = createContext<LanguageContextProps | undefined>(undefined);
 
-  // Initialize language based on URL path or browser language
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path.startsWith('/ja')) {
-      setLanguage('ja');
-    } else if (path.startsWith('/ko')) {
-      setLanguage('ko');
-    } else {
-      const browserLang = navigator.language.split('-')[0] as Language;
-      setLanguage(browserLang === 'ja' ? 'ja' : 'ko');
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Initialize language based on URL path or default to Korean
+  const initialLang = location.pathname.startsWith("/ja") ? "ja" : "ko";
+  const [language, setLanguageState] = useState<Language>(initialLang);
+  
+  // Function to update language and redirect to corresponding URL path
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    
+    // Update URL to reflect language change if not already on that language path
+    if (lang === "ko" && location.pathname.startsWith("/ja")) {
+      navigate(location.pathname.replace("/ja", "/ko"));
+    } else if (lang === "ja" && location.pathname.startsWith("/ko")) {
+      navigate(location.pathname.replace("/ko", "/ja"));
+    } else if (!location.pathname.startsWith("/ko") && !location.pathname.startsWith("/ja")) {
+      // If not on a language-specific path, redirect to the appropriate one
+      navigate(`/${lang}${location.pathname}`);
     }
-  }, []);
-
-  const t = (key: string): string => {
-    return translations[key]?.[language] || key;
   };
-
+  
+  // Translation function
+  const t = (key: string): string => {
+    if (!translations[key]) {
+      console.warn(`Translation missing for key: ${key}`);
+      return key;
+    }
+    return translations[key][language];
+  };
+  
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );
-};
+}
 
-export const useLanguage = (): LanguageContextType => {
+export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (context === undefined) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
+    throw new Error("useLanguage must be used within a LanguageProvider");
   }
   return context;
 };

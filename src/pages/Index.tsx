@@ -6,7 +6,11 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    navigate("/");
+    // Check browser language preference to redirect to ko or ja
+    const userLang = navigator.language.toLowerCase();
+    const targetLang = userLang.includes("ja") ? "ja" : "ko";
+    
+    navigate(`/${targetLang}`);
   }, [navigate]);
 
   return (

@@ -12,6 +12,10 @@ import {
 import { useLanguage } from "@/context/LanguageContext";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 interface QuestionsProps {
   onComplete: () => void;
@@ -19,10 +23,16 @@ interface QuestionsProps {
 
 export function Questions({ onComplete }: QuestionsProps) {
   const { t, language } = useLanguage();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  
   const [job, setJob] = useState("");
   const [education, setEducation] = useState("");
   const [bio, setBio] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
+  const [koreanLevel, setKoreanLevel] = useState(language === "ko" ? "native" : "beginner");
+  const [japaneseLevel, setJapaneseLevel] = useState(language === "ko" ? "beginner" : "native");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const availableInterests = {
     ko: [
@@ -43,6 +53,69 @@ export function Questions({ onComplete }: QuestionsProps) {
     }
   };
   
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user) return;
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Update user bio
+      const { error: bioError } = await supabase
+        .from('users')
+        .update({ bio })
+        .eq('id', user.id);
+      
+      if (bioError) throw bioError;
+      
+      // Save interests
+      if (interests.length > 0) {
+        const interestsData = interests.map(interest => ({
+          user_id: user.id,
+          interest
+        }));
+        
+        const { error: interestsError } = await supabase
+          .from('user_interests')
+          .insert(interestsData);
+        
+        if (interestsError) throw interestsError;
+      }
+      
+      // Save language skills
+      const languageData = [
+        {
+          user_id: user.id,
+          language_code: "korean",
+          proficiency: koreanLevel
+        },
+        {
+          user_id: user.id,
+          language_code: "japanese",
+          proficiency: japaneseLevel
+        }
+      ];
+      
+      const { error: languageError } = await supabase
+        .from('language_skills')
+        .insert(languageData);
+      
+      if (languageError) throw languageError;
+      
+      onComplete();
+    } catch (error) {
+      console.error("Error saving profile data:", error);
+      toast({
+        title: t("error.generic"),
+        description: t("error.try_again"),
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -51,7 +124,7 @@ export function Questions({ onComplete }: QuestionsProps) {
         </h2>
       </div>
       
-      <form className="space-y-6">
+      <form className="space-y-6" onSubmit={handleSubmit}>
         <div className="space-y-2">
           <label htmlFor="job" className="text-sm font-medium">
             {t("onboarding.questions.job")}
@@ -140,7 +213,7 @@ export function Questions({ onComplete }: QuestionsProps) {
               <p className="text-xs text-muted-foreground mb-1">
                 {language === "ko" ? "한국어" : "韓国語"}
               </p>
-              <Select defaultValue="native">
+              <Select value={koreanLevel} onValueChange={setKoreanLevel}>
                 <SelectTrigger className="pasar-input">
                   <SelectValue />
                 </SelectTrigger>
@@ -167,7 +240,7 @@ export function Questions({ onComplete }: QuestionsProps) {
               <p className="text-xs text-muted-foreground mb-1">
                 {language === "ko" ? "일본어" : "日本語"}
               </p>
-              <Select defaultValue={language === "ko" ? "beginner" : "native"}>
+              <Select value={japaneseLevel} onValueChange={setJapaneseLevel}>
                 <SelectTrigger className="pasar-input">
                   <SelectValue />
                 </SelectTrigger>
@@ -192,16 +265,24 @@ export function Questions({ onComplete }: QuestionsProps) {
             </div>
           </div>
         </div>
+        
+        <div className="flex justify-end mt-8">
+          <Button
+            type="submit"
+            className="pasar-btn"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <div className="flex items-center">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {language === "ko" ? "저장 중..." : "保存中..."}
+              </div>
+            ) : (
+              t("action.next")
+            )}
+          </Button>
+        </div>
       </form>
-      
-      <div className="flex justify-end mt-8">
-        <Button
-          onClick={onComplete}
-          className="pasar-btn"
-        >
-          {t("action.next")}
-        </Button>
-      </div>
     </div>
   );
 }
