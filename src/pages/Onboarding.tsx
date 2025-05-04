@@ -1,6 +1,6 @@
 
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import { useParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { ProgressBar } from "@/components/onboarding/ProgressBar";
 import { PhotoUpload } from "@/components/onboarding/PhotoUpload";
@@ -14,43 +14,35 @@ import { useLanguage } from "@/context/LanguageContext";
 const Onboarding = () => {
   const { step } = useParams<{ step: string }>();
   const currentStep = parseInt(step || "1", 10);
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth(); // 여전히 user 정보는 사용하지만 리디렉션은 제거
   const { toast } = useToast();
   const { t } = useLanguage();
   const [isUpdating, setIsUpdating] = useState(false);
   
   const TOTAL_STEPS = 4;
 
-  useEffect(() => {
-    if (!loading && !user) {
-      // Redirect to login if not authenticated
-      navigate("/");
-    }
-  }, [user, loading, navigate]);
-
   const handleStepComplete = async (nextStep: number) => {
-    if (!user) return;
-    
     setIsUpdating(true);
     
     try {
-      // Update user's onboarding step in the database
-      const { error } = await supabase
-        .from('users')
-        .update({ 
-          onboarding_step: nextStep,
-          onboarding_completed: nextStep > TOTAL_STEPS
-        })
-        .eq('id', user.id);
+      if (user) {
+        // 로그인한 경우만 DB 업데이트
+        const { error } = await supabase
+          .from('users')
+          .update({ 
+            onboarding_step: nextStep,
+            onboarding_completed: nextStep > TOTAL_STEPS
+          })
+          .eq('id', user.id);
+        
+        if (error) throw error;
+      }
       
-      if (error) throw error;
-      
-      // Navigate to next step or home if completed
+      // 로그인 상태와 관계없이 다음 단계로 이동
       if (nextStep > TOTAL_STEPS) {
-        navigate("/home");
+        window.location.href = "/home";
       } else {
-        navigate(`/onboarding/${nextStep}`);
+        window.location.href = `/onboarding/${nextStep}`;
       }
       
     } catch (error) {
@@ -79,14 +71,6 @@ const Onboarding = () => {
         return <PhotoUpload onComplete={() => handleStepComplete(2)} />;
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-pastel-pink/10 to-pastel-lavender/20">

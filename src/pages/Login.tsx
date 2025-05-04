@@ -1,13 +1,12 @@
 
 import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 
 const Login = () => {
-  const { user, loading, signInWithGoogle } = useAuth();
-  const navigate = useNavigate();
+  const { signInWithGoogle } = useAuth();
   const location = useLocation();
   const { language, setLanguage, t } = useLanguage();
 
@@ -19,11 +18,8 @@ const Login = () => {
       setLanguage("ko");
     }
     
-    // Redirect to home if user is already logged in
-    if (user && !loading) {
-      navigate("/home");
-    }
-  }, [user, loading, navigate, location.pathname, setLanguage]);
+    // 로그인 확인 후 홈으로 리디렉션하는 부분 제거
+  }, [location.pathname, setLanguage]);
 
   const toggleLanguage = () => {
     setLanguage(language === "ko" ? "ja" : "ko");

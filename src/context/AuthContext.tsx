@@ -31,11 +31,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // If user signs in and has not completed onboarding, redirect to onboarding
+        // User sign-in event, but we won't redirect to onboarding anymore
         if (event === 'SIGNED_IN') {
           // Use setTimeout to avoid deadlock with the onAuthStateChange listener
           setTimeout(() => {
-            checkUserOnboardingStatus(session?.user?.id);
+            // We still check the status but don't redirect
+            if (session?.user?.id) {
+              checkUserOnboardingStatus(session.user.id);
+            }
           }, 0);
         }
       }
@@ -73,13 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) throw error;
       
-      if (userData) {
-        // If user hasn't completed onboarding, redirect to appropriate step
-        if (!userData.onboarding_completed) {
-          const step = userData.onboarding_step || 1;
-          navigate(`/onboarding/${step}`);
-        }
-      } else {
+      if (!userData) {
         // User record doesn't exist yet, create it
         const { error: insertError } = await supabase
           .from('users')
@@ -87,10 +84,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .single();
         
         if (insertError) throw insertError;
-        
-        // Redirect to first onboarding step
-        navigate('/onboarding/1');
       }
+      
+      // 더 이상 온보딩 페이지로 강제 리디렉션하지 않음
     } catch (error) {
       console.error("Error checking user onboarding status:", error);
       toast({
