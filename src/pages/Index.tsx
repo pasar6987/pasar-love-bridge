@@ -6,11 +6,20 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check browser language preference to redirect to ko or ja
-    const userLang = navigator.language.toLowerCase();
-    const targetLang = userLang.includes("ja") ? "ja" : "ko";
-    
-    navigate(`/${targetLang}`);
+    // URL에 access_token이 포함되어 있는지 확인
+    const url = window.location.href;
+    const hasAuthParams = url.includes("access_token=") || 
+                            url.includes("code=") || 
+                            url.includes("error=") || 
+                            url.includes("provider=");
+                            
+    if (!hasAuthParams) {
+      // 인증 파라미터가 없는 경우에만 언어 기반 리디렉션 수행
+      const userLang = navigator.language.toLowerCase();
+      const targetLang = userLang.includes("ja") ? "ja" : "ko";
+      navigate(`/${targetLang}`);
+    }
+    // 인증 파라미터가 있는 경우 Supabase Auth가 자동으로 처리
   }, [navigate]);
 
   return (
