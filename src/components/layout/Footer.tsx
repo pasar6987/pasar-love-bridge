@@ -1,6 +1,5 @@
 
 import { useLanguage } from "@/i18n/useLanguage";
-import { Heart } from "lucide-react";
 
 export function Footer() {
   const { t } = useLanguage();
@@ -10,7 +9,11 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-10 md:flex md:items-center md:justify-between">
           <div className="flex justify-center md:justify-start">
-            <Heart className="h-5 w-5 text-pastel-pink mr-2" />
+            <img 
+              src="/lovable-uploads/6bdd8a27-cd91-4f69-bda2-2afe0a4a0cdd.png" 
+              alt="Pasar Logo" 
+              className="h-5 w-5 mr-2" 
+            />
             <span className="text-lg font-hand">
               {t('app.name')}
             </span>

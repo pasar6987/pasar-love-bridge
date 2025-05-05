@@ -1,5 +1,5 @@
 
-import { Heart, Bell, User } from "lucide-react";
+import { Bell, User } from "lucide-react";
 import { useLanguage } from "@/i18n/useLanguage";
 import { Link } from "react-router-dom";
 import { LanguageToggle } from "@/components/common/LanguageToggle";
@@ -19,7 +19,11 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <Link to="/home" className="flex items-center">
-            <Heart className="h-6 w-6 text-pastel-pink mr-2" />
+            <img 
+              src="/lovable-uploads/6bdd8a27-cd91-4f69-bda2-2afe0a4a0cdd.png" 
+              alt="Pasar Logo" 
+              className="h-8 w-8 mr-2" 
+            />
             <span className="text-xl font-bold font-hand">
               {t('app.name')}
             </span>
@@ -33,7 +37,7 @@ export function Header() {
               {t('nav.matches')}
             </Link>
             <Link to="/chat" className="text-gray-700 hover:text-primary transition-colors">
-              {t('nav.chat')}
+              {t('nav.messages')}
             </Link>
           </nav>
 

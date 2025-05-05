@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
@@ -9,62 +10,146 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function ProfileDetail() {
   const { id } = useParams<{ id: string }>();
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Mock data
+  // Mock data - now with nationality field
   useEffect(() => {
     setTimeout(() => {
-      const mockProfile = {
-        id,
-        name: id === "1" 
-          ? (language === "ko" ? "하나코" : "花子")
-          : id === "2"
-          ? (language === "ko" ? "유카" : "ゆか")
-          : (language === "ko" ? "마이" : "まい"),
-        age: id === "1" ? 28 : id === "2" ? 25 : 27,
-        location: id === "1" 
-          ? (language === "ko" ? "도쿄" : "東京") 
-          : id === "2" 
-          ? (language === "ko" ? "오사카" : "大阪")
-          : (language === "ko" ? "후쿠오카" : "福岡"),
-        photos: [
-          id === "1" 
-            ? "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YXNpYW4lMjB3b21hbnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60"
-            : id === "2"
-            ? "https://images.unsplash.com/photo-1606406054219-619c4c2e2100?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGFzaWFuJTIwd29tYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60"
-            : "https://images.unsplash.com/photo-1609132718484-cc90df3417f8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8YXNpYW4lMjB3b21hbnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
-          "https://images.unsplash.com/photo-1554151228-14d9def656e4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fHBvcnRyYWl0JTIwYXNpYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
-          "https://images.unsplash.com/photo-1557555187-23d685287bc3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fHBvcnRyYWl0JTIwYXNpYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60"
-        ],
-        bio: id === "1" 
-          ? (language === "ko" ? "안녕하세요! 저는 일본 도쿄에 살고 있는 하나코입니다. 한국 문화와 K-Pop에 관심이 많습니다. 특히 BTS와 블랙핑크를 좋아해요. 한국에 몇 번 여행을 다녀왔고, 언젠가 더 오래 머물고 싶어요." : "こんにちは！東京に住んでいる花子です。韓国の文化とK-Popに興味があります。特にBTSとBLACKPINKが好きです。韓国に数回旅行に行ったことがあり、いつかもっと長く滞在したいです。")
-          : id === "2"
-          ? (language === "ko" ? "오사카에서 카페를 운영하고 있어요. 취미는 여행과 사진 찍기입니다. 한국어를 배우고 있어요! 한국의 커피 문화를 좋아하고, 언젠가 서울에서도 카페를 열고 싶어요." : "大阪でカフェを経営しています。趣味は旅行と写真撮影です。韓国語を勉強中です！韓国のコーヒー文化が好きで、いつかソウルでもカフェをオープンしたいです。")
-          : (language === "ko" ? "음악을 사랑하는 선생님입니다. 한국 드라마를 좋아해서 한국어를 독학하고 있어요. 최근에는 피아노를 배우기 시작했어요." : "音楽を愛する教師です。韓国ドラマが好きで、韓国語を独学で勉強しています。最近はピアノを習い始めました。"),
-        job: id === "1" 
-          ? (language === "ko" ? "디자이너" : "デザイナー") 
-          : id === "2" 
-          ? (language === "ko" ? "카페 운영자" : "カフェオーナー")
-          : (language === "ko" ? "교사" : "教師"),
-        education: "bachelors",
-        interests: id === "1"
-          ? (language === "ko" ? ["음악", "영화", "여행", "요리"] : ["音楽", "映画", "旅行", "料理"])
-          : id === "2"
-          ? (language === "ko" ? ["사진", "커피", "독서", "패션"] : ["写真", "コーヒー", "読書", "ファッション"])
-          : (language === "ko" ? ["음악", "댄스", "언어 교환", "영화"] : ["音楽", "ダンス", "言語交換", "映画"]),
-        languageSkills: {
-          korean: id === "1" ? "beginner" : id === "2" ? "intermediate" : "beginner",
-          japanese: "native",
-          english: "intermediate"
+      // Japanese profiles
+      const japaneseProfiles = {
+        "1": {
+          id: "1",
+          name: "花子",
+          age: 28,
+          location: "東京",
+          photos: [
+            "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YXNpYW4lMjB3b21hbnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
+            "https://images.unsplash.com/photo-1554151228-14d9def656e4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fHBvcnRyYWl0JTIwYXNpYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
+            "https://images.unsplash.com/photo-1557555187-23d685287bc3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fHBvcnRyYWl0JTIwYXNpYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60"
+          ],
+          bio: "こんにちは！東京に住んでいる花子です。韓国の文化とK-Popに興味があります。特にBTSとBLACKPINKが好きです。韓国に数回旅行に行ったことがあり、いつかもっと長く滞在したいです。",
+          job: "デザイナー",
+          education: "bachelors",
+          interests: ["音楽", "映画", "旅行", "料理"],
+          languageSkills: {
+            korean: "beginner",
+            japanese: "native",
+            english: "intermediate"
+          },
+          verified: true,
+          nationality: "ja"
         },
-        verified: true,
+        "2": {
+          id: "2",
+          name: "ゆか",
+          age: 25,
+          location: "大阪",
+          photos: [
+            "https://images.unsplash.com/photo-1606406054219-619c4c2e2100?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGFzaWFuJTIwd29tYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
+            "https://images.unsplash.com/photo-1554151228-14d9def656e4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fHBvcnRyYWl0JTIwYXNpYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
+            "https://images.unsplash.com/photo-1557555187-23d685287bc3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fHBvcnRyYWl0JTIwYXNpYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60"
+          ],
+          bio: "大阪でカフェを経営しています。趣味は旅行と写真撮影です。韓国語を勉強中です！韓国のコーヒー文化が好きで、いつかソウルでもカフェをオープンしたいです。",
+          job: "カフェオーナー",
+          education: "bachelors",
+          interests: ["写真", "コーヒー", "読書", "ファッション"],
+          languageSkills: {
+            korean: "intermediate",
+            japanese: "native",
+            english: "intermediate"
+          },
+          verified: true,
+          nationality: "ja"
+        },
+        "3": {
+          id: "3",
+          name: "まい",
+          age: 27,
+          location: "福岡",
+          photos: [
+            "https://images.unsplash.com/photo-1609132718484-cc90df3417f8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8YXNpYW4lMjB3b21hbnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
+            "https://images.unsplash.com/photo-1554151228-14d9def656e4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fHBvcnRyYWl0JTIwYXNpYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
+            "https://images.unsplash.com/photo-1557555187-23d685287bc3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fHBvcnRyYWl0JTIwYXNpYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60"
+          ],
+          bio: "音楽を愛する教師です。韓国ドラマが好きで、韓国語を独学で勉強しています。最近はピアノを習い始めました。",
+          job: "教師",
+          education: "masters",
+          interests: ["音楽", "ダンス", "言語交換", "映画"],
+          languageSkills: {
+            korean: "beginner",
+            japanese: "native",
+            english: "intermediate"
+          },
+          verified: true,
+          nationality: "ja"
+        }
       };
-      setProfile(mockProfile);
+      
+      // Korean profiles
+      const koreanProfiles = {
+        "4": {
+          id: "4",
+          name: "민수",
+          age: 29,
+          location: "서울",
+          photos: [
+            "https://images.unsplash.com/photo-1566492031773-4f4e44671857?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8a29yZWFuJTIwbWFufGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60",
+            "https://images.unsplash.com/photo-1548142813-c348350df52b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8YXNpYW4lMjBtYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
+            "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8cG9ydHJhaXQlMjBtYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60"
+          ],
+          bio: "안녕하세요! 서울에 사는 민수입니다. 일본 문화와 음식에 관심이 많아요. 특히 일본 애니메이션과 라멘을 좋아합니다. 도쿄에 여행 가본 적이 있고 언젠가 일본에서 살고 싶어요.",
+          job: "프로그래머",
+          education: "masters",
+          interests: ["애니메이션", "음식", "여행", "기술"],
+          languageSkills: {
+            korean: "native",
+            japanese: "beginner",
+            english: "advanced"
+          },
+          verified: true,
+          nationality: "ko"
+        },
+        "5": {
+          id: "5",
+          name: "준호",
+          age: 27,
+          location: "부산",
+          photos: [
+            "https://images.unsplash.com/photo-1548142813-c348350df52b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8YXNpYW4lMjBtYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
+            "https://images.unsplash.com/photo-1566492031773-4f4e44671857?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8a29yZWFuJTIwbWFufGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60",
+            "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8cG9ydHJhaXQlMjBtYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60"
+          ],
+          bio: "부산에서 근무하는 의사입니다. 일본어 공부 중이며 일본 여행을 좋아해요! 오사카를 특히 좋아하고 일본 의료 시스템에 관심이 많습니다.",
+          job: "의사",
+          education: "phd",
+          interests: ["의학", "언어 학습", "요리", "등산"],
+          languageSkills: {
+            korean: "native",
+            japanese: "intermediate",
+            english: "advanced"
+          },
+          verified: true,
+          nationality: "ko"
+        }
+      };
+      
+      // Determine which profile to show based on ID and user language
+      let selectedProfile = null;
+      
+      if (id && language === 'ko') {
+        // Korean users see Japanese profiles (ids 1-3)
+        selectedProfile = japaneseProfiles[id];
+      } else if (id && language === 'ja') {
+        // Japanese users see Korean profiles (ids 4-5)
+        selectedProfile = koreanProfiles[id];
+      }
+      
+      setProfile(selectedProfile);
       setLoading(false);
     }, 1000);
   }, [id, language]);

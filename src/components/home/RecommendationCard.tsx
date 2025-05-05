@@ -1,3 +1,4 @@
+
 import { Heart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/useLanguage";
@@ -11,6 +12,7 @@ interface ProfileData {
   photo: string;
   bio: string;
   job: string;
+  nationality?: string;
 }
 
 interface RecommendationCardProps {
@@ -20,7 +22,7 @@ interface RecommendationCardProps {
 }
 
 export function RecommendationCard({ profile, onLike, onPass }: RecommendationCardProps) {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   
   return (
     <div className="pasar-card overflow-hidden max-w-lg w-full mx-auto h-[70vh] md:h-[500px] flex flex-col">

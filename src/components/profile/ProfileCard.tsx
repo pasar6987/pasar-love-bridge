@@ -1,3 +1,4 @@
+
 import { useLanguage } from "@/i18n/useLanguage";
 import { Badge } from "@/components/ui/badge";
 
@@ -13,6 +14,7 @@ interface ProfileData {
   interests: string[];
   languageSkills: Record<string, string>;
   verified: boolean;
+  nationality?: string;
 }
 
 interface ProfileCardProps {
@@ -20,8 +22,9 @@ interface ProfileCardProps {
 }
 
 export function ProfileCard({ profile }: ProfileCardProps) {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   
+  // Use language-specific labels but don't translate profile content
   const getEducationLabel = (edu: string): string => {
     if (language === "ko") {
       switch (edu) {
@@ -63,6 +66,16 @@ export function ProfileCard({ profile }: ProfileCardProps) {
       }
     }
   };
+  
+  // Labels for sections - these should be translated
+  const aboutLabel = language === "ko" ? "소개" : "自己紹介";
+  const detailsLabel = language === "ko" ? "정보" : "詳細";
+  const jobLabel = language === "ko" ? "직업" : "職業";
+  const educationLabel = language === "ko" ? "학력" : "学歴";
+  const languagesLabel = language === "ko" ? "언어" : "言語";
+  const interestsLabel = language === "ko" ? "관심사" : "興味";
+  const koreanLabel = language === "ko" ? "한국어:" : "韓国語:";
+  const japaneseLabel = language === "ko" ? "일본어:" : "日本語:";
   
   return (
     <div className="pasar-card max-w-2xl mx-auto">
@@ -108,16 +121,16 @@ export function ProfileCard({ profile }: ProfileCardProps) {
           
           <div className="mt-6 space-y-4">
             <div>
-              <h3 className="text-lg font-medium mb-2">{t("profile.about")}</h3>
+              <h3 className="text-lg font-medium mb-2">{aboutLabel}</h3>
               <p className="text-gray-700">{profile.bio}</p>
             </div>
             
             <div>
-              <h3 className="text-lg font-medium mb-2">{t("profile.details")}</h3>
+              <h3 className="text-lg font-medium mb-2">{detailsLabel}</h3>
               <dl className="divide-y divide-gray-100">
                 <div className="py-2 grid grid-cols-3 gap-4">
                   <dt className="text-sm font-medium text-gray-500">
-                    {t("onboarding.questions.job")}
+                    {jobLabel}
                   </dt>
                   <dd className="text-sm text-gray-700 col-span-2">
                     {profile.job}
@@ -126,7 +139,7 @@ export function ProfileCard({ profile }: ProfileCardProps) {
                 
                 <div className="py-2 grid grid-cols-3 gap-4">
                   <dt className="text-sm font-medium text-gray-500">
-                    {t("onboarding.questions.education")}
+                    {educationLabel}
                   </dt>
                   <dd className="text-sm text-gray-700 col-span-2">
                     {getEducationLabel(profile.education)}
@@ -135,19 +148,19 @@ export function ProfileCard({ profile }: ProfileCardProps) {
                 
                 <div className="py-2 grid grid-cols-3 gap-4">
                   <dt className="text-sm font-medium text-gray-500">
-                    {t("onboarding.questions.languages")}
+                    {languagesLabel}
                   </dt>
                   <dd className="text-sm text-gray-700 col-span-2">
                     <div className="space-y-1">
                       <div className="flex items-center">
                         <span className="w-20">
-                          {language === "ko" ? "한국어:" : "韓国語:"}
+                          {koreanLabel}
                         </span>
                         <span>{getLangProficiencyLabel(profile.languageSkills.korean)}</span>
                       </div>
                       <div className="flex items-center">
                         <span className="w-20">
-                          {language === "ko" ? "일본어:" : "日本語:"}
+                          {japaneseLabel}
                         </span>
                         <span>{getLangProficiencyLabel(profile.languageSkills.japanese)}</span>
                       </div>
@@ -158,7 +171,7 @@ export function ProfileCard({ profile }: ProfileCardProps) {
             </div>
             
             <div>
-              <h3 className="text-lg font-medium mb-2">{t("onboarding.questions.interests")}</h3>
+              <h3 className="text-lg font-medium mb-2">{interestsLabel}</h3>
               <div className="flex flex-wrap gap-2">
                 {profile.interests.map((interest) => (
                   <Badge key={interest} variant="secondary" className="bg-pastel-lavender/30 text-gray-700">
