@@ -1,4 +1,3 @@
-
 import { TranslationMap } from "./types";
 
 export const translations: TranslationMap = {
@@ -102,6 +101,10 @@ export const translations: TranslationMap = {
   "nav.back_to_home": {
     ko: "홈으로 돌아가기",
     ja: "ホームに戻る"
+  },
+  "nav.chat": {
+    ko: "채팅",
+    ja: "チャット"
   },
   
   // Onboarding

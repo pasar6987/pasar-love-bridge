@@ -32,15 +32,21 @@ const Index = () => {
             }
           }
           
-          // 로그인 여부에 따라 리다이렉션
-          if (user) {
-            navigate('/home');
-          } else {
-            navigate('/login');
+          // Only redirect on the landing page (/) 
+          // This fixes the issue where all page navigations redirect to home
+          if (window.location.pathname === '/') {
+            if (user) {
+              navigate('/home');
+            } else {
+              navigate('/login');
+            }
           }
         } catch (error) {
           console.error("리다이렉션 오류:", error);
-          navigate('/login');
+          // Only redirect on errors if we're on the landing page
+          if (window.location.pathname === '/') {
+            navigate('/login');
+          }
         } finally {
           setIsLoading(false);
         }

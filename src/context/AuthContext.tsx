@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -93,10 +92,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // 온보딩이 완료되지 않은 경우, 마지막 단계로 리디렉션
           const nextStep = userProfile.onboarding_step ? userProfile.onboarding_step : 1;
           navigate(`/onboarding/${nextStep}`);
-        } else {
-          // 온보딩이 완료된 경우 메인 페이지로 리디렉션
-          navigate('/home');
         }
+        // Remove the automatic redirection to home page to fix the issue
+        // Let the authentication flow continue without forced redirection
       }
     } catch (error) {
       console.error("Error checking user onboarding status:", error);
