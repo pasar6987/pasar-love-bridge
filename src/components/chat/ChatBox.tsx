@@ -47,7 +47,6 @@ export function ChatBox({ chatPartner, userId, matchId }: ChatBoxProps) {
               id: "1",
               senderId: chatPartner.id,
               content: language === "ko" ? "안녕하세요! 반가워요 :)" : "こんにちは！よろしくお願いします :)",
-              translatedContent: language === "ko" ? "こんにちは！よろしくお願いします :)" : "안녕하세요! 반가워요 :)",
               timestamp: new Date(Date.now() - 3600000).toISOString(),
               type: "user"
             }
@@ -170,41 +169,30 @@ export function ChatBox({ chatPartner, userId, matchId }: ChatBoxProps) {
     setTranslating(prev => ({ ...prev, [messageId]: true }));
     
     try {
-      // In production, this would call a real translation API
-      // For now, simulate translation with a delay
-      
-      // The target language depends on the current language
+      // Call the translation API
       const targetLanguage = language === "ko" ? "ja" : "ko";
       
-      const simulateTranslation = () => {
-        // Basic simulation of translation
-        let translatedText = "";
-        if (language === "ko") {
-          // Simulate Japanese translation
-          translatedText = "これは" + content.length + "文字のテキストの翻訳です。";
-        } else {
-          // Simulate Korean translation
-          translatedText = "이것은 " + content.length + "자의 텍스트 번역입니다.";
+      const { data, error } = await supabase.functions.invoke('translate', {
+        body: {
+          text: content,
+          sourceLanguage: language === "ko" ? "ko" : "ja",
+          targetLanguage: language === "ko" ? "ja" : "ko"
         }
-        
-        return translatedText;
-      };
+      });
       
-      setTimeout(() => {
-        const translatedText = simulateTranslation();
-        
-        // Update the message with translation
-        setMessages(prev => 
-          prev.map(msg => 
-            msg.id === messageId 
-              ? { ...msg, translatedContent: translatedText }
-              : msg
-          )
-        );
-        
-        setTranslating(prev => ({ ...prev, [messageId]: false }));
-        setShowTranslation(prev => ({ ...prev, [messageId]: true }));
-      }, 1000);
+      if (error) throw error;
+      
+      // Update the message with translation
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, translatedContent: data.translatedText }
+            : msg
+        )
+      );
+      
+      setTranslating(prev => ({ ...prev, [messageId]: false }));
+      setShowTranslation(prev => ({ ...prev, [messageId]: true }));
     } catch (error) {
       console.error("Translation error:", error);
       setTranslating(prev => ({ ...prev, [messageId]: false }));
@@ -236,11 +224,7 @@ export function ChatBox({ chatPartner, userId, matchId }: ChatBoxProps) {
             <div
               className={`rounded-2xl p-3 max-w-[70%] ${getMessageClasses(message)}`}
             >
-              <p>
-                {showTranslation[message.id] && message.translatedContent 
-                  ? message.translatedContent 
-                  : message.content}
-              </p>
+              <p>{message.content}</p>
               
               {/* Only show translate button for user messages from the other person */}
               {message.type === "user" && message.senderId !== userId && (
@@ -257,13 +241,20 @@ export function ChatBox({ chatPartner, userId, matchId }: ChatBoxProps) {
                 >
                   <Globe className="h-3 w-3 mr-1" />
                   {translating[message.id] 
-                    ? (language === "ko" ? "번역 중..." : "翻訳中...")
+                    ? t("chat.translating")
                     : message.translatedContent
                       ? (showTranslation[message.id] 
-                          ? (language === "ko" ? "원본 보기" : "原文を表示") 
-                          : (language === "ko" ? "번역 보기" : "翻訳を表示"))
-                      : (language === "ko" ? "번역하기" : "翻訳する")}
+                          ? t("chat.showOriginal")
+                          : t("chat.showTranslation"))
+                      : t("chat.translate")}
                 </button>
+              )}
+              
+              {/* Show translation below when needed */}
+              {message.translatedContent && showTranslation[message.id] && (
+                <div className="mt-2 pt-2 border-t border-gray-200 text-sm text-muted-foreground">
+                  {message.translatedContent}
+                </div>
               )}
             </div>
             <span className="text-xs text-muted-foreground mt-1 mx-2">

@@ -19,7 +19,7 @@ interface ChatPartner {
 
 export default function Chat() {
   const { id } = useParams<{ id?: string }>();
-  const { language } = useLanguage();
+  const { t, language } = useLanguage();
   const [chatPartners, setChatPartners] = useState<ChatPartner[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPartner, setSelectedPartner] = useState<ChatPartner | null>(null);
@@ -80,7 +80,7 @@ export default function Chat() {
         <div className="w-full md:w-1/3 border-r">
           <div className="p-4 border-b">
             <h2 className="font-semibold text-lg">
-              {language === "ko" ? "메시지" : "メッセージ"}
+              {t("chat.messages")}
             </h2>
           </div>
           
@@ -130,15 +130,13 @@ export default function Chat() {
           ) : (
             <div className="flex flex-col items-center justify-center h-64 p-4">
               <p className="text-center text-muted-foreground mb-4">
-                {language === "ko"
-                  ? "아직 대화 상대가 없습니다"
-                  : "まだチャット相手がいません"}
+                {t("chat.noPartners")}
               </p>
               <Link
                 to="/matches"
                 className="text-primary hover:underline text-sm"
               >
-                {language === "ko" ? "매치 확인하기" : "マッチを確認する"}
+                {t("chat.checkMatches")}
               </Link>
             </div>
           )}
@@ -172,12 +170,10 @@ export default function Chat() {
             <div className="flex flex-col items-center justify-center h-full p-4 bg-gray-50">
               <div className="text-center max-w-md">
                 <h3 className="text-lg font-medium mb-2">
-                  {language === "ko" ? "대화를 시작하세요" : "会話を始めましょう"}
+                  {t("chat.startConversation")}
                 </h3>
                 <p className="text-muted-foreground mb-4">
-                  {language === "ko"
-                    ? "왼쪽에서 대화 상대를 선택하거나, 새로운 매치를 만들어보세요"
-                    : "左側から会話の相手を選択するか、新しいマッチを作ってみましょう"}
+                  {t("chat.selectPartner")}
                 </p>
               </div>
             </div>
