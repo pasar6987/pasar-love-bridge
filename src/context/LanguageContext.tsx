@@ -202,23 +202,28 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   
+  // URL 경로에서 언어 코드 추출
+  const getLanguageFromPath = (): Language => {
+    if (location.pathname.startsWith("/ja")) {
+      return "ja";
+    }
+    return "ko"; // 기본값은 한국어
+  };
+  
   // Initialize language based on URL path or default to Korean
-  const initialLang = location.pathname.startsWith("/ja") ? "ja" : "ko";
-  const [language, setLanguageState] = useState<Language>(initialLang);
+  const [language, setLanguageState] = useState<Language>(getLanguageFromPath());
   
   // Function to update language and redirect to corresponding URL path
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     
-    // Update URL to reflect language change if not already on that language path
-    if (lang === "ko" && location.pathname.startsWith("/ja")) {
-      navigate(location.pathname.replace("/ja", "/ko"));
-    } else if (lang === "ja" && location.pathname.startsWith("/ko")) {
-      navigate(location.pathname.replace("/ko", "/ja"));
-    } else if (!location.pathname.startsWith("/ko") && !location.pathname.startsWith("/ja")) {
-      // If not on a language-specific path, redirect to the appropriate one
-      navigate(`/${lang}${location.pathname}`);
-    }
+    // 현재 URL에서 언어 코드 부분만 변경
+    const pathWithoutLang = location.pathname
+      .replace(/^\/ko/, '')
+      .replace(/^\/ja/, '') || '/';
+    
+    // 새 URL로 이동
+    navigate(`/${lang}${pathWithoutLang}`);
   };
   
   // Translation function

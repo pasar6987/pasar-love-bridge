@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { ProgressBar } from "@/components/onboarding/ProgressBar";
 import { PhotoUpload } from "@/components/onboarding/PhotoUpload";
@@ -13,10 +13,11 @@ import { useLanguage } from "@/context/LanguageContext";
 
 const Onboarding = () => {
   const { step } = useParams<{ step: string }>();
+  const navigate = useNavigate();
   const currentStep = parseInt(step || "1", 10);
-  const { user } = useAuth(); // 여전히 user 정보는 사용하지만 리디렉션은 제거
+  const { user } = useAuth();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [isUpdating, setIsUpdating] = useState(false);
   
   const TOTAL_STEPS = 4;
@@ -40,9 +41,9 @@ const Onboarding = () => {
       
       // 로그인 상태와 관계없이 다음 단계로 이동
       if (nextStep > TOTAL_STEPS) {
-        window.location.href = "/home";
+        window.location.href = `/${language}/home`;
       } else {
-        window.location.href = `/onboarding/${nextStep}`;
+        window.location.href = `/${language}/onboarding/${nextStep}`;
       }
       
     } catch (error) {

@@ -21,7 +21,7 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          <Link to="/" className="flex items-center">
+          <Link to={`/${language}`} className="flex items-center">
             <Heart className="h-6 w-6 text-pastel-pink mr-2" />
             <span className="text-xl font-bold font-hand">
               {t('app.name')}
@@ -29,13 +29,13 @@ export function Header() {
           </Link>
 
           <nav className="hidden md:flex space-x-8 items-center">
-            <Link to="/home" className="text-gray-700 hover:text-primary transition-colors">
+            <Link to={`/${language}/home`} className="text-gray-700 hover:text-primary transition-colors">
               {t('nav.home')}
             </Link>
-            <Link to="/matches" className="text-gray-700 hover:text-primary transition-colors">
+            <Link to={`/${language}/matches`} className="text-gray-700 hover:text-primary transition-colors">
               {t('nav.matches')}
             </Link>
-            <Link to="/chat" className="text-gray-700 hover:text-primary transition-colors">
+            <Link to={`/${language}/chat`} className="text-gray-700 hover:text-primary transition-colors">
               {t('nav.chat')}
             </Link>
           </nav>
@@ -78,14 +78,14 @@ export function Header() {
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="justify-center cursor-pointer">
-                  <Link to="/notifications" className="text-sm text-primary">
+                  <Link to={`/${language}/notifications`} className="text-sm text-primary">
                     모든 알림 보기
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link to="/profile">
+            <Link to={`/${language}/profile`}>
               <div className="h-10 w-10 rounded-full bg-pastel-lavender flex items-center justify-center">
                 <User className="h-5 w-5" />
               </div>
