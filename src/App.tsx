@@ -19,6 +19,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import UserProfile from "./pages/UserProfile";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,9 @@ const App = () => (
               
               {/* 설정 페이지 */}
               <Route path="/settings" element={<Settings />} />
+              
+              {/* 관리자 페이지 */}
+              <Route path="/admin" element={<Admin />} />
               
               {/* 404 페이지 */}
               <Route path="*" element={<NotFound />} />

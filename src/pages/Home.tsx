@@ -2,104 +2,140 @@
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
-import { RecommendationCard } from "@/components/home/RecommendationCard";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Heart } from "lucide-react";
+import { ProfileGrid } from "@/components/home/ProfileGrid";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const { t, language } = useLanguage();
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  // Filter profiles based on user's language
+  // Filter profiles based on user's nationality
   useEffect(() => {
-    setTimeout(() => {
-      // For Korean users, show only Japanese profiles
-      // For Japanese users, show only Korean profiles
-      const mockData = [
-        {
-          id: "1",
-          name: "花子",
-          age: 28,
-          location: "東京",
-          photo: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YXNpYW4lMjB3b21hbnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
-          bio: "こんにちは！東京に住んでいる花子です。韓国の文化とK-Popに興味があります。",
-          job: "デザイナー",
-          nationality: "ja",
-        },
-        {
-          id: "2",
-          name: "ゆか",
-          age: 25,
-          location: "大阪",
-          photo: "https://images.unsplash.com/photo-1606406054219-619c4c2e2100?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGFzaWFuJTIwd29tYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
-          bio: "大阪でカフェを経営しています。趣味は旅行と写真撮影です。韓国語を勉強中です！",
-          job: "カフェオーナー",
-          nationality: "ja",
-        },
-        {
-          id: "3",
-          name: "まい",
-          age: 27,
-          location: "福岡",
-          photo: "https://images.unsplash.com/photo-1609132718484-cc90df3417f8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8YXNpYW4lMjB3b21hbnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
-          bio: "音楽を愛する教師です。韓国ドラマが好きで、韓国語を独学で勉強しています。",
-          job: "教師",
-          nationality: "ja",
-        },
-        {
-          id: "4",
-          name: "민수",
-          age: 29,
-          location: "서울",
-          photo: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8a29yZWFuJTIwbWFufGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60",
-          bio: "안녕하세요! 서울에 사는 민수입니다. 일본 문화와 음식에 관심이 많아요.",
-          job: "프로그래머",
-          nationality: "ko",
-        },
-        {
-          id: "5",
-          name: "준호",
-          age: 27,
-          location: "부산",
-          photo: "https://images.unsplash.com/photo-1548142813-c348350df52b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8YXNpYW4lMjBtYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
-          bio: "부산에서 근무하는 의사입니다. 일본어 공부 중이며 일본 여행을 좋아해요!",
-          job: "의사",
-          nationality: "ko",
+    const fetchProfiles = async () => {
+      setLoading(true);
+      
+      try {
+        // Get user's nationality
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          navigate('/login');
+          return;
         }
-      ];
+        
+        const { data: userNationalityData } = await supabase
+          .from('user_nationalities')
+          .select('nationality')
+          .eq('user_id', user.id)
+          .single();
+          
+        const userNationality = userNationalityData?.nationality || language === 'ko' ? 'ko' : 'ja';
+        
+        // For demo, use mock data filtered by opposite nationality
+        setTimeout(() => {
+          const mockData = [
+            {
+              id: "1",
+              name: "花子",
+              age: 28,
+              location: "東京",
+              photo: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YXNpYW4lMjB3b21hbnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
+              bio: "こんにちは！東京に住んでいる花子です。韓国の文化とK-Popに興味があります。",
+              job: "デザイナー",
+              nationality: "ja",
+            },
+            {
+              id: "2",
+              name: "ゆか",
+              age: 25,
+              location: "大阪",
+              photo: "https://images.unsplash.com/photo-1606406054219-619c4c2e2100?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGFzaWFuJTIwd29tYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
+              bio: "大阪でカフェを経営しています。趣味は旅行と写真撮影です。韓国語を勉強中です！",
+              job: "カフェオーナー",
+              nationality: "ja",
+            },
+            {
+              id: "3",
+              name: "まい",
+              age: 27,
+              location: "福岡",
+              photo: "https://images.unsplash.com/photo-1609132718484-cc90df3417f8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8YXNpYW4lMjB3b21hbnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
+              bio: "音楽を愛する教師です。韓国ドラマが好きで、韓国語を独学で勉強しています。",
+              job: "教師",
+              nationality: "ja",
+            },
+            {
+              id: "4",
+              name: "민수",
+              age: 29,
+              location: "서울",
+              photo: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8a29yZWFuJTIwbWFufGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60",
+              bio: "안녕하세요! 서울에 사는 민수입니다. 일본 문화와 음식에 관심이 많아요.",
+              job: "프로그래머",
+              nationality: "ko",
+            },
+            {
+              id: "5",
+              name: "준호",
+              age: 27,
+              location: "부산",
+              photo: "https://images.unsplash.com/photo-1548142813-c348350df52b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8YXNpYW4lMjBtYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
+              bio: "부산에서 근무하는 의사입니다. 일본어 공부 중이며 일본 여행을 좋아해요!",
+              job: "의사",
+              nationality: "ko",
+            }
+          ];
 
-      // Filter based on user language
-      let filteredData;
-      if (language === 'ko') {
-        // Korean users see Japanese profiles only
-        filteredData = mockData.filter(profile => profile.nationality === 'ja');
-      } else {
-        // Japanese users see Korean profiles only
-        filteredData = mockData.filter(profile => profile.nationality === 'ko');
+          // Filter based on user nationality
+          let filteredData;
+          if (userNationality === 'ko') {
+            // Korean users see Japanese profiles only
+            filteredData = mockData.filter(profile => profile.nationality === 'ja');
+          } else {
+            // Japanese users see Korean profiles only
+            filteredData = mockData.filter(profile => profile.nationality === 'ko');
+          }
+          
+          setRecommendations(filteredData);
+          setLoading(false);
+        }, 1000);
+      } catch (error) {
+        console.error('Error fetching profiles:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchProfiles();
+  }, [language, navigate]);
+
+  const handleLike = async (id: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        navigate('/login');
+        return;
       }
       
-      setRecommendations(filteredData);
-      setLoading(false);
-    }, 1000);
-  }, [language]);
-
-  const handleLike = (id: string) => {
-    if (currentIndex < recommendations.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      // No more recommendations
-    }
-  };
-
-  const handlePass = (id: string) => {
-    if (currentIndex < recommendations.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      // No more recommendations
+      // In a real app, we would insert into the matches table
+      // Here we're just simulating it
+      console.log(`User ${user.id} liked profile ${id}`);
+      
+      // For demo purposes, we'll remove the liked profile from recommendations
+      setRecommendations(prev => prev.filter(profile => profile.id !== id));
+    } catch (error) {
+      console.error('Error handling like:', error);
+      toast({
+        title: t("common.error"),
+        description: t("common.tryAgain"),
+        variant: "destructive"
+      });
     }
   };
 
@@ -111,15 +147,11 @@ export default function Home() {
         </h1>
 
         {loading ? (
-          <div className="flex justify-center items-center h-[500px]">
+          <div className="flex justify-center items-center h-[300px]">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
-        ) : currentIndex < recommendations.length ? (
-          <RecommendationCard
-            profile={recommendations[currentIndex]}
-            onLike={handleLike}
-            onPass={handlePass}
-          />
+        ) : recommendations.length > 0 ? (
+          <ProfileGrid profiles={recommendations} onLike={handleLike} />
         ) : (
           <div className="pasar-card max-w-lg mx-auto p-8 text-center">
             <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-pastel-pink/20 flex items-center justify-center">
@@ -145,7 +177,7 @@ export default function Home() {
               </Button>
               <Button
                 className="pasar-btn"
-                onClick={() => navigate("/profile")}
+                onClick={() => navigate("/mypage")}
               >
                 {t("nav.profile")}
               </Button>

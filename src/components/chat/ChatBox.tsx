@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/i18n/useLanguage";
 import { Send, Lightbulb, Globe } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
@@ -21,32 +22,45 @@ interface ChatBoxProps {
     photo: string;
   };
   userId: string;
+  matchId?: string;
 }
 
-export function ChatBox({ chatPartner, userId }: ChatBoxProps) {
+export function ChatBox({ chatPartner, userId, matchId }: ChatBoxProps) {
   const { t, language } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [translating, setTranslating] = useState<Record<string, boolean>>({});
   const [showTranslation, setShowTranslation] = useState<Record<string, boolean>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Sample messages
+  // Load messages from database
   useEffect(() => {
-    // Simulating loading messages
-    setTimeout(() => {
-      const initialMessages: Message[] = [
-        {
-          id: "1",
-          senderId: chatPartner.id,
-          content: language === "ko" ? "안녕하세요! 반가워요 :)" : "こんにちは！よろしくお願いします :)",
-          translatedContent: language === "ko" ? "こんにちは！よろしくお願いします :)" : "안녕하세요! 반가워요 :)",
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-          type: "user"
-        }
-      ];
-      setMessages(initialMessages);
-    }, 500);
-  }, [chatPartner.id, language]);
+    const loadMessages = async () => {
+      if (!matchId) return;
+      
+      try {
+        // For now, use mock data
+        // In production, this would fetch from the chat_messages table
+        setTimeout(() => {
+          const initialMessages: Message[] = [
+            {
+              id: "1",
+              senderId: chatPartner.id,
+              content: language === "ko" ? "안녕하세요! 반가워요 :)" : "こんにちは！よろしくお願いします :)",
+              translatedContent: language === "ko" ? "こんにちは！よろしくお願いします :)" : "안녕하세요! 반가워요 :)",
+              timestamp: new Date(Date.now() - 3600000).toISOString(),
+              type: "user"
+            }
+          ];
+          setMessages(initialMessages);
+        }, 500);
+      } catch (error) {
+        console.error("Error loading messages:", error);
+      }
+    };
+    
+    loadMessages();
+  }, [chatPartner.id, language, matchId]);
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -56,7 +70,7 @@ export function ChatBox({ chatPartner, userId }: ChatBoxProps) {
     scrollToBottom();
   }, [messages]);
   
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
     
@@ -71,23 +85,34 @@ export function ChatBox({ chatPartner, userId }: ChatBoxProps) {
     setMessages([...messages, newMsg]);
     setNewMessage("");
     
-    // Simulate a response
-    setTimeout(() => {
-      const responseMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        senderId: chatPartner.id,
-        content: language === "ko" 
-          ? "네, 저도 반가워요! 취미가 뭐예요?" 
-          : "はい、私も嬉しいです！趣味は何ですか？",
-        translatedContent: language === "ko" 
-          ? "はい、私も嬉しいです！趣味は何ですか？" 
-          : "네, 저도 반가워요! 취미가 뭐예요?",
-        timestamp: new Date().toISOString(),
-        type: "user"
-      };
+    try {
+      if (matchId) {
+        // In production, this would insert into the chat_messages table
+        console.log("Sending message to database:", {
+          match_id: matchId,
+          sender_id: userId,
+          content: newMessage
+        });
+      }
       
-      setMessages(prev => [...prev, responseMsg]);
-    }, 2000);
+      // Simulate a response
+      setTimeout(() => {
+        const responseMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          senderId: chatPartner.id,
+          content: language === "ko" 
+            ? "네, 저도 반가워요! 취미가 뭐예요?" 
+            : "はい、私も嬉しいです！趣味は何ですか？",
+          translatedContent: null, // Will be populated on demand
+          timestamp: new Date().toISOString(),
+          type: "user"
+        };
+        
+        setMessages(prev => [...prev, responseMsg]);
+      }, 2000);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
   };
   
   const formatMessageTime = (timestamp: string) => {
@@ -141,6 +166,51 @@ export function ChatBox({ chatPartner, userId }: ChatBoxProps) {
     setMessages([...messages, topicMsg]);
   };
   
+  const handleTranslate = async (messageId: string, content: string) => {
+    setTranslating(prev => ({ ...prev, [messageId]: true }));
+    
+    try {
+      // In production, this would call a real translation API
+      // For now, simulate translation with a delay
+      
+      // The target language depends on the current language
+      const targetLanguage = language === "ko" ? "ja" : "ko";
+      
+      const simulateTranslation = () => {
+        // Basic simulation of translation
+        let translatedText = "";
+        if (language === "ko") {
+          // Simulate Japanese translation
+          translatedText = "これは" + content.length + "文字のテキストの翻訳です。";
+        } else {
+          // Simulate Korean translation
+          translatedText = "이것은 " + content.length + "자의 텍스트 번역입니다.";
+        }
+        
+        return translatedText;
+      };
+      
+      setTimeout(() => {
+        const translatedText = simulateTranslation();
+        
+        // Update the message with translation
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === messageId 
+              ? { ...msg, translatedContent: translatedText }
+              : msg
+          )
+        );
+        
+        setTranslating(prev => ({ ...prev, [messageId]: false }));
+        setShowTranslation(prev => ({ ...prev, [messageId]: true }));
+      }, 1000);
+    } catch (error) {
+      console.error("Translation error:", error);
+      setTranslating(prev => ({ ...prev, [messageId]: false }));
+    }
+  };
+  
   const toggleTranslation = (messageId: string) => {
     setShowTranslation(prev => ({
       ...prev,
@@ -166,17 +236,33 @@ export function ChatBox({ chatPartner, userId }: ChatBoxProps) {
             <div
               className={`rounded-2xl p-3 max-w-[70%] ${getMessageClasses(message)}`}
             >
-              <p>{showTranslation[message.id] && message.translatedContent ? message.translatedContent : message.content}</p>
+              <p>
+                {showTranslation[message.id] && message.translatedContent 
+                  ? message.translatedContent 
+                  : message.content}
+              </p>
               
-              {message.translatedContent && message.type === "user" && (
+              {/* Only show translate button for user messages from the other person */}
+              {message.type === "user" && message.senderId !== userId && (
                 <button
-                  onClick={() => toggleTranslation(message.id)}
-                  className="text-xs opacity-70 hover:opacity-100 mt-1 flex items-center"
+                  onClick={() => {
+                    if (message.translatedContent) {
+                      toggleTranslation(message.id);
+                    } else {
+                      handleTranslate(message.id, message.content);
+                    }
+                  }}
+                  className="text-xs opacity-70 hover:opacity-100 mt-1 flex items-center justify-end ml-auto"
+                  disabled={translating[message.id]}
                 >
                   <Globe className="h-3 w-3 mr-1" />
-                  {showTranslation[message.id] 
-                    ? (language === "ko" ? "원본 보기" : "原文を表示") 
-                    : (language === "ko" ? "번역 보기" : "翻訳を表示")}
+                  {translating[message.id] 
+                    ? (language === "ko" ? "번역 중..." : "翻訳中...")
+                    : message.translatedContent
+                      ? (showTranslation[message.id] 
+                          ? (language === "ko" ? "원본 보기" : "原文を表示") 
+                          : (language === "ko" ? "번역 보기" : "翻訳を表示"))
+                      : (language === "ko" ? "번역하기" : "翻訳する")}
                 </button>
               )}
             </div>

@@ -9,6 +9,65 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_icebreaker: boolean | null
+          match_id: string
+          read_at: string | null
+          sender_id: string
+          translated_content: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_icebreaker?: boolean | null
+          match_id: string
+          read_at?: string | null
+          sender_id: string
+          translated_content?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_icebreaker?: boolean | null
+          match_id?: string
+          read_at?: string | null
+          sender_id?: string
+          translated_content?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       identity_verifications: {
         Row: {
           country_code: string | null
@@ -82,6 +141,66 @@ export type Database = {
           },
         ]
       }
+      matches: {
+        Row: {
+          created_at: string
+          id: string
+          status: string
+          target_user_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status: string
+          target_user_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string
+          target_user_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_read: boolean | null
+          related_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          related_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          related_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profile_photos: {
         Row: {
           id: string
@@ -140,6 +259,27 @@ export type Database = {
           },
         ]
       }
+      user_nationalities: {
+        Row: {
+          created_at: string
+          id: string
+          nationality: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nationality: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nationality?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           bio: string | null
@@ -185,6 +325,39 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_requests: {
+        Row: {
+          created_at: string
+          id: string
+          photo_url: string
+          rejection_reason: string | null
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          photo_url: string
+          rejection_reason?: string | null
+          status: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          photo_url?: string
+          rejection_reason?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -221,6 +394,10 @@ export type Database = {
           url: string
           user_id: string | null
         }
+      }
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
       }
       update_user_onboarding_step: {
         Args: { user_id: string; step_number: number; is_completed?: boolean }

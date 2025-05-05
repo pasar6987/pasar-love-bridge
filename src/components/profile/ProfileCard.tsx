@@ -24,49 +24,6 @@ interface ProfileCardProps {
 export function ProfileCard({ profile }: ProfileCardProps) {
   const { language } = useLanguage();
   
-  // Use language-specific labels but don't translate profile content
-  const getEducationLabel = (edu: string): string => {
-    if (language === "ko") {
-      switch (edu) {
-        case "high_school": return "고등학교 졸업";
-        case "bachelors": return "학사";
-        case "masters": return "석사";
-        case "phd": return "박사";
-        default: return edu;
-      }
-    } else {
-      switch (edu) {
-        case "high_school": return "高校卒業";
-        case "bachelors": return "学士";
-        case "masters": return "修士";
-        case "phd": return "博士";
-        default: return edu;
-      }
-    }
-  };
-  
-  const getLangProficiencyLabel = (level: string): string => {
-    if (language === "ko") {
-      switch (level) {
-        case "none": return "못함";
-        case "beginner": return "초급";
-        case "intermediate": return "중급";
-        case "advanced": return "고급";
-        case "native": return "원어민";
-        default: return level;
-      }
-    } else {
-      switch (level) {
-        case "none": return "できない";
-        case "beginner": return "初級";
-        case "intermediate": return "中級";
-        case "advanced": return "上級";
-        case "native": return "ネイティブ";
-        default: return level;
-      }
-    }
-  };
-  
   // Labels for sections - these should be translated
   const aboutLabel = language === "ko" ? "소개" : "自己紹介";
   const detailsLabel = language === "ko" ? "정보" : "詳細";
@@ -76,6 +33,17 @@ export function ProfileCard({ profile }: ProfileCardProps) {
   const interestsLabel = language === "ko" ? "관심사" : "興味";
   const koreanLabel = language === "ko" ? "한국어:" : "韓国語:";
   const japaneseLabel = language === "ko" ? "일본어:" : "日本語:";
+  
+  // Do not translate content - only UI elements
+  const getEducationLabel = (edu: string): string => {
+    // No translation toggle for profile content
+    return edu;
+  };
+  
+  const getLangProficiencyLabel = (level: string): string => {
+    // No translation toggle for profile content
+    return level;
+  };
   
   return (
     <div className="pasar-card max-w-2xl mx-auto">

@@ -5,6 +5,7 @@ import { useLanguage } from "@/i18n/useLanguage";
 import { ChatBox } from "@/components/chat/ChatBox";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ChatPartner {
   id: string;
@@ -13,6 +14,7 @@ interface ChatPartner {
   lastMessage: string;
   lastMessageTime: string;
   unread: number;
+  matchId?: string;
 }
 
 export default function Chat() {
@@ -21,35 +23,50 @@ export default function Chat() {
   const [chatPartners, setChatPartners] = useState<ChatPartner[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPartner, setSelectedPartner] = useState<ChatPartner | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string>("user123"); // Default mock ID
   
-  // Mock user ID
-  const currentUserId = "user123";
-
-  // Mock data
+  // Load user info and chat partners
   useEffect(() => {
-    setTimeout(() => {
-      const mockChatPartners: ChatPartner[] = [
-        {
-          id: "2",
-          name: language === "ko" ? "유카" : "ゆか",
-          photo: "https://images.unsplash.com/photo-1606406054219-619c4c2e2100?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGFzaWFuJTIwd29tYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
-          lastMessage: language === "ko" ? "안녕하세요! 반가워요 :)" : "こんにちは！よろしくお願いします :)",
-          lastMessageTime: "14:30",
-          unread: 0
+    const loadUserAndChats = async () => {
+      try {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          setCurrentUserId(user.id);
         }
-      ];
-      
-      setChatPartners(mockChatPartners);
-      
-      if (id) {
-        const partner = mockChatPartners.find(p => p.id === id);
-        if (partner) {
-          setSelectedPartner(partner);
+        
+        // For now use mock data
+        // In production, this would fetch from the matches and chat_messages tables
+        const mockChatPartners: ChatPartner[] = [
+          {
+            id: "2",
+            name: language === "ko" ? "유카" : "ゆか",
+            photo: "https://images.unsplash.com/photo-1606406054219-619c4c2e2100?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGFzaWFuJTIwd29tYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
+            lastMessage: language === "ko" ? "안녕하세요! 반가워요 :)" : "こんにちは！よろしくお願いします :)",
+            lastMessageTime: "14:30",
+            unread: 0,
+            matchId: "match123"
+          }
+        ];
+        
+        setChatPartners(mockChatPartners);
+        
+        if (id) {
+          const partner = mockChatPartners.find(p => p.id === id);
+          if (partner) {
+            setSelectedPartner(partner);
+          }
         }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error("Error loading chats:", error);
+        setLoading(false);
       }
-      
-      setLoading(false);
-    }, 1000);
+    };
+    
+    loadUserAndChats();
   }, [id, language]);
 
   const formatTimeRelative = (timeString: string) => {
@@ -144,7 +161,11 @@ export default function Chat() {
               </div>
               
               <div className="flex-grow overflow-hidden">
-                <ChatBox chatPartner={selectedPartner} userId={currentUserId} />
+                <ChatBox 
+                  chatPartner={selectedPartner} 
+                  userId={currentUserId} 
+                  matchId={selectedPartner.matchId}
+                />
               </div>
             </div>
           ) : (
