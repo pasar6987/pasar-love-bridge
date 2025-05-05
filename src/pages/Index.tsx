@@ -3,11 +3,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { determineBestLanguage } from "@/utils/ipLanguageDetection";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/i18n/useLanguage";
 
 const Index = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const { setLanguage } = useLanguage();
 
   useEffect(() => {
     const redirectUser = async () => {
@@ -25,10 +27,13 @@ const Index = () => {
             try {
               const detectedLang = await determineBestLanguage();
               localStorage.setItem('user_selected_language', detectedLang);
+              setLanguage(detectedLang);
+              console.log('랜딩 페이지에서 감지된 언어:', detectedLang);
             } catch (error) {
               console.error("언어 감지 오류:", error);
               // 오류 시 기본값 한국어로 설정
               localStorage.setItem('user_selected_language', 'ko');
+              setLanguage('ko');
             }
           }
           
@@ -57,7 +62,7 @@ const Index = () => {
     };
 
     redirectUser();
-  }, [navigate, user]);
+  }, [navigate, user, setLanguage]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-pastel-pink/10 to-pastel-lavender/20">

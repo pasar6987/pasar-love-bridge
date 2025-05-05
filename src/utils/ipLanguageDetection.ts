@@ -44,7 +44,8 @@ export const detectLanguageFromIP = async (): Promise<Language> => {
     }
     
     // 국가 코드에 따라 언어 결정
-    const detectedLanguage = countryToLanguageMap[ipInfo.country] || 'ko'; // 기본값은 한국어
+    // 일본어를 우선시하여 감지 (일본이면 일본어, 그 외는 한국어)
+    const detectedLanguage = ipInfo.country === 'JP' ? 'ja' : 'ko';
     
     console.log(`IP 기반 감지된 국가: ${ipInfo.country}, 언어: ${detectedLanguage}`);
     return detectedLanguage;
