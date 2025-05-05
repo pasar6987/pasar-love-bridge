@@ -18,6 +18,7 @@ import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
+import UserProfile from "./pages/UserProfile";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,11 @@ const App = () => (
               <Route path="/ko/profile/:id" element={<ProfileDetail />} />
               <Route path="/ja/profile/:id" element={<ProfileDetail />} />
               <Route path="/profile/:id" element={<Navigate to="/ko/profile/:id" replace />} />
+              
+              {/* 유저 프로필 페이지 (마이페이지) */}
+              <Route path="/ko/mypage" element={<UserProfile />} />
+              <Route path="/ja/mypage" element={<UserProfile />} />
+              <Route path="/mypage" element={<Navigate to="/ko/mypage" replace />} />
               
               {/* 매치 페이지 */}
               <Route path="/ko/matches" element={<MatchRequests />} />

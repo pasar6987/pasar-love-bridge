@@ -87,6 +87,10 @@ export const translations: TranslationMap = {
     ko: "설정",
     ja: "設定"
   },
+  "nav.mypage": {
+    ko: "마이페이지",
+    ja: "マイページ"
+  },
   
   // Onboarding
   "onboarding.step": {
@@ -180,6 +184,26 @@ export const translations: TranslationMap = {
   "profile.details": {
     ko: "상세 정보",
     ja: "詳細情報"
+  },
+  "profile.mypage": {
+    ko: "마이페이지",
+    ja: "マイページ"
+  },
+  "profile.basic_info": {
+    ko: "기본 정보",
+    ja: "基本情報"
+  },
+  "profile.email": {
+    ko: "이메일",
+    ja: "メールアドレス"
+  },
+  "profile.join_date": {
+    ko: "가입일",
+    ja: "登録日"
+  },
+  "profile.logout_in_progress": {
+    ko: "로그아웃 중...",
+    ja: "ログアウト中..."
   },
   
   // Actions

@@ -83,7 +83,7 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link to={`/${language}/profile`}>
+            <Link to={`/${language}/mypage`}>
               <div className="h-10 w-10 rounded-full bg-pastel-lavender flex items-center justify-center">
                 <User className="h-5 w-5" />
               </div>

@@ -41,13 +41,13 @@ export function MobileNav() {
           }`}
         >
           <MessageSquare className="h-5 w-5" />
-          <span className="text-xs mt-1">{t("nav.chat")}</span>
+          <span className="text-xs mt-1">{t("nav.messages")}</span>
         </Link>
         
         <Link
-          to={`/${language}/profile`}
+          to={`/${language}/mypage`}
           className={`flex flex-col items-center justify-center w-full h-full ${
-            isActive("/profile") ? "text-primary" : "text-gray-500"
+            isActive("/mypage") || isActive("/profile") ? "text-primary" : "text-gray-500"
           }`}
         >
           <User className="h-5 w-5" />
