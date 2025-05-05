@@ -1,6 +1,5 @@
 
 import { createContext, useState, ReactNode, useEffect } from "react";
-import { useLocation } from "react-router-dom";
 import { translations } from "./translations";
 import { Language, LanguageContextProps } from "./types";
 import { determineBestLanguage } from "@/utils/ipLanguageDetection";
@@ -8,8 +7,6 @@ import { determineBestLanguage } from "@/utils/ipLanguageDetection";
 export const LanguageContext = createContext<LanguageContextProps | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const location = useLocation();
-  
   // 초기 언어 설정 - 로컬 스토리지에서 가져오거나 기본값으로 한국어 사용
   const getInitialLanguage = (): Language => {
     const savedLanguage = localStorage.getItem('user_selected_language') as Language | null;
@@ -19,7 +16,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(getInitialLanguage());
 
   useEffect(() => {
-    // URL 파라미터가 있을 때만 언어 감지 시도 (최초 로딩 시)
+    // 언어 감지 시도 (최초 로딩 시)
     const detectLanguage = async () => {
       if (!localStorage.getItem('user_selected_language')) {
         try {
@@ -28,6 +25,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
           localStorage.setItem('user_selected_language', detectedLang);
         } catch (error) {
           console.error('언어 감지 오류:', error);
+          // 오류 시 기본값 한국어로 설정
+          setLanguageState('ko');
+          localStorage.setItem('user_selected_language', 'ko');
         }
       }
     };

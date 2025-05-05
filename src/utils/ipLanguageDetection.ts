@@ -37,13 +37,6 @@ const getIPInfo = async (): Promise<IPInfo | null> => {
 // IP 기반으로 언어를 감지하는 함수
 export const detectLanguageFromIP = async (): Promise<Language> => {
   try {
-    // 먼저 로컬 스토리지에서 이전에 감지된 언어 확인
-    const savedLanguage = localStorage.getItem('detected_language') as Language | null;
-    if (savedLanguage && (savedLanguage === 'ko' || savedLanguage === 'ja')) {
-      console.log('로컬 스토리지에서 감지된 언어:', savedLanguage);
-      return savedLanguage;
-    }
-    
     // IP 정보 가져오기
     const ipInfo = await getIPInfo();
     if (!ipInfo) {
@@ -52,9 +45,6 @@ export const detectLanguageFromIP = async (): Promise<Language> => {
     
     // 국가 코드에 따라 언어 결정
     const detectedLanguage = countryToLanguageMap[ipInfo.country] || 'ko'; // 기본값은 한국어
-    
-    // 감지된 언어를 로컬 스토리지에 저장
-    localStorage.setItem('detected_language', detectedLanguage);
     
     console.log(`IP 기반 감지된 국가: ${ipInfo.country}, 언어: ${detectedLanguage}`);
     return detectedLanguage;
@@ -73,11 +63,8 @@ export const detectLanguageFromBrowser = (): Language => {
     return 'ja';
   }
   
-  if (browserLang.startsWith('ko')) {
-    return 'ko';
-  }
-  
-  return 'ko'; // 기본값은 한국어
+  // 기본값은 한국어
+  return 'ko';
 };
 
 // 가장 적합한 언어를 결정하는 함수

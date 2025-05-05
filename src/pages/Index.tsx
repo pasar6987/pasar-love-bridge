@@ -1,7 +1,6 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { determineBestLanguage } from "@/utils/ipLanguageDetection";
 import { useAuth } from "@/context/AuthContext";
 
@@ -21,6 +20,18 @@ const Index = () => {
                             
       if (!hasAuthParams) {
         try {
+          // 언어 감지 수행
+          if (!localStorage.getItem('user_selected_language')) {
+            try {
+              const detectedLang = await determineBestLanguage();
+              localStorage.setItem('user_selected_language', detectedLang);
+            } catch (error) {
+              console.error("언어 감지 오류:", error);
+              // 오류 시 기본값 한국어로 설정
+              localStorage.setItem('user_selected_language', 'ko');
+            }
+          }
+          
           // 로그인 여부에 따라 리다이렉션
           if (user) {
             navigate('/home');
@@ -39,21 +50,7 @@ const Index = () => {
       }
     };
 
-    // 언어 감지 후 사용자 상태 확인
-    const detectAndRedirect = async () => {
-      if (!localStorage.getItem('user_selected_language')) {
-        try {
-          const detectedLang = await determineBestLanguage();
-          localStorage.setItem('user_selected_language', detectedLang);
-        } catch (error) {
-          console.error("언어 감지 오류:", error);
-        }
-      }
-      
-      redirectUser();
-    };
-
-    detectAndRedirect();
+    redirectUser();
   }, [navigate, user]);
 
   return (

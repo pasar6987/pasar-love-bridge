@@ -17,7 +17,7 @@ const Onboarding = () => {
   const currentStep = parseInt(step || "1", 10);
   const { user } = useAuth();
   const { toast } = useToast();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [isUpdating, setIsUpdating] = useState(false);
   
   const TOTAL_STEPS = 4;
@@ -42,9 +42,11 @@ const Onboarding = () => {
       
       // 로그인 상태와 관계없이 다음 단계로 이동
       if (nextStep > TOTAL_STEPS) {
-        window.location.href = `/${language}/home`;
+        // 온보딩 완료 후 홈으로 이동
+        navigate('/home');
       } else {
-        window.location.href = `/${language}/onboarding/${nextStep}`;
+        // 다음 온보딩 단계로 이동
+        navigate(`/onboarding/${nextStep}`);
       }
       
     } catch (error) {
