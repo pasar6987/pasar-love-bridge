@@ -12,13 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 
 export function Header() {
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          <Link to={`/${language}`} className="flex items-center">
+          <Link to="/home" className="flex items-center">
             <Heart className="h-6 w-6 text-pastel-pink mr-2" />
             <span className="text-xl font-bold font-hand">
               {t('app.name')}
@@ -26,13 +26,13 @@ export function Header() {
           </Link>
 
           <nav className="hidden md:flex space-x-8 items-center">
-            <Link to={`/${language}/home`} className="text-gray-700 hover:text-primary transition-colors">
+            <Link to="/home" className="text-gray-700 hover:text-primary transition-colors">
               {t('nav.home')}
             </Link>
-            <Link to={`/${language}/matches`} className="text-gray-700 hover:text-primary transition-colors">
+            <Link to="/matches" className="text-gray-700 hover:text-primary transition-colors">
               {t('nav.matches')}
             </Link>
-            <Link to={`/${language}/chat`} className="text-gray-700 hover:text-primary transition-colors">
+            <Link to="/chat" className="text-gray-700 hover:text-primary transition-colors">
               {t('nav.chat')}
             </Link>
           </nav>
@@ -58,32 +58,32 @@ export function Header() {
                 <DropdownMenuItem className="py-2 px-4 cursor-pointer">
                   <div>
                     <p className="text-sm font-medium">
-                      {language === "ko" ? "새로운 매치가 있습니다" : "新しいマッチがあります"}
+                      {t('notifications.new_match')}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {language === "ko" ? "5분 전" : "5分前"}
+                      {t('notifications.time_ago.minutes', { minutes: 5 })}
                     </p>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="py-2 px-4 cursor-pointer">
                   <div>
                     <p className="text-sm font-medium">
-                      {language === "ko" ? "Ayumi님이 메시지를 보냈습니다" : "Ayumiさんがメッセージを送信しました"}
+                      {t('notifications.new_message', { name: 'Ayumi' })}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {language === "ko" ? "1시간 전" : "1時間前"}
+                      {t('notifications.time_ago.hours', { hours: 1 })}
                     </p>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="justify-center cursor-pointer">
-                  <Link to={`/${language}/notifications`} className="text-sm text-primary">
-                    {language === "ko" ? "모든 알림 보기" : "すべての通知を見る"}
+                  <Link to="/notifications" className="text-sm text-primary">
+                    {t('notifications.view_all')}
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link to={`/${language}/mypage`}>
+            <Link to="/mypage">
               <div className="h-10 w-10 rounded-full bg-pastel-lavender flex items-center justify-center">
                 <User className="h-5 w-5" />
               </div>

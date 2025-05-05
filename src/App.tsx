@@ -31,60 +31,39 @@ const App = () => (
             <Toaster />
             <Sonner />
             <Routes>
-              {/* 기본 리디렉션 라우트 */}
+              {/* 메인 랜딩 페이지 */}
               <Route path="/" element={<Index />} />
               
               {/* 로그인 페이지 */}
-              <Route path="/ko" element={<Login />} />
-              <Route path="/ja" element={<Login />} />
+              <Route path="/login" element={<Login />} />
               
               {/* 온보딩 페이지 */}
-              <Route path="/ko/onboarding/:step" element={<Onboarding />} />
-              <Route path="/ja/onboarding/:step" element={<Onboarding />} />
-              <Route path="/onboarding/:step" element={<Navigate to="/ko/onboarding/1" replace />} />
+              <Route path="/onboarding/:step" element={<Onboarding />} />
               
               {/* 메인 페이지들 */}
-              <Route path="/ko/home" element={<Home />} />
-              <Route path="/ja/home" element={<Home />} />
-              <Route path="/home" element={<Navigate to="/ko/home" replace />} />
+              <Route path="/home" element={<Home />} />
               
               {/* 프로필 페이지 */}
-              <Route path="/ko/profile/:id" element={<ProfileDetail />} />
-              <Route path="/ja/profile/:id" element={<ProfileDetail />} />
-              <Route path="/profile/:id" element={<Navigate to="/ko/profile/:id" replace />} />
+              <Route path="/profile/:id" element={<ProfileDetail />} />
               
               {/* 유저 프로필 페이지 (마이페이지) */}
-              <Route path="/ko/mypage" element={<UserProfile />} />
-              <Route path="/ja/mypage" element={<UserProfile />} />
-              <Route path="/mypage" element={<Navigate to="/ko/mypage" replace />} />
+              <Route path="/mypage" element={<UserProfile />} />
               
               {/* 매치 페이지 */}
-              <Route path="/ko/matches" element={<MatchRequests />} />
-              <Route path="/ja/matches" element={<MatchRequests />} />
-              <Route path="/matches" element={<Navigate to="/ko/matches" replace />} />
+              <Route path="/matches" element={<MatchRequests />} />
               
               {/* 채팅 페이지 */}
-              <Route path="/ko/chat" element={<Chat />} />
-              <Route path="/ja/chat" element={<Chat />} />
-              <Route path="/ko/chat/:id" element={<Chat />} />
-              <Route path="/ja/chat/:id" element={<Chat />} />
-              <Route path="/chat" element={<Navigate to="/ko/chat" replace />} />
-              <Route path="/chat/:id" element={<Navigate to="/ko/chat/:id" replace />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/chat/:id" element={<Chat />} />
               
               {/* 알림 페이지 */}
-              <Route path="/ko/notifications" element={<Notifications />} />
-              <Route path="/ja/notifications" element={<Notifications />} />
-              <Route path="/notifications" element={<Navigate to="/ko/notifications" replace />} />
+              <Route path="/notifications" element={<Notifications />} />
               
               {/* 설정 페이지 */}
-              <Route path="/ko/settings" element={<Settings />} />
-              <Route path="/ja/settings" element={<Settings />} />
-              <Route path="/settings" element={<Navigate to="/ko/settings" replace />} />
+              <Route path="/settings" element={<Settings />} />
               
               {/* 404 페이지 */}
-              <Route path="/ko/*" element={<NotFound />} />
-              <Route path="/ja/*" element={<NotFound />} />
-              <Route path="*" element={<Navigate to="/ko/404" replace />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
         </AuthProvider>

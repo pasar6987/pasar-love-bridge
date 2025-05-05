@@ -18,7 +18,7 @@ export function LanguageToggle({
   variant = "icon", 
   size = "md" 
 }: LanguageToggleProps) {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   
   const buttonSizeClasses = {
     sm: "h-8 w-8",

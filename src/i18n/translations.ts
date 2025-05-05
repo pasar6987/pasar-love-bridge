@@ -53,6 +53,14 @@ export const translations: TranslationMap = {
     ko: "로그아웃 실패",
     ja: "ログアウト失敗"
   },
+  "auth.logout_success": {
+    ko: "로그아웃 되었습니다",
+    ja: "ログアウトしました"
+  },
+  "auth.logout_success_desc": {
+    ko: "안전하게 로그아웃 되었습니다",
+    ja: "安全にログアウトされました"
+  },
   "auth.try_again": {
     ko: "다시 시도해주세요",
     ja: "もう一度お試しください"
@@ -90,6 +98,10 @@ export const translations: TranslationMap = {
   "nav.mypage": {
     ko: "마이페이지",
     ja: "マイページ"
+  },
+  "nav.back_to_home": {
+    ko: "홈으로 돌아가기",
+    ja: "ホームに戻る"
   },
   
   // Onboarding
@@ -248,6 +260,28 @@ export const translations: TranslationMap = {
     ja: "ランダムなトピック"
   },
   
+  // Notifications
+  "notifications.new_match": {
+    ko: "새로운 매치가 있습니다",
+    ja: "新しいマッチがあります"
+  },
+  "notifications.new_message": {
+    ko: "{name}님이 메시지를 보냈습니다",
+    ja: "{name}さんがメッセージを送信しました"
+  },
+  "notifications.view_all": {
+    ko: "모든 알림 보기",
+    ja: "すべての通知を見る"
+  },
+  "notifications.time_ago.minutes": {
+    ko: "{minutes}분 전",
+    ja: "{minutes}分前"
+  },
+  "notifications.time_ago.hours": {
+    ko: "{hours}시간 전",
+    ja: "{hours}時間前"
+  },
+  
   // Errors
   "error.generic": {
     ko: "오류가 발생했습니다",
@@ -256,5 +290,9 @@ export const translations: TranslationMap = {
   "error.try_again": {
     ko: "다시 시도해주세요",
     ja: "もう一度お試しください"
+  },
+  "error.page_not_found": {
+    ko: "페이지를 찾을 수 없습니다",
+    ja: "ページが見つかりません"
   }
 };

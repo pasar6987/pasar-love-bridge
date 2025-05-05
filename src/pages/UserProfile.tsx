@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
 export default function UserProfile() {
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -19,20 +19,19 @@ export default function UserProfile() {
 
   useEffect(() => {
     if (!user) {
-      navigate(`/${language}`);
+      navigate('/login');
     }
-  }, [user, navigate, language]);
+  }, [user, navigate]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
       await signOut();
       toast({
-        title: language === "ko" ? "로그아웃 되었습니다" : "ログアウトしました",
-        description: language === "ko" 
-          ? "안전하게 로그아웃 되었습니다" 
-          : "安全にログアウトされました",
+        title: t("auth.logout_success"),
+        description: t("auth.logout_success_desc"),
       });
+      navigate('/login');
     } catch (error) {
       toast({
         title: t("auth.logout_failed"),
@@ -45,7 +44,7 @@ export default function UserProfile() {
   };
   
   const navigateToSettings = () => {
-    navigate(`/${language}/settings`);
+    navigate('/settings');
   };
 
   if (!user) {
@@ -56,7 +55,7 @@ export default function UserProfile() {
     <MainLayout>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 md:py-12">
         <h1 className="text-3xl font-bold mb-8">
-          {language === "ko" ? "마이페이지" : "マイページ"}
+          {t("profile.mypage")}
         </h1>
 
         <Card className="mb-8">
@@ -79,20 +78,20 @@ export default function UserProfile() {
           <CardContent className="space-y-6">
             <div>
               <h3 className="font-medium mb-2">
-                {language === "ko" ? "기본 정보" : "基本情報"}
+                {t("profile.basic_info")}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    {language === "ko" ? "이메일" : "メールアドレス"}
+                    {t("profile.email")}
                   </p>
                   <p>{user.email}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    {language === "ko" ? "가입일" : "登録日"}
+                    {t("profile.join_date")}
                   </p>
-                  <p>{new Date(user.created_at || "").toLocaleDateString(language === "ko" ? "ko-KR" : "ja-JP")}</p>
+                  <p>{new Date(user.created_at || "").toLocaleDateString()}</p>
                 </div>
               </div>
             </div>
@@ -104,7 +103,7 @@ export default function UserProfile() {
                 variant="outline"
               >
                 <Settings className="h-4 w-4" />
-                {language === "ko" ? "설정" : "設定"}
+                {t("nav.settings")}
               </Button>
               <Button 
                 onClick={handleLogout}
@@ -115,7 +114,7 @@ export default function UserProfile() {
                 {isLoggingOut ? (
                   <>
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
-                    {language === "ko" ? "로그아웃 중..." : "ログアウト中..."}
+                    {t("profile.logout_in_progress")}
                   </>
                 ) : (
                   <>

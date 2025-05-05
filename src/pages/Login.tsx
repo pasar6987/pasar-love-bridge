@@ -1,24 +1,22 @@
 
-import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/i18n/useLanguage";
 import { LanguageToggle } from "@/components/common/LanguageToggle";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const { signInWithGoogle } = useAuth();
-  const location = useLocation();
-  const { language, setLanguage, t } = useLanguage();
+  const { signInWithGoogle, user } = useAuth();
+  const { t } = useLanguage();
+  const navigate = useNavigate();
 
+  // 이미 로그인한 사용자는 홈으로 리다이렉트
   useEffect(() => {
-    // Set language based on URL
-    if (location.pathname.startsWith("/ja")) {
-      setLanguage("ja");
-    } else {
-      setLanguage("ko");
+    if (user) {
+      navigate('/home');
     }
-  }, [location.pathname, setLanguage]);
+  }, [user, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-pastel-pink/10 to-pastel-lavender/20">

@@ -3,48 +3,58 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { determineBestLanguage } from "@/utils/ipLanguageDetection";
+import { useAuth } from "@/context/AuthContext";
 
 const Index = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
-    const redirectBasedOnParams = async () => {
+    const redirectUser = async () => {
       // URL에 access_token이 포함되어 있는지 확인
       const url = window.location.href;
       const hasAuthParams = url.includes("access_token=") || 
-                             url.includes("code=") || 
-                             url.includes("error=") || 
-                             url.includes("provider=");
-                              
+                           url.includes("code=") || 
+                           url.includes("error=") || 
+                           url.includes("provider=");
+                            
       if (!hasAuthParams) {
-        // 인증 파라미터가 없는 경우에 IP 기반 언어 감지 수행
-        setIsLoading(true);
         try {
-          const detectedLang = await determineBestLanguage();
-          console.log("감지된 최적 언어:", detectedLang);
-          
-          // 로컬 스토리지에 감지된 언어 저장 (추후 참조용)
-          localStorage.setItem('detected_language', detectedLang);
-          
-          // 해당 언어 경로로 리디렉션
-          navigate(`/${detectedLang}`);
+          // 로그인 여부에 따라 리다이렉션
+          if (user) {
+            navigate('/home');
+          } else {
+            navigate('/login');
+          }
         } catch (error) {
-          console.error("언어 감지 오류:", error);
-          // 오류 발생 시 기본 한국어로 리디렉션
-          navigate('/ko');
+          console.error("리다이렉션 오류:", error);
+          navigate('/login');
         } finally {
           setIsLoading(false);
         }
       } else {
-        // 인증 파라미터가 있는 경우 Supabase Auth가 자동으로 처리하고
-        // 성공적으로 로그인 후에는 감지된 언어 또는 저장된 언어로 리디렉션
+        // 인증 파라미터가 있는 경우 Supabase Auth가 자동으로 처리
         setIsLoading(false);
       }
     };
 
-    redirectBasedOnParams();
-  }, [navigate]);
+    // 언어 감지 후 사용자 상태 확인
+    const detectAndRedirect = async () => {
+      if (!localStorage.getItem('user_selected_language')) {
+        try {
+          const detectedLang = await determineBestLanguage();
+          localStorage.setItem('user_selected_language', detectedLang);
+        } catch (error) {
+          console.error("언어 감지 오류:", error);
+        }
+      }
+      
+      redirectUser();
+    };
+
+    detectAndRedirect();
+  }, [navigate, user]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-pastel-pink/10 to-pastel-lavender/20">

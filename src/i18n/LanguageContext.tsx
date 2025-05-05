@@ -1,6 +1,6 @@
 
 import { createContext, useState, ReactNode, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { translations } from "./translations";
 import { Language, LanguageContextProps } from "./types";
 import { determineBestLanguage } from "@/utils/ipLanguageDetection";
@@ -8,48 +8,40 @@ import { determineBestLanguage } from "@/utils/ipLanguageDetection";
 export const LanguageContext = createContext<LanguageContextProps | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const navigate = useNavigate();
   const location = useLocation();
   
-  // URL 경로에서 언어 코드 추출
-  const getLanguageFromPath = (): Language => {
-    if (location.pathname.startsWith("/ja")) {
-      return "ja";
-    }
-    return "ko"; // 기본값은 한국어
+  // 초기 언어 설정 - 로컬 스토리지에서 가져오거나 기본값으로 한국어 사용
+  const getInitialLanguage = (): Language => {
+    const savedLanguage = localStorage.getItem('user_selected_language') as Language | null;
+    return savedLanguage === 'ja' ? 'ja' : 'ko';
   };
   
-  // Initialize language based on URL path
-  const [language, setLanguageState] = useState<Language>(getLanguageFromPath());
+  const [language, setLanguageState] = useState<Language>(getInitialLanguage());
 
   useEffect(() => {
-    // URL이 변경될 때마다 언어 설정 업데이트
-    const currentPathLanguage = getLanguageFromPath();
-    setLanguageState(currentPathLanguage);
-    
-    // 사용자가 명시적으로 선택한 언어를 저장
-    if (currentPathLanguage) {
-      localStorage.setItem('user_selected_language', currentPathLanguage);
-    }
-  }, [location.pathname]);
+    // URL 파라미터가 있을 때만 언어 감지 시도 (최초 로딩 시)
+    const detectLanguage = async () => {
+      if (!localStorage.getItem('user_selected_language')) {
+        try {
+          const detectedLang = await determineBestLanguage();
+          setLanguageState(detectedLang);
+          localStorage.setItem('user_selected_language', detectedLang);
+        } catch (error) {
+          console.error('언어 감지 오류:', error);
+        }
+      }
+    };
+
+    detectLanguage();
+  }, []);
   
-  // Function to update language and redirect to corresponding URL path
+  // 언어 변경 함수
   const setLanguage = (lang: Language) => {
-    // 사용자가 명시적으로 선택한 언어를 저장
     localStorage.setItem('user_selected_language', lang);
-    
     setLanguageState(lang);
-    
-    // 현재 URL에서 언어 코드 부분만 변경
-    const pathWithoutLang = location.pathname
-      .replace(/^\/ko/, '')
-      .replace(/^\/ja/, '') || '/';
-    
-    // 새 URL로 이동
-    navigate(`/${lang}${pathWithoutLang}`);
   };
   
-  // Translation function
+  // 번역 함수
   const t = (key: string): string => {
     if (!translations[key]) {
       console.warn(`Translation missing for key: ${key}`);
