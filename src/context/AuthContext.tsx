@@ -31,11 +31,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // User sign-in event, but we won't redirect to onboarding anymore
+        // User sign-in event, check onboarding status and redirect accordingly
         if (event === 'SIGNED_IN') {
           // Use setTimeout to avoid deadlock with the onAuthStateChange listener
           setTimeout(() => {
-            // We still check the status but don't redirect
+            // Check user's onboarding status
             if (session?.user?.id) {
               checkUserOnboardingStatus(session.user.id);
             }
@@ -84,9 +84,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .single();
         
         if (insertError) throw insertError;
+        
+        // 새로운 사용자는 온보딩 페이지로 리디렉션
+        navigate('/onboarding/1');
+      } else if (!userData.onboarding_completed) {
+        // 온보딩이 완료되지 않은 경우, 마지막 단계로 리디렉션
+        const nextStep = userData.onboarding_step ? userData.onboarding_step : 1;
+        navigate(`/onboarding/${nextStep}`);
+      } else {
+        // 온보딩이 완료된 경우 메인 페이지로 리디렉션
+        navigate('/home');
       }
-      
-      // 더 이상 온보딩 페이지로 강제 리디렉션하지 않음
     } catch (error) {
       console.error("Error checking user onboarding status:", error);
       toast({

@@ -1,6 +1,7 @@
 
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -9,9 +10,9 @@ const Index = () => {
     // URL에 access_token이 포함되어 있는지 확인
     const url = window.location.href;
     const hasAuthParams = url.includes("access_token=") || 
-                            url.includes("code=") || 
-                            url.includes("error=") || 
-                            url.includes("provider=");
+                           url.includes("code=") || 
+                           url.includes("error=") || 
+                           url.includes("provider=");
                             
     if (!hasAuthParams) {
       // 인증 파라미터가 없는 경우에만 언어 기반 리디렉션 수행
