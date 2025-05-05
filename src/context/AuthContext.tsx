@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Set up auth state listener first
@@ -86,16 +86,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (insertError) throw insertError;
         
         // 새로운 사용자는 온보딩 페이지로 리디렉션
-        navigate(`/${language}/onboarding/1`);
+        navigate('/onboarding/1');
       } else {
         const userProfile = userData[0];
         if (!userProfile.onboarding_completed) {
           // 온보딩이 완료되지 않은 경우, 마지막 단계로 리디렉션
           const nextStep = userProfile.onboarding_step ? userProfile.onboarding_step : 1;
-          navigate(`/${language}/onboarding/${nextStep}`);
+          navigate(`/onboarding/${nextStep}`);
         } else {
           // 온보딩이 완료된 경우 메인 페이지로 리디렉션
-          navigate(`/${language}/home`);
+          navigate('/home');
         }
       }
     } catch (error) {
@@ -140,7 +140,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      navigate(`/${language}`);
+      navigate('/');
+      
+      toast({
+        title: t("auth.logout_success"),
+        description: t("auth.logout_success_desc"),
+      });
       
     } catch (error) {
       console.error("Error signing out:", error);

@@ -27,11 +27,7 @@ export default function UserProfile() {
     setIsLoggingOut(true);
     try {
       await signOut();
-      toast({
-        title: t("auth.logout_success"),
-        description: t("auth.logout_success_desc"),
-      });
-      navigate('/login');
+      // 토스트 메시지는 AuthContext에서 처리됨
     } catch (error) {
       toast({
         title: t("auth.logout_failed"),
@@ -129,4 +125,3 @@ export default function UserProfile() {
       </div>
     </MainLayout>
   );
-}
