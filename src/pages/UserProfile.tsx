@@ -6,9 +6,21 @@ import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { LogOut, UserCircle, Settings } from "lucide-react";
+import { LogOut, UserCircle, Settings, UserX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function UserProfile() {
   const { t } = useLanguage();
@@ -16,6 +28,7 @@ export default function UserProfile() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -36,6 +49,37 @@ export default function UserProfile() {
       });
     } finally {
       setIsLoggingOut(false);
+    }
+  };
+  
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    
+    setIsDeleting(true);
+    try {
+      // Use RPC for account deletion
+      const { error } = await supabase.rpc('delete_user_account');
+      
+      if (error) throw error;
+      
+      // Sign out after successful account deletion
+      await signOut();
+      
+      toast({
+        title: t("profile.account_deleted"),
+        description: t("profile.account_deleted_desc"),
+      });
+      
+      navigate('/');
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast({
+        title: t("profile.delete_failed"),
+        description: t("error.try_again"),
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
   
@@ -104,7 +148,7 @@ export default function UserProfile() {
               <Button 
                 onClick={handleLogout}
                 className="flex items-center gap-2"
-                variant="destructive"
+                variant="outline"
                 disabled={isLoggingOut}
               >
                 {isLoggingOut ? (
@@ -119,6 +163,43 @@ export default function UserProfile() {
                   </>
                 )}
               </Button>
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="destructive" 
+                    className="flex items-center gap-2"
+                  >
+                    <UserX className="h-4 w-4" />
+                    {t("profile.delete_account")}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t("profile.confirm_delete")}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {t("profile.delete_warning")}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteAccount}
+                      disabled={isDeleting}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {isDeleting ? (
+                        <>
+                          <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
+                          {t("profile.deleting")}
+                        </>
+                      ) : (
+                        t("profile.delete")
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </CardContent>
         </Card>
