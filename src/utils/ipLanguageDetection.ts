@@ -25,6 +25,8 @@ const getIPInfo = async (): Promise<IPInfo | null> => {
       throw new Error('Failed to fetch IP info');
     }
     const data = await response.json();
+    
+    console.log("IP 정보:", data);
     return data;
   } catch (error) {
     console.error('IP 정보 가져오기 오류:', error);
@@ -38,6 +40,7 @@ export const detectLanguageFromIP = async (): Promise<Language> => {
     // 먼저 로컬 스토리지에서 이전에 감지된 언어 확인
     const savedLanguage = localStorage.getItem('detected_language') as Language | null;
     if (savedLanguage && (savedLanguage === 'ko' || savedLanguage === 'ja')) {
+      console.log('로컬 스토리지에서 감지된 언어:', savedLanguage);
       return savedLanguage;
     }
     
@@ -82,14 +85,19 @@ export const determineBestLanguage = async (): Promise<Language> => {
   // 1. 로컬 스토리지에서 사용자가 명시적으로 선택한 언어 확인
   const userSelectedLanguage = localStorage.getItem('user_selected_language') as Language | null;
   if (userSelectedLanguage && (userSelectedLanguage === 'ko' || userSelectedLanguage === 'ja')) {
+    console.log('사용자 선택 언어:', userSelectedLanguage);
     return userSelectedLanguage;
   }
   
   // 2. IP 기반 언어 감지 시도
   try {
-    return await detectLanguageFromIP();
-  } catch {
+    const ipLanguage = await detectLanguageFromIP();
+    console.log('IP 기반 감지 언어:', ipLanguage);
+    return ipLanguage;
+  } catch (error) {
     // 3. IP 기반 감지 실패 시 브라우저 설정 기반 언어 감지
-    return detectLanguageFromBrowser();
+    const browserLanguage = detectLanguageFromBrowser();
+    console.log('브라우저 설정 기반 감지 언어:', browserLanguage);
+    return browserLanguage;
   }
 };

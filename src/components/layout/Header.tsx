@@ -1,6 +1,8 @@
-import { Heart, Bell, Globe, User } from "lucide-react";
+
+import { Heart, Bell, User } from "lucide-react";
 import { useLanguage } from "@/i18n/useLanguage";
 import { Link } from "react-router-dom";
+import { LanguageToggle } from "@/components/common/LanguageToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,11 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 export function Header() {
-  const { language, setLanguage, t } = useLanguage();
-
-  const toggleLanguage = () => {
-    setLanguage(language === 'ko' ? 'ja' : 'ko');
-  };
+  const { language, t } = useLanguage();
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 shadow-sm">
@@ -40,14 +38,7 @@ export function Header() {
           </nav>
 
           <div className="flex items-center space-x-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleLanguage}
-              className="rounded-full"
-            >
-              <Globe className="h-5 w-5" />
-            </Button>
+            <LanguageToggle />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -66,19 +57,27 @@ export function Header() {
                 </div>
                 <DropdownMenuItem className="py-2 px-4 cursor-pointer">
                   <div>
-                    <p className="text-sm font-medium">새로운 매치가 있습니다</p>
-                    <p className="text-xs text-muted-foreground">5분 전</p>
+                    <p className="text-sm font-medium">
+                      {language === "ko" ? "새로운 매치가 있습니다" : "新しいマッチがあります"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {language === "ko" ? "5분 전" : "5分前"}
+                    </p>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="py-2 px-4 cursor-pointer">
                   <div>
-                    <p className="text-sm font-medium">Ayumi님이 메시지를 보냈습니다</p>
-                    <p className="text-xs text-muted-foreground">1시간 전</p>
+                    <p className="text-sm font-medium">
+                      {language === "ko" ? "Ayumi님이 메시지를 보냈습니다" : "Ayumiさんがメッセージを送信しました"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {language === "ko" ? "1시간 전" : "1時間前"}
+                    </p>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="justify-center cursor-pointer">
                   <Link to={`/${language}/notifications`} className="text-sm text-primary">
-                    모든 알림 보기
+                    {language === "ko" ? "모든 알림 보기" : "すべての通知を見る"}
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>

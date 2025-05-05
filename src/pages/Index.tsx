@@ -23,6 +23,11 @@ const Index = () => {
         try {
           const detectedLang = await determineBestLanguage();
           console.log("감지된 최적 언어:", detectedLang);
+          
+          // 로컬 스토리지에 감지된 언어 저장 (추후 참조용)
+          localStorage.setItem('detected_language', detectedLang);
+          
+          // 해당 언어 경로로 리디렉션
           navigate(`/${detectedLang}`);
         } catch (error) {
           console.error("언어 감지 오류:", error);
@@ -32,7 +37,8 @@ const Index = () => {
           setIsLoading(false);
         }
       } else {
-        // 인증 파라미터가 있는 경우 Supabase Auth가 자동으로 처리
+        // 인증 파라미터가 있는 경우 Supabase Auth가 자동으로 처리하고
+        // 성공적으로 로그인 후에는 감지된 언어 또는 저장된 언어로 리디렉션
         setIsLoading(false);
       }
     };

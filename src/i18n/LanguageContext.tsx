@@ -19,12 +19,18 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     return "ko"; // 기본값은 한국어
   };
   
-  // Initialize language based on URL path or default to Korean
+  // Initialize language based on URL path
   const [language, setLanguageState] = useState<Language>(getLanguageFromPath());
 
   useEffect(() => {
     // URL이 변경될 때마다 언어 설정 업데이트
-    setLanguageState(getLanguageFromPath());
+    const currentPathLanguage = getLanguageFromPath();
+    setLanguageState(currentPathLanguage);
+    
+    // 사용자가 명시적으로 선택한 언어를 저장
+    if (currentPathLanguage) {
+      localStorage.setItem('user_selected_language', currentPathLanguage);
+    }
   }, [location.pathname]);
   
   // Function to update language and redirect to corresponding URL path

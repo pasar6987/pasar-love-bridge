@@ -1,8 +1,10 @@
+
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/i18n/useLanguage";
+import { LanguageToggle } from "@/components/common/LanguageToggle";
 
 const Login = () => {
   const { signInWithGoogle } = useAuth();
@@ -16,13 +18,7 @@ const Login = () => {
     } else {
       setLanguage("ko");
     }
-    
-    // 로그인 확인 후 홈으로 리디렉션하는 부분 제거
   }, [location.pathname, setLanguage]);
-
-  const toggleLanguage = () => {
-    setLanguage(language === "ko" ? "ja" : "ko");
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-pastel-pink/10 to-pastel-lavender/20">
@@ -48,14 +44,7 @@ const Login = () => {
           </Button>
           
           <div className="text-center">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={toggleLanguage}
-              className="text-xs text-gray-500 hover:text-gray-700"
-            >
-              {language === "ko" ? "日本語" : "한국어"}
-            </Button>
+            <LanguageToggle variant="text" size="sm" />
           </div>
         </div>
       </div>
