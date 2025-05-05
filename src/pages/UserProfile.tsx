@@ -125,3 +125,4 @@ export default function UserProfile() {
       </div>
     </MainLayout>
   );
+}
