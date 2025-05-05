@@ -1,18 +1,8 @@
 
-import { createContext, useContext, useState, ReactNode } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-
-type Language = "ko" | "ja";
-
-interface TranslationMap {
-  [key: string]: {
-    ko: string;
-    ja: string;
-  };
-}
+import { TranslationMap } from "./types";
 
 // Translation dictionary
-const translations: TranslationMap = {
+export const translations: TranslationMap = {
   // App name and common
   "app.name": {
     ko: "Pasar",
@@ -188,64 +178,28 @@ const translations: TranslationMap = {
     ko: "다시 시도해주세요",
     ja: "もう一度お試しください"
   },
-};
-
-interface LanguageContextProps {
-  language: Language;
-  setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
-}
-
-const LanguageContext = createContext<LanguageContextProps | undefined>(undefined);
-
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const navigate = useNavigate();
-  const location = useLocation();
   
-  // URL 경로에서 언어 코드 추출
-  const getLanguageFromPath = (): Language => {
-    if (location.pathname.startsWith("/ja")) {
-      return "ja";
-    }
-    return "ko"; // 기본값은 한국어
-  };
+  // Navigation
+  "nav.home": {
+    ko: "홈",
+    ja: "ホーム"
+  },
+  "nav.matches": {
+    ko: "매치",
+    ja: "マッチ"
+  },
+  "nav.chat": {
+    ko: "채팅",
+    ja: "チャット"
+  },
+  "nav.profile": {
+    ko: "프로필",
+    ja: "プロフィール"
+  },
   
-  // Initialize language based on URL path or default to Korean
-  const [language, setLanguageState] = useState<Language>(getLanguageFromPath());
-  
-  // Function to update language and redirect to corresponding URL path
-  const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-    
-    // 현재 URL에서 언어 코드 부분만 변경
-    const pathWithoutLang = location.pathname
-      .replace(/^\/ko/, '')
-      .replace(/^\/ja/, '') || '/';
-    
-    // 새 URL로 이동
-    navigate(`/${lang}${pathWithoutLang}`);
-  };
-  
-  // Translation function
-  const t = (key: string): string => {
-    if (!translations[key]) {
-      console.warn(`Translation missing for key: ${key}`);
-      return key;
-    }
-    return translations[key][language];
-  };
-  
-  return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
-      {children}
-    </LanguageContext.Provider>
-  );
-}
-
-export const useLanguage = () => {
-  const context = useContext(LanguageContext);
-  if (context === undefined) {
-    throw new Error("useLanguage must be used within a LanguageProvider");
+  // Settings
+  "settings.notifications": {
+    ko: "알림",
+    ja: "通知"
   }
-  return context;
 };

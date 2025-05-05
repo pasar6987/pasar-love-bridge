@@ -1,7 +1,6 @@
-
 import { Home, Heart, MessageSquare, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage } from "@/i18n/useLanguage";
 
 export function MobileNav() {
   const { t, language } = useLanguage();

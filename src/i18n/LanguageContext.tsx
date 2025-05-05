@@ -1,0 +1,51 @@
+
+import { createContext, useState, ReactNode } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { translations } from "./translations";
+import { Language, LanguageContextProps } from "./types";
+
+export const LanguageContext = createContext<LanguageContextProps | undefined>(undefined);
+
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // URL 경로에서 언어 코드 추출
+  const getLanguageFromPath = (): Language => {
+    if (location.pathname.startsWith("/ja")) {
+      return "ja";
+    }
+    return "ko"; // 기본값은 한국어
+  };
+  
+  // Initialize language based on URL path or default to Korean
+  const [language, setLanguageState] = useState<Language>(getLanguageFromPath());
+  
+  // Function to update language and redirect to corresponding URL path
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    
+    // 현재 URL에서 언어 코드 부분만 변경
+    const pathWithoutLang = location.pathname
+      .replace(/^\/ko/, '')
+      .replace(/^\/ja/, '') || '/';
+    
+    // 새 URL로 이동
+    navigate(`/${lang}${pathWithoutLang}`);
+  };
+  
+  // Translation function
+  const t = (key: string): string => {
+    if (!translations[key]) {
+      console.warn(`Translation missing for key: ${key}`);
+      return key;
+    }
+    return translations[key][language];
+  };
+  
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+}

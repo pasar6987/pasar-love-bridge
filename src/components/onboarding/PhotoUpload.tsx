@@ -1,7 +1,6 @@
-
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage } from "@/i18n/useLanguage";
 import { X, Loader2 } from "lucide-react";
 import { useUploadPhotos } from "@/hooks/useUploadPhotos";
 

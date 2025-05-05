@@ -1,7 +1,6 @@
-
 import { Heart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage } from "@/i18n/useLanguage";
 import { Link } from "react-router-dom";
 
 interface ProfileData {

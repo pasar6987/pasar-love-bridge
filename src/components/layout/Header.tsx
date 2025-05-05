@@ -1,6 +1,5 @@
-
 import { Heart, Bell, Globe, User } from "lucide-react";
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage } from "@/i18n/useLanguage";
 import { Link } from "react-router-dom";
 import {
   DropdownMenu,

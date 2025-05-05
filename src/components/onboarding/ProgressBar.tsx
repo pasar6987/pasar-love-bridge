@@ -1,5 +1,4 @@
-
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage } from "@/i18n/useLanguage";
 
 interface ProgressBarProps {
   currentStep: number;
