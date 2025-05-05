@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage } from "@/i18n/useLanguage";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MatchCard } from "@/components/matches/MatchCard";
 

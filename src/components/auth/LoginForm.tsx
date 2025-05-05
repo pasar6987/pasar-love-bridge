@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage } from "@/i18n/useLanguage";
 import { Link, useNavigate } from "react-router-dom";
 
 export function LoginForm() {

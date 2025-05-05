@@ -1,9 +1,8 @@
-
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage } from "@/i18n/useLanguage";
 
 const Login = () => {
   const { signInWithGoogle } = useAuth();

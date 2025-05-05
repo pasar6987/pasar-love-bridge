@@ -1,49 +1,18 @@
 
 import { TranslationMap } from "./types";
 
-// Translation dictionary
 export const translations: TranslationMap = {
-  // App name and common
+  // App
   "app.name": {
-    ko: "Pasar",
-    ja: "パサー"
+    ko: "파사르",
+    ja: "パサル"
   },
   "app.tagline": {
-    ko: "한국 남성 × 일본 여성 매칭 서비스",
-    ja: "韓国人男性 × 日本人女性 マッチングサービス"
+    ko: "한일 문화 교류 데이팅",
+    ja: "日韓文化交流デーティング"
   },
   
-  // Common actions
-  "action.next": {
-    ko: "다음",
-    ja: "次へ"
-  },
-  "action.back": {
-    ko: "이전",
-    ja: "戻る"
-  },
-  "action.submit": {
-    ko: "제출하기",
-    ja: "送信する"
-  },
-  "action.save": {
-    ko: "저장하기",
-    ja: "保存する"
-  },
-  "action.cancel": {
-    ko: "취소",
-    ja: "キャンセル"
-  },
-  "action.skip": {
-    ko: "건너뛰기",
-    ja: "スキップ"
-  },
-  "action.edit": {
-    ko: "수정하기",
-    ja: "編集する"
-  },
-  
-  // Authentication
+  // Auth
   "auth.login": {
     ko: "로그인",
     ja: "ログイン"
@@ -52,13 +21,29 @@ export const translations: TranslationMap = {
     ko: "회원가입",
     ja: "会員登録"
   },
+  "auth.email": {
+    ko: "이메일",
+    ja: "メールアドレス"
+  },
+  "auth.password": {
+    ko: "비밀번호",
+    ja: "パスワード"
+  },
+  "auth.forgotPassword": {
+    ko: "비밀번호 찾기",
+    ja: "パスワードをお忘れですか"
+  },
+  "auth.continueWith": {
+    ko: "또는 다른 방법으로 계속하기",
+    ja: "または他の方法で続ける"
+  },
   "auth.google": {
-    ko: "Google로 계속하기",
+    ko: "구글로 계속하기",
     ja: "Googleで続ける"
   },
-  "auth.logout": {
-    ko: "로그아웃",
-    ja: "ログアウト"
+  "auth.dontHaveAccount": {
+    ko: "계정이 없으신가요?",
+    ja: "アカウントをお持ちでないですか？"
   },
   "auth.login_failed": {
     ko: "로그인 실패",
@@ -73,21 +58,51 @@ export const translations: TranslationMap = {
     ja: "もう一度お試しください"
   },
   
-  // Onboarding steps
+  // Navigation
+  "nav.home": {
+    ko: "홈",
+    ja: "ホーム"
+  },
+  "nav.explore": {
+    ko: "탐색",
+    ja: "探索"
+  },
+  "nav.matches": {
+    ko: "매치",
+    ja: "マッチ"
+  },
+  "nav.messages": {
+    ko: "메시지",
+    ja: "メッセージ"
+  },
+  "nav.notifications": {
+    ko: "알림",
+    ja: "通知"
+  },
+  "nav.profile": {
+    ko: "프로필",
+    ja: "プロフィール"
+  },
+  "nav.settings": {
+    ko: "설정",
+    ja: "設定"
+  },
+  
+  // Onboarding
   "onboarding.step": {
     ko: "단계",
     ja: "ステップ"
   },
   "onboarding.photos.title": {
-    ko: "프로필 사진 등록",
-    ja: "プロフィール写真の登録"
+    ko: "사진을 등록해주세요",
+    ja: "写真を登録してください"
   },
   "onboarding.photos.desc": {
-    ko: "매력적인 프로필 사진을 최소 3장 등록해주세요",
-    ja: "魅力的なプロフィール写真を最低3枚登録してください"
+    ko: "매칭에 사용될 프로필 사진을 등록해주세요. 최소 3장, 최대 6장까지 등록 가능합니다.",
+    ja: "マッチングに使用するプロフィール写真を登録してください。最小3枚、最大6枚まで登録可能です。"
   },
   "onboarding.photos.add": {
-    ko: "사진 추가하기",
+    ko: "사진 추가",
     ja: "写真を追加"
   },
   "onboarding.photos.min_required": {
@@ -95,16 +110,16 @@ export const translations: TranslationMap = {
     ja: "最低3枚の写真が必要です"
   },
   "onboarding.basics.title": {
-    ko: "기본 정보",
-    ja: "基本情報"
+    ko: "기본 정보를 입력해주세요",
+    ja: "基本情報を入力してください"
   },
   "onboarding.basics.desc": {
-    ko: "당신에 대한 기본 정보를 알려주세요",
-    ja: "あなたの基本情報を教えてください"
+    ko: "매칭에 필요한 기본 정보를 입력해주세요",
+    ja: "マッチングに必要な基本情報を入力してください"
   },
   "onboarding.basics.name": {
-    ko: "닉네임",
-    ja: "ニックネーム"
+    ko: "이름",
+    ja: "名前"
   },
   "onboarding.basics.gender": {
     ko: "성별",
@@ -122,9 +137,13 @@ export const translations: TranslationMap = {
     ko: "거주 도시",
     ja: "居住都市"
   },
-  "onboarding.questions.title": {
-    ko: "조금 더 알고 싶어요",
-    ja: "もう少し教えてください"
+  "onboarding.verification.title": {
+    ko: "본인 인증",
+    ja: "本人確認"
+  },
+  "onboarding.verification.desc": {
+    ko: "안전한 매칭을 위해 본인 인증을 진행해주세요",
+    ja: "安全なマッチングのため、本人確認を行ってください"
   },
   "onboarding.questions.job": {
     ko: "직업",
@@ -140,36 +159,72 @@ export const translations: TranslationMap = {
   },
   "onboarding.questions.interests": {
     ko: "관심사",
-    ja: "興味・関心"
+    ja: "興味"
   },
-  "onboarding.verification.title": {
-    ko: "신분증 인증 (선택)",
-    ja: "本人確認 (任意)"
+  
+  // Home
+  "home.recommendations": {
+    ko: "추천",
+    ja: "おすすめ"
   },
-  "onboarding.verification.desc": {
-    ko: "신뢰할 수 있는 만남을 위한 신분증 인증을 진행해보세요",
-    ja: "信頼できる出会いのための本人確認を行いましょう"
+  "home.noMore": {
+    ko: "더 이상 추천이 없습니다",
+    ja: "おすすめがこれ以上ありません"
   },
   
   // Profile
   "profile.about": {
-    ko: "자기소개",
+    ko: "소개",
     ja: "自己紹介"
   },
   "profile.details": {
-    ko: "프로필 정보",
-    ja: "プロフィール情報"
-  },
-  "profile.verified": {
-    ko: "인증됨",
-    ja: "認証済み"
-  },
-  "profile.pending": {
-    ko: "인증 진행중",
-    ja: "認証処理中"
+    ko: "상세 정보",
+    ja: "詳細情報"
   },
   
-  // Error messages
+  // Actions
+  "action.next": {
+    ko: "다음",
+    ja: "次へ"
+  },
+  
+  // Settings
+  "settings.title": {
+    ko: "설정",
+    ja: "設定"
+  },
+  "settings.account": {
+    ko: "계정 설정",
+    ja: "アカウント設定"
+  },
+  "settings.language": {
+    ko: "언어",
+    ja: "言語"
+  },
+  "settings.notifications": {
+    ko: "알림 설정",
+    ja: "通知設定"
+  },
+  "settings.logout": {
+    ko: "로그아웃",
+    ja: "ログアウト"
+  },
+  
+  // Chat
+  "chat.writeMessage": {
+    ko: "메시지를 입력하세요...",
+    ja: "メッセージを入力してください..."
+  },
+  "chat.icebreaker": {
+    ko: "아이스브레이커",
+    ja: "アイスブレーカー"
+  },
+  "chat.randomTopic": {
+    ko: "랜덤 주제",
+    ja: "ランダムなトピック"
+  },
+  
+  // Errors
   "error.generic": {
     ko: "오류가 발생했습니다",
     ja: "エラーが発生しました"
@@ -177,29 +232,5 @@ export const translations: TranslationMap = {
   "error.try_again": {
     ko: "다시 시도해주세요",
     ja: "もう一度お試しください"
-  },
-  
-  // Navigation
-  "nav.home": {
-    ko: "홈",
-    ja: "ホーム"
-  },
-  "nav.matches": {
-    ko: "매치",
-    ja: "マッチ"
-  },
-  "nav.chat": {
-    ko: "채팅",
-    ja: "チャット"
-  },
-  "nav.profile": {
-    ko: "프로필",
-    ja: "プロフィール"
-  },
-  
-  // Settings
-  "settings.notifications": {
-    ko: "알림",
-    ja: "通知"
   }
 };

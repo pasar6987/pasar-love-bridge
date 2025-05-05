@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage } from "@/i18n/useLanguage";
 import { ChatBox } from "@/components/chat/ChatBox";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";

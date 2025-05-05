@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -9,7 +8,7 @@ import { Questions } from "@/components/onboarding/Questions";
 import { Verification } from "@/components/onboarding/Verification";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage } from "@/i18n/useLanguage";
 
 const Onboarding = () => {
   const { step } = useParams<{ step: string }>();

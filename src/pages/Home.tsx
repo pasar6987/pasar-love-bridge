@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage } from "@/i18n/useLanguage";
 import { RecommendationCard } from "@/components/home/RecommendationCard";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";

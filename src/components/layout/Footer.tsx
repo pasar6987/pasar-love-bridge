@@ -1,5 +1,5 @@
 
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage } from "@/i18n/useLanguage";
 import { Heart } from "lucide-react";
 
 export function Footer() {

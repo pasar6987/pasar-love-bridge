@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import { uploadProfilePhoto } from "@/utils/storageHelpers";
 import { useToast } from "./use-toast";
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage } from "@/i18n/useLanguage";
 import { useAuth } from "@/context/AuthContext";
 
 export function useUploadPhotos() {

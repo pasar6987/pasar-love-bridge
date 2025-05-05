@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage } from "@/i18n/useLanguage";
 import { ProfileCard } from "@/components/profile/ProfileCard";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";

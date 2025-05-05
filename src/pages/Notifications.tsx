@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { useLanguage } from "@/context/LanguageContext";
+import { useLanguage } from "@/i18n/useLanguage";
 import { Link } from "react-router-dom";
 import { Heart, MessageSquare, CheckCircle, AlertCircle } from "lucide-react";
 
