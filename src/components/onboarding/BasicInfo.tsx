@@ -27,7 +27,6 @@ export function BasicInfo({ onComplete }: BasicInfoProps) {
   const [name, setName] = useState("");
   const [gender, setGender] = useState("male");
   const [birthdate, setBirthdate] = useState("");
-  const [nationality, setNationality] = useState(language === "ko" ? "KR" : "JP");
   const [city, setCity] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -45,7 +44,6 @@ export function BasicInfo({ onComplete }: BasicInfoProps) {
           nickname: name,
           gender,
           birthdate,
-          country_code: nationality,
           city
         })
         .eq('id', user.id);
@@ -122,25 +120,6 @@ export function BasicInfo({ onComplete }: BasicInfoProps) {
             className="pasar-input"
             required
           />
-        </div>
-        
-        <div className="space-y-2">
-          <label htmlFor="nationality" className="text-sm font-medium">
-            {t("onboarding.basics.nationality")}
-          </label>
-          <Select value={nationality} onValueChange={setNationality} required>
-            <SelectTrigger className="pasar-input">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="KR">
-                {language === "ko" ? "한국" : "韓国"}
-              </SelectItem>
-              <SelectItem value="JP">
-                {language === "ko" ? "일본" : "日本"}
-              </SelectItem>
-            </SelectContent>
-          </Select>
         </div>
         
         <div className="space-y-2">

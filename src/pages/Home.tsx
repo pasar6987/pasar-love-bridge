@@ -21,7 +21,7 @@ export default function Home() {
       setLoading(true);
       
       try {
-        // Get user's nationality
+        // Get user's auth data
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
@@ -29,86 +29,97 @@ export default function Home() {
           return;
         }
         
-        const { data: userNationalityData } = await supabase
+        // Get user's nationality from user_nationalities table
+        const { data: userNationalityData, error: nationalityError } = await supabase
           .from('user_nationalities')
           .select('nationality')
           .eq('user_id', user.id)
           .single();
           
-        const userNationality = userNationalityData?.nationality || language === 'ko' ? 'ko' : 'ja';
-        
-        // For demo, use mock data filtered by opposite nationality
-        setTimeout(() => {
-          const mockData = [
-            {
-              id: "1",
-              name: "花子",
-              age: 28,
-              location: "東京",
-              photo: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YXNpYW4lMjB3b21hbnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
-              bio: "こんにちは！東京に住んでいる花子です。韓国の文化とK-Popに興味があります。",
-              job: "デザイナー",
-              nationality: "ja",
-            },
-            {
-              id: "2",
-              name: "ゆか",
-              age: 25,
-              location: "大阪",
-              photo: "https://images.unsplash.com/photo-1606406054219-619c4c2e2100?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGFzaWFuJTIwd29tYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
-              bio: "大阪でカフェを経営しています。趣味は旅行と写真撮影です。韓国語を勉強中です！",
-              job: "カフェオーナー",
-              nationality: "ja",
-            },
-            {
-              id: "3",
-              name: "まい",
-              age: 27,
-              location: "福岡",
-              photo: "https://images.unsplash.com/photo-1609132718484-cc90df3417f8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8YXNpYW4lMjB3b21hbnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
-              bio: "音楽を愛する教師です。韓国ドラマが好きで、韓国語を独学で勉強しています。",
-              job: "教師",
-              nationality: "ja",
-            },
-            {
-              id: "4",
-              name: "민수",
-              age: 29,
-              location: "서울",
-              photo: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8a29yZWFuJTIwbWFufGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60",
-              bio: "안녕하세요! 서울에 사는 민수입니다. 일본 문화와 음식에 관심이 많아요.",
-              job: "프로그래머",
-              nationality: "ko",
-            },
-            {
-              id: "5",
-              name: "준호",
-              age: 27,
-              location: "부산",
-              photo: "https://images.unsplash.com/photo-1548142813-c348350df52b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8YXNpYW4lMjBtYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
-              bio: "부산에서 근무하는 의사입니다. 일본어 공부 중이며 일본 여행을 좋아해요!",
-              job: "의사",
-              nationality: "ko",
-            }
-          ];
-
-          // Filter based on user nationality
-          let filteredData;
-          if (userNationality === 'ko') {
-            // Korean users see Japanese profiles only
-            filteredData = mockData.filter(profile => profile.nationality === 'ja');
-          } else {
-            // Japanese users see Korean profiles only
-            filteredData = mockData.filter(profile => profile.nationality === 'ko');
-          }
-          
-          setRecommendations(filteredData);
-          setLoading(false);
-        }, 1000);
+        if (nationalityError) {
+          console.error("Error fetching user nationality:", nationalityError);
+          // Fallback to language-based nationality
+          const userNationality = language === 'ko' ? 'ko' : 'ja';
+          fetchProfilesByNationality(userNationality);
+        } else {
+          const userNationality = userNationalityData?.nationality || (language === 'ko' ? 'ko' : 'ja');
+          fetchProfilesByNationality(userNationality);
+        }
       } catch (error) {
         console.error('Error fetching profiles:', error);
         setLoading(false);
       }
+    };
+
+    const fetchProfilesByNationality = (userNationality: string) => {
+      // For demo, use mock data filtered by opposite nationality
+      setTimeout(() => {
+        const mockData = [
+          {
+            id: "1",
+            name: "花子",
+            age: 28,
+            location: "東京",
+            photo: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8YXNpYW4lMjB3b21hbnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
+            bio: "こんにちは！東京に住んでいる花子です。韓国の文化とK-Popに興味があります。",
+            job: "デザイナー",
+            nationality: "ja",
+          },
+          {
+            id: "2",
+            name: "ゆか",
+            age: 25,
+            location: "大阪",
+            photo: "https://images.unsplash.com/photo-1606406054219-619c4c2e2100?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGFzaWFuJTIwd29tYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
+            bio: "大阪でカフェを経営しています。趣味は旅行と写真撮影です。韓国語を勉強中です！",
+            job: "カフェオーナー",
+            nationality: "ja",
+          },
+          {
+            id: "3",
+            name: "まい",
+            age: 27,
+            location: "福岡",
+            photo: "https://images.unsplash.com/photo-1609132718484-cc90df3417f8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8YXNpYW4lMjB3b21hbnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
+            bio: "音楽を愛する教師です。韓国ドラマが好きで、韓国語を独学で勉強しています。",
+            job: "教師",
+            nationality: "ja",
+          },
+          {
+            id: "4",
+            name: "민수",
+            age: 29,
+            location: "서울",
+            photo: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8a29yZWFuJTIwbWFufGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60",
+            bio: "안녕하세요! 서울에 사는 민수입니다. 일본 문화와 음식에 관심이 많아요.",
+            job: "프로그래머",
+            nationality: "ko",
+          },
+          {
+            id: "5",
+            name: "준호",
+            age: 27,
+            location: "부산",
+            photo: "https://images.unsplash.com/photo-1548142813-c348350df52b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8YXNpYW4lMjBtYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
+            bio: "부산에서 근무하는 의사입니다. 일본어 공부 중이며 일본 여행을 좋아해요!",
+            job: "의사",
+            nationality: "ko",
+          }
+        ];
+
+        // Filter based on user nationality
+        let filteredData;
+        if (userNationality === 'ko') {
+          // Korean users see Japanese profiles only
+          filteredData = mockData.filter(profile => profile.nationality === 'ja');
+        } else {
+          // Japanese users see Korean profiles only
+          filteredData = mockData.filter(profile => profile.nationality === 'ko');
+        }
+        
+        setRecommendations(filteredData);
+        setLoading(false);
+      }, 1000);
     };
 
     fetchProfiles();

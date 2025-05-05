@@ -1,301 +1,186 @@
-import { TranslationMap } from "./types";
-
-export const translations: TranslationMap = {
-  // App
-  "app.name": {
-    ko: "파사르",
-    ja: "パサル"
-  },
-  "app.tagline": {
-    ko: "한일 문화 교류 데이팅",
-    ja: "日韓文化交流デーティング"
-  },
-  
-  // Auth
-  "auth.login": {
-    ko: "로그인",
-    ja: "ログイン"
-  },
-  "auth.signup": {
-    ko: "회원가입",
-    ja: "会員登録"
-  },
-  "auth.email": {
-    ko: "이메일",
-    ja: "メールアドレス"
-  },
-  "auth.password": {
-    ko: "비밀번호",
-    ja: "パスワード"
-  },
-  "auth.forgotPassword": {
-    ko: "비밀번호 찾기",
-    ja: "パスワードをお忘れですか"
-  },
-  "auth.continueWith": {
-    ko: "또는 다른 방법으로 계속하기",
-    ja: "または他の方法で続ける"
-  },
-  "auth.google": {
-    ko: "구글로 계속하기",
-    ja: "Googleで続ける"
-  },
-  "auth.dontHaveAccount": {
-    ko: "계정이 없으신가요?",
-    ja: "アカウントをお持ちでないですか？"
-  },
-  "auth.login_failed": {
-    ko: "로그인 실패",
-    ja: "ログイン失敗"
-  },
-  "auth.logout_failed": {
-    ko: "로그아웃 실패",
-    ja: "ログアウト失敗"
-  },
-  "auth.logout_success": {
-    ko: "로그아웃 되었습니다",
-    ja: "ログアウトしました"
-  },
-  "auth.logout_success_desc": {
-    ko: "안전하게 로그아웃 되었습니다",
-    ja: "安全にログアウトされました"
-  },
-  "auth.try_again": {
-    ko: "다시 시도해주세요",
-    ja: "もう一度お試しください"
-  },
-  
-  // Navigation
-  "nav.home": {
-    ko: "홈",
-    ja: "ホーム"
-  },
-  "nav.explore": {
-    ko: "탐색",
-    ja: "探索"
-  },
-  "nav.matches": {
-    ko: "매치",
-    ja: "マッチ"
-  },
-  "nav.messages": {
-    ko: "메시지",
-    ja: "メッセージ"
-  },
-  "nav.notifications": {
-    ko: "알림",
-    ja: "通知"
-  },
-  "nav.profile": {
-    ko: "프로필",
-    ja: "プロフィール"
-  },
-  "nav.settings": {
-    ko: "설정",
-    ja: "設定"
-  },
-  "nav.mypage": {
-    ko: "마이페이지",
-    ja: "マイページ"
-  },
-  "nav.back_to_home": {
-    ko: "홈으로 돌아가기",
-    ja: "ホームに戻る"
-  },
-  "nav.chat": {
-    ko: "채팅",
-    ja: "チャット"
-  },
-  
-  // Onboarding
-  "onboarding.step": {
-    ko: "단계",
-    ja: "ステップ"
-  },
-  "onboarding.photos.title": {
-    ko: "사진을 등록해주세요",
-    ja: "写真を登録してください"
-  },
-  "onboarding.photos.desc": {
-    ko: "매칭에 사용될 프로필 사진을 등록해주세요. 최소 3장, 최대 6장까지 등록 가능합니다.",
-    ja: "マッチングに使用するプロフィール写真を登録してください。最小3枚、最大6枚まで登録可能です。"
-  },
-  "onboarding.photos.add": {
-    ko: "사진 추가",
-    ja: "写真を追加"
-  },
-  "onboarding.photos.min_required": {
-    ko: "최소 3장의 사진이 필요합니다",
-    ja: "最低3枚の写真が必要です"
-  },
-  "onboarding.basics.title": {
-    ko: "기본 정보를 입력해주세요",
-    ja: "基本情報を入力してください"
-  },
-  "onboarding.basics.desc": {
-    ko: "매칭에 필요한 기본 정보를 입력해주세요",
-    ja: "マッチングに必要な基本情報を入力してください"
-  },
-  "onboarding.basics.name": {
-    ko: "이름",
-    ja: "名前"
-  },
-  "onboarding.basics.gender": {
-    ko: "성별",
-    ja: "性別"
-  },
-  "onboarding.basics.birthdate": {
-    ko: "생년월일",
-    ja: "生年月日"
-  },
-  "onboarding.basics.nationality": {
-    ko: "국적",
-    ja: "国籍"
-  },
-  "onboarding.basics.city": {
-    ko: "거주 도시",
-    ja: "居住都市"
-  },
-  "onboarding.verification.title": {
-    ko: "본인 인증",
-    ja: "本人確認"
-  },
-  "onboarding.verification.desc": {
-    ko: "안전한 매칭을 위해 본인 인증을 진행해주세요",
-    ja: "安全なマッチングのため、本人確認を行ってください"
-  },
-  "onboarding.questions.job": {
-    ko: "직업",
-    ja: "職業"
-  },
-  "onboarding.questions.education": {
-    ko: "학력",
-    ja: "学歴"
-  },
-  "onboarding.questions.languages": {
-    ko: "언어 능력",
-    ja: "言語能力"
-  },
-  "onboarding.questions.interests": {
-    ko: "관심사",
-    ja: "興味"
-  },
-  
-  // Home
-  "home.recommendations": {
-    ko: "추천",
-    ja: "おすすめ"
-  },
-  "home.noMore": {
-    ko: "더 이상 추천이 없습니다",
-    ja: "おすすめがこれ以上ありません"
-  },
-  
-  // Profile
-  "profile.about": {
-    ko: "소개",
-    ja: "自己紹介"
-  },
-  "profile.details": {
-    ko: "상세 정보",
-    ja: "詳細情報"
-  },
-  "profile.mypage": {
-    ko: "마이페이지",
-    ja: "マイページ"
-  },
-  "profile.basic_info": {
-    ko: "기본 정보",
-    ja: "基本情報"
-  },
-  "profile.email": {
-    ko: "이메일",
-    ja: "メールアドレス"
-  },
-  "profile.join_date": {
-    ko: "가입일",
-    ja: "登録日"
-  },
-  "profile.logout_in_progress": {
-    ko: "로그아웃 중...",
-    ja: "ログアウト中..."
-  },
-  
-  // Actions
-  "action.next": {
-    ko: "다음",
-    ja: "次へ"
-  },
-  
-  // Settings
-  "settings.title": {
-    ko: "설정",
-    ja: "設定"
-  },
-  "settings.account": {
-    ko: "계정 설정",
-    ja: "アカウント設定"
-  },
-  "settings.language": {
-    ko: "언어",
-    ja: "言語"
-  },
-  "settings.notifications": {
-    ko: "알림 설정",
-    ja: "通知設定"
-  },
-  "settings.logout": {
-    ko: "로그아웃",
-    ja: "ログアウト"
-  },
-  
-  // Chat
-  "chat.writeMessage": {
-    ko: "메시지를 입력하세요...",
-    ja: "メッセージを入力してください..."
-  },
-  "chat.icebreaker": {
-    ko: "아이스브레이커",
-    ja: "アイスブレーカー"
-  },
-  "chat.randomTopic": {
-    ko: "랜덤 주제",
-    ja: "ランダムなトピック"
-  },
-  
-  // Notifications
-  "notifications.new_match": {
-    ko: "새로운 매치가 있습니다",
-    ja: "新しいマッチがあります"
-  },
-  "notifications.new_message": {
-    ko: "{name}님이 메시지를 보냈습니다",
-    ja: "{name}さんがメッセージを送信しました"
-  },
-  "notifications.view_all": {
-    ko: "모든 알림 보기",
-    ja: "すべての通知を見る"
-  },
-  "notifications.time_ago.minutes": {
-    ko: "{minutes}분 전",
-    ja: "{minutes}分前"
-  },
-  "notifications.time_ago.hours": {
-    ko: "{hours}시간 전",
-    ja: "{hours}時間前"
-  },
-  
-  // Errors
-  "error.generic": {
-    ko: "오류가 발생했습니다",
-    ja: "エラーが発生しました"
-  },
-  "error.try_again": {
-    ko: "다시 시도해주세요",
-    ja: "もう一度お試しください"
-  },
-  "error.page_not_found": {
-    ko: "페이지를 찾을 수 없습니다",
-    ja: "ページが見つかりません"
+export const translations = {
+  ko: {
+    app: {
+      name: "Pasar",
+      tagline: "국경을 넘어 새로운 인연을 만나보세요",
+    },
+    common: {
+      error: "오류",
+      tryAgain: "다시 시도해주세요.",
+    },
+    action: {
+      next: "다음",
+      submit: "제출",
+    },
+    nav: {
+      home: "홈",
+      matches: "매칭",
+      chat: "채팅",
+      notifications: "알림",
+      profile: "프로필",
+      settings: "설정",
+      admin: "관리자",
+    },
+    auth: {
+      login_failed: "로그인에 실패했습니다.",
+      try_again: "다시 시도해주세요.",
+      logout_success: "로그아웃되었습니다.",
+      logout_success_desc: "성공적으로 로그아웃되었습니다.",
+      logout_failed: "로그아웃에 실패했습니다.",
+      google: "Google 계정으로 로그인",
+    },
+    home: {
+      recommendations: "추천",
+      noMatches: "추천할 프로필이 없습니다.",
+      noMore: "더 이상 추천할 사람이 없습니다.",
+    },
+    matches: {
+      title: "매칭",
+      likeSent: "좋아요를 보냈습니다!",
+      likeDescription: "상대방이 당신을 좋아하면 매칭됩니다.",
+    },
+    profile: {
+      edit: "프로필 수정",
+      save: "저장",
+      cancel: "취소",
+      name: "이름",
+      age: "나이",
+      location: "위치",
+      bio: "소개",
+      job: "직업",
+      nationality: "국적",
+    },
+    settings: {
+      title: "설정",
+      language: "언어",
+      notifications: "알림",
+      privacy: "개인 정보 보호",
+      logout: "로그아웃",
+      deleteAccount: "계정 삭제",
+    },
+    onboarding: {
+      upload: {
+        title: "프로필 사진을 업로드해주세요",
+        desc: "당신을 가장 잘 나타내는 사진을 선택하세요.",
+        button: "사진 업로드",
+      },
+      basics: {
+        title: "기본 정보를 입력해주세요",
+        desc: "이름, 성별, 생년월일, 국적, 도시를 입력해주세요.",
+        name: "이름",
+        gender: "성별",
+        birthdate: "생년월일",
+        nationality: "국적",
+        city: "도시",
+      },
+      questions: {
+        title: "몇 가지 질문에 답해주세요",
+        desc: "당신에 대해 더 자세히 알려주세요.",
+      },
+      verification: {
+        title: "본인 인증을 해주세요",
+        desc: "안전한 서비스를 위해 본인 인증이 필요합니다.",
+      },
+      nationality: {
+        title: "국적을 선택해주세요",
+        desc: "매칭할 사용자의 국적을 필터링하는 데 사용됩니다."
+      },
+    },
+    error: {
+      generic: "오류가 발생했습니다.",
+      try_again: "다시 시도해주세요.",
+    },
+  },
+  ja: {
+    app: {
+      name: "Pasar",
+      tagline: "国境を越えて新しい出会いを見つけよう",
+    },
+    common: {
+      error: "エラー",
+      tryAgain: "もう一度お試しください。",
+    },
+    action: {
+      next: "次へ",
+      submit: "送信",
+    },
+    nav: {
+      home: "ホーム",
+      matches: "マッチ",
+      chat: "チャット",
+      notifications: "お知らせ",
+      profile: "プロフィール",
+      settings: "設定",
+      admin: "管理者",
+    },
+    auth: {
+      login_failed: "ログインに失敗しました。",
+      try_again: "もう一度お試しください。",
+      logout_success: "ログアウトしました。",
+      logout_success_desc: "正常にログアウトされました。",
+      logout_failed: "ログアウトに失敗しました。",
+      google: "Googleアカウントでログイン",
+    },
+    home: {
+      recommendations: "おすすめ",
+      noMatches: "おすすめのプロフィールはありません。",
+      noMore: "もうおすすめできる人はいません。",
+    },
+    matches: {
+      title: "マッチ",
+      likeSent: "いいね！を送りました",
+      likeDescription: "相手があなたを好きになったらマッチングされます。",
+    },
+    profile: {
+      edit: "プロフィールの編集",
+      save: "保存",
+      cancel: "キャンセル",
+      name: "名前",
+      age: "年齢",
+      location: "場所",
+      bio: "自己紹介",
+      job: "職業",
+      nationality: "国籍",
+    },
+    settings: {
+      title: "設定",
+      language: "言語",
+      notifications: "お知らせ",
+      privacy: "プライバシー",
+      logout: "ログアウト",
+      deleteAccount: "アカウント削除",
+    },
+    onboarding: {
+      upload: {
+        title: "プロフィール写真をアップロードしてください",
+        desc: "あなたを最もよく表す写真を選んでください。",
+        button: "写真をアップロード",
+      },
+      basics: {
+        title: "基本情報を入力してください",
+        desc: "名前、性別、生年月日、国籍、都市を入力してください。",
+        name: "名前",
+        gender: "性別",
+        birthdate: "生年月日",
+        nationality: "国籍",
+        city: "都市",
+      },
+      questions: {
+        title: "いくつかの質問に答えてください",
+        desc: "あなたについてもっと教えてください。",
+      },
+      verification: {
+        title: "本人確認をしてください",
+        desc: "安全なサービスのために本人確認が必要です。",
+      },
+      nationality: {
+        title: "国籍を選択してください",
+        desc: "マッチングするユーザーの国籍をフィルタリングするために使用されます。"
+      },
+    },
+    error: {
+      generic: "エラーが発生しました。",
+      try_again: "もう一度お試しください。",
+    },
   }
 };

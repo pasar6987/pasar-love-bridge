@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { ProgressBar } from "@/components/onboarding/ProgressBar";
+import { NationalitySelection } from "@/components/onboarding/NationalitySelection";
 import { PhotoUpload } from "@/components/onboarding/PhotoUpload";
 import { BasicInfo } from "@/components/onboarding/BasicInfo";
 import { Questions } from "@/components/onboarding/Questions";
@@ -20,7 +21,7 @@ const Onboarding = () => {
   const { t } = useLanguage();
   const [isUpdating, setIsUpdating] = useState(false);
   
-  const TOTAL_STEPS = 4;
+  const TOTAL_STEPS = 5; // Updated total steps
 
   const handleStepComplete = async (nextStep: number) => {
     setIsUpdating(true);
@@ -64,15 +65,17 @@ const Onboarding = () => {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <PhotoUpload onComplete={() => handleStepComplete(2)} />;
+        return <NationalitySelection onComplete={() => handleStepComplete(2)} />;
       case 2:
-        return <BasicInfo onComplete={() => handleStepComplete(3)} />;
+        return <PhotoUpload onComplete={() => handleStepComplete(3)} />;
       case 3:
-        return <Questions onComplete={() => handleStepComplete(4)} />;
+        return <BasicInfo onComplete={() => handleStepComplete(4)} />;
       case 4:
-        return <Verification onComplete={() => handleStepComplete(5)} />;
+        return <Questions onComplete={() => handleStepComplete(5)} />;
+      case 5:
+        return <Verification onComplete={() => handleStepComplete(6)} />;
       default:
-        return <PhotoUpload onComplete={() => handleStepComplete(2)} />;
+        return <NationalitySelection onComplete={() => handleStepComplete(2)} />;
     }
   };
 
