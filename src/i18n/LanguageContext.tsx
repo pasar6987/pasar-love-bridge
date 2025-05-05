@@ -41,13 +41,24 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLanguageState(lang);
   };
   
-  // 번역 함수
-  const t = (key: string): string => {
+  // 번역 함수 - 매개변수 처리 추가
+  const t = (key: string, params?: Record<string, any>): string => {
     if (!translations[key]) {
       console.warn(`Translation missing for key: ${key}`);
       return key;
     }
-    return translations[key][language];
+    
+    let translatedText = translations[key][language];
+    
+    // 매개변수가 있는 경우 처리
+    if (params) {
+      Object.keys(params).forEach(param => {
+        const regex = new RegExp(`{${param}}`, 'g');
+        translatedText = translatedText.replace(regex, String(params[param]));
+      });
+    }
+    
+    return translatedText;
   };
   
   return (
