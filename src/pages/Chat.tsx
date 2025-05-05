@@ -29,7 +29,7 @@ export default function Chat() {
   useEffect(() => {
     const loadUserAndChats = async () => {
       try {
-        // Get current user
+        // Get current user using the built-in auth RPC
         const { data: { user } } = await supabase.auth.getUser();
         
         if (user) {
@@ -37,7 +37,7 @@ export default function Chat() {
         }
         
         // For now use mock data
-        // In production, this would fetch from the matches and chat_messages tables
+        // In production, this would fetch from an RPC function like 'get_user_chat_partners'
         const mockChatPartners: ChatPartner[] = [
           {
             id: "2",
@@ -71,6 +71,7 @@ export default function Chat() {
 
   const formatTimeRelative = (timeString: string) => {
     // For demonstration, just return the time string
+    // In production, this could be an RPC function or utility function
     return timeString;
   };
 

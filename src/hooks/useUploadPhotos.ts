@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { uploadProfilePhoto } from "@/utils/storageHelpers";
 import { useToast } from "./use-toast";
@@ -31,7 +30,7 @@ export function useUploadPhotos() {
         const sortOrder = photos.length + index;
         const publicUrl = await uploadProfilePhoto(user.id, file, sortOrder);
         
-        // Insert record using RPC function
+        // Insert record using RPC function - Already using RPC
         await supabase.rpc('insert_profile_photo', {
           user_id: user.id,
           photo_url: publicUrl,
@@ -68,7 +67,7 @@ export function useUploadPhotos() {
     });
     
     // Note: We're not deleting from storage here to keep it simple,
-    // but in a production app you might want to delete unused photos
+    // but in a production app you might want to delete unused photos via an RPC
   };
 
   const readFileAsDataURL = (file: File): Promise<string> => {

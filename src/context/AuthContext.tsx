@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { t } = useLanguage();
 
   useEffect(() => {
-    // Set up auth state listener first
+    // Set up auth state listener first - this is using Supabase's built-in auth functions
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -43,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // Then check for existing session
+    // Then check for existing session - this is using Supabase's built-in auth functions
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -67,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     try {
-      // Use RPC function to get user onboarding status
+      // Use RPC function to get user onboarding status - already using RPC
       const { data: userData, error } = await supabase.rpc(
         'get_user_onboarding_status',
         { user_id: userId }
@@ -76,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       
       if (!userData || userData.length === 0) {
-        // User record doesn't exist yet, create it
+        // User record doesn't exist yet, create it - already using RPC
         const { error: insertError } = await supabase.rpc(
           'upsert_user_profile',
           { user_id: userId }
@@ -93,8 +94,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const nextStep = userProfile.onboarding_step ? userProfile.onboarding_step : 1;
           navigate(`/onboarding/${nextStep}`);
         }
-        // Remove the automatic redirection to home page to fix the issue
-        // Let the authentication flow continue without forced redirection
       }
     } catch (error) {
       console.error("Error checking user onboarding status:", error);
@@ -110,6 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
+      // Using Supabase's built-in auth functions
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -135,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
+      // Using Supabase's built-in auth function
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       

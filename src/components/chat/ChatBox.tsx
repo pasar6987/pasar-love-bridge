@@ -39,8 +39,10 @@ export function ChatBox({ chatPartner, userId, matchId }: ChatBoxProps) {
       if (!matchId) return;
       
       try {
+        // In a real implementation, we would use an RPC function to fetch messages
+        // const { data, error } = await supabase.rpc('get_match_messages', { match_id: matchId });
+        
         // For now, use mock data
-        // In production, this would fetch from the chat_messages table
         setTimeout(() => {
           const initialMessages: Message[] = [
             {
@@ -86,8 +88,15 @@ export function ChatBox({ chatPartner, userId, matchId }: ChatBoxProps) {
     
     try {
       if (matchId) {
-        // In production, this would insert into the chat_messages table
-        console.log("Sending message to database:", {
+        // In production, this would call an RPC function:
+        // await supabase.rpc('send_message', {
+        //   p_match_id: matchId,
+        //   p_sender_id: userId,
+        //   p_content: newMessage
+        // });
+        
+        // For now, just log it
+        console.log("Sending message to database via RPC:", {
           match_id: matchId,
           sender_id: userId,
           content: newMessage
@@ -102,7 +111,6 @@ export function ChatBox({ chatPartner, userId, matchId }: ChatBoxProps) {
           content: language === "ko" 
             ? "네, 저도 반가워요! 취미가 뭐예요?" 
             : "はい、私も嬉しいです！趣味は何ですか？",
-          translatedContent: null, // Will be populated on demand
           timestamp: new Date().toISOString(),
           type: "user"
         };
@@ -169,9 +177,7 @@ export function ChatBox({ chatPartner, userId, matchId }: ChatBoxProps) {
     setTranslating(prev => ({ ...prev, [messageId]: true }));
     
     try {
-      // Call the translation API
-      const targetLanguage = language === "ko" ? "ja" : "ko";
-      
+      // Call the translation API via RPC
       const { data, error } = await supabase.functions.invoke('translate', {
         body: {
           text: content,

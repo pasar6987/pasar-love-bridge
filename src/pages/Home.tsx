@@ -21,7 +21,7 @@ export default function Home() {
       setLoading(true);
       
       try {
-        // Get user's auth data
+        // Get user's auth data - using built-in Supabase auth function
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
@@ -29,7 +29,13 @@ export default function Home() {
           return;
         }
         
-        // Get user's nationality from user_nationalities table
+        // In production, we would create an RPC function to get user's nationality:
+        // const { data: userNationality, error } = await supabase.rpc(
+        //   'get_user_nationality',
+        //   { p_user_id: user.id }
+        // );
+        
+        // For now, directly query the table
         const { data: userNationalityData, error: nationalityError } = await supabase
           .from('user_nationalities')
           .select('nationality')
@@ -53,6 +59,12 @@ export default function Home() {
 
     const fetchProfilesByNationality = (userNationality: string) => {
       // For demo, use mock data filtered by opposite nationality
+      // In production, we would create an RPC function:
+      // const { data, error } = await supabase.rpc(
+      //   'get_recommended_profiles_by_nationality',
+      //   { p_user_nationality: userNationality }
+      // );
+      
       setTimeout(() => {
         const mockData = [
           {
@@ -127,6 +139,7 @@ export default function Home() {
 
   const handleLike = async (id: string) => {
     try {
+      // Get user's auth data - built-in Supabase auth function
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -134,11 +147,16 @@ export default function Home() {
         return;
       }
       
-      // In a real app, we would insert into the matches table
-      // Here we're just simulating it
-      console.log(`User ${user.id} liked profile ${id}`);
+      // In a real app, we would use an RPC function to handle likes
+      // For example:
+      // await supabase.rpc('create_user_like', {
+      //   p_user_id: user.id,
+      //   p_target_user_id: id
+      // });
       
-      // For demo purposes, we'll remove the liked profile from recommendations
+      // For demo purposes, we'll just log it and remove the liked profile
+      console.log(`User ${user.id} liked profile ${id} (would use RPC in production)`);
+      
       setRecommendations(prev => prev.filter(profile => profile.id !== id));
     } catch (error) {
       console.error('Error handling like:', error);

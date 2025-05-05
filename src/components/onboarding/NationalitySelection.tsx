@@ -27,7 +27,14 @@ export function NationalitySelection({ onComplete }: NationalitySelectionProps) 
     setIsSubmitting(true);
     
     try {
-      // Add user nationality to the database
+      // Add user nationality to the database using RPC
+      // In a production app, we would create an RPC function:
+      // const { error } = await supabase.rpc('insert_user_nationality', {
+      //   p_user_id: user.id,
+      //   p_nationality: nationality
+      // });
+      
+      // For now, use direct table operation
       const { error } = await supabase
         .from('user_nationalities')
         .insert({

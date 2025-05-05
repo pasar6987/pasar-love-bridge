@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text, source, target } = await req.json()
+    const { text, sourceLanguage, targetLanguage } = await req.json()
 
     if (!text) {
       return new Response(
@@ -33,13 +33,13 @@ serve(async (req) => {
       }
     }
 
-    const translatedText = simulateTranslation(text, target);
+    const translatedText = simulateTranslation(text, targetLanguage);
 
     return new Response(
       JSON.stringify({ 
         translatedText,
-        source: source || 'auto',
-        target
+        sourceLanguage: sourceLanguage || 'auto',
+        targetLanguage
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
