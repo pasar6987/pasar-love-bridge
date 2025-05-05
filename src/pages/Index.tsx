@@ -1,7 +1,8 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { detectLanguageFromIP } from "@/utils/ipLanguageDetection";
+import { determineBestLanguage } from "@/utils/ipLanguageDetection";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -20,7 +21,8 @@ const Index = () => {
         // 인증 파라미터가 없는 경우에 IP 기반 언어 감지 수행
         setIsLoading(true);
         try {
-          const detectedLang = await detectLanguageFromIP();
+          const detectedLang = await determineBestLanguage();
+          console.log("감지된 최적 언어:", detectedLang);
           navigate(`/${detectedLang}`);
         } catch (error) {
           console.error("언어 감지 오류:", error);

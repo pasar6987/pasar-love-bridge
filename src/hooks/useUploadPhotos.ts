@@ -4,6 +4,7 @@ import { uploadProfilePhoto } from "@/utils/storageHelpers";
 import { useToast } from "./use-toast";
 import { useLanguage } from "@/i18n/useLanguage";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export function useUploadPhotos() {
   const [photos, setPhotos] = useState<string[]>([]);
@@ -29,6 +30,13 @@ export function useUploadPhotos() {
         // Upload to Supabase Storage
         const sortOrder = photos.length + index;
         const publicUrl = await uploadProfilePhoto(user.id, file, sortOrder);
+        
+        // Insert record using RPC function
+        await supabase.rpc('insert_profile_photo', {
+          user_id: user.id,
+          photo_url: publicUrl,
+          order_number: sortOrder
+        });
         
         return { dataUrl, publicUrl };
       });

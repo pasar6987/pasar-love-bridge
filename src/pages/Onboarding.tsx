@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -27,13 +28,14 @@ const Onboarding = () => {
     try {
       if (user) {
         // 로그인한 경우만 DB 업데이트
-        const { error } = await supabase
-          .from('users')
-          .update({ 
-            onboarding_step: nextStep,
-            onboarding_completed: nextStep > TOTAL_STEPS
-          })
-          .eq('id', user.id);
+        const { error } = await supabase.rpc(
+          'update_user_onboarding_step',
+          { 
+            user_id: user.id,
+            step_number: nextStep,
+            is_completed: nextStep > TOTAL_STEPS
+          }
+        );
         
         if (error) throw error;
       }

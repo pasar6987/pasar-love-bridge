@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,32 +68,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     try {
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('onboarding_completed, onboarding_step')
-        .eq('id', userId)
-        .single();
+      // Use RPC function to get user onboarding status
+      const { data: userData, error } = await supabase.rpc(
+        'get_user_onboarding_status',
+        { user_id: userId }
+      );
       
       if (error) throw error;
       
-      if (!userData) {
+      if (!userData || userData.length === 0) {
         // User record doesn't exist yet, create it
-        const { error: insertError } = await supabase
-          .from('users')
-          .insert({ id: userId })
-          .single();
+        const { error: insertError } = await supabase.rpc(
+          'upsert_user_profile',
+          { user_id: userId }
+        );
         
         if (insertError) throw insertError;
         
         // 새로운 사용자는 온보딩 페이지로 리디렉션
         navigate(`/${language}/onboarding/1`);
-      } else if (!userData.onboarding_completed) {
-        // 온보딩이 완료되지 않은 경우, 마지막 단계로 리디렉션
-        const nextStep = userData.onboarding_step ? userData.onboarding_step : 1;
-        navigate(`/${language}/onboarding/${nextStep}`);
       } else {
-        // 온보딩이 완료된 경우 메인 페이지로 리디렉션
-        navigate(`/${language}/home`);
+        const userProfile = userData[0];
+        if (!userProfile.onboarding_completed) {
+          // 온보딩이 완료되지 않은 경우, 마지막 단계로 리디렉션
+          const nextStep = userProfile.onboarding_step ? userProfile.onboarding_step : 1;
+          navigate(`/${language}/onboarding/${nextStep}`);
+        } else {
+          // 온보딩이 완료된 경우 메인 페이지로 리디렉션
+          navigate(`/${language}/home`);
+        }
       }
     } catch (error) {
       console.error("Error checking user onboarding status:", error);

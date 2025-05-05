@@ -190,7 +190,72 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      delete_profile_photo: {
+        Args: { photo_id: string }
+        Returns: undefined
+      }
+      get_user_onboarding_status: {
+        Args: { user_id: string }
+        Returns: {
+          id: string
+          onboarding_completed: boolean
+          onboarding_step: number
+        }[]
+      }
+      get_user_profile_photos: {
+        Args: { user_id: string }
+        Returns: {
+          id: string
+          url: string
+          sort_order: number
+          user_id: string
+          uploaded_at: string
+        }[]
+      }
+      insert_profile_photo: {
+        Args: { user_id: string; photo_url: string; order_number: number }
+        Returns: {
+          id: string
+          sort_order: number
+          uploaded_at: string | null
+          url: string
+          user_id: string | null
+        }
+      }
+      update_user_onboarding_step: {
+        Args: { user_id: string; step_number: number; is_completed?: boolean }
+        Returns: {
+          bio: string | null
+          birthdate: string | null
+          city: string | null
+          country_code: string | null
+          created_at: string | null
+          gender: string | null
+          id: string
+          is_verified: boolean | null
+          nickname: string | null
+          onboarding_completed: boolean | null
+          onboarding_step: number | null
+          updated_at: string | null
+        }
+      }
+      upsert_user_profile: {
+        Args: { user_id: string; step_number?: number; is_completed?: boolean }
+        Returns: {
+          bio: string | null
+          birthdate: string | null
+          city: string | null
+          country_code: string | null
+          created_at: string | null
+          gender: string | null
+          id: string
+          is_verified: boolean | null
+          nickname: string | null
+          onboarding_completed: boolean | null
+          onboarding_step: number | null
+          updated_at: string | null
+        }
+      }
     }
     Enums: {
       [_ in never]: never
