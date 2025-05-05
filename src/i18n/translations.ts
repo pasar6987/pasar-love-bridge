@@ -1,5 +1,9 @@
 
 export const translations = {
+  "nav.messages": {
+    ko: "메세지",
+    ja: "メッセージ"
+  },
   "app.name": {
     ko: "Pasar",
     ja: "Pasar"
