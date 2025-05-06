@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
@@ -60,21 +61,20 @@ export default function Admin() {
       }
       
       try {
-        console.log("[Admin Debug] admin_users 테이블에서 사용자 조회 시작", { userId: user.id });
+        console.log("[Admin Debug] is_admin RPC 호출 시작", { userId: user.id });
         
-        const { data, error } = await supabase
-          .from('admin_users')
-          .select('*')
-          .eq('user_id', user.id);
+        const { data, error } = await supabase.rpc('is_admin', {
+          user_id: user.id
+        });
           
         if (error) {
-          console.log("[Admin Debug] admin_users 조회 오류", error);
+          console.log("[Admin Debug] is_admin RPC 호출 오류", error);
           throw error;
         }
         
-        console.log("[Admin Debug] admin_users 조회 결과", { data });
+        console.log("[Admin Debug] is_admin RPC 호출 결과", { isAdmin: data });
         
-        if (!data || data.length === 0) {
+        if (!data) {
           console.log("[Admin Debug] 사용자가 관리자가 아님, 홈 페이지로 리디렉션");
           setIsAdmin(false);
           setAdminCheckComplete(true);
