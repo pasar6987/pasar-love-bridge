@@ -9,14 +9,20 @@ import { Loader2 } from "lucide-react";
 
 interface NationalitySelectionProps {
   onComplete: () => void;
+  tempData: "ko" | "ja" | null;
+  updateTempData: (value: "ko" | "ja" | null) => void;
 }
 
-export function NationalitySelection({ onComplete }: NationalitySelectionProps) {
+export function NationalitySelection({ 
+  onComplete, 
+  tempData, 
+  updateTempData 
+}: NationalitySelectionProps) {
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const [nationality, setNationality] = useState<"ko" | "ja" | null>(null);
+  const [nationality, setNationality] = useState<"ko" | "ja" | null>(tempData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existing, setExisting] = useState<boolean>(false);
   
@@ -38,6 +44,7 @@ export function NationalitySelection({ onComplete }: NationalitySelectionProps) 
         // 기존 데이터가 있으면 설정
         if (data) {
           setNationality(data.nationality as "ko" | "ja");
+          updateTempData(data.nationality as "ko" | "ja");
           setExisting(true);
         }
       } catch (error) {
@@ -45,8 +52,16 @@ export function NationalitySelection({ onComplete }: NationalitySelectionProps) 
       }
     };
     
-    checkExistingNationality();
-  }, [user]);
+    if (!nationality) {
+      checkExistingNationality();
+    }
+  }, [user, nationality, updateTempData]);
+  
+  // 국적이 선택되면 임시 데이터 업데이트
+  const handleNationalityChange = (value: "ko" | "ja") => {
+    setNationality(value);
+    updateTempData(value);
+  };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,7 +128,7 @@ export function NationalitySelection({ onComplete }: NationalitySelectionProps) 
               nationality === "ko" ? "ring-2 ring-primary bg-primary/5" : ""
             }`}
             variant="outline"
-            onClick={() => setNationality("ko")}
+            onClick={() => handleNationalityChange("ko")}
           >
             <span className="text-3xl mb-2">🇰🇷</span>
             <span className="font-medium">한국</span>
@@ -126,7 +141,7 @@ export function NationalitySelection({ onComplete }: NationalitySelectionProps) 
               nationality === "ja" ? "ring-2 ring-primary bg-primary/5" : ""
             }`}
             variant="outline"
-            onClick={() => setNationality("ja")}
+            onClick={() => handleNationalityChange("ja")}
           >
             <span className="text-3xl mb-2">🇯🇵</span>
             <span className="font-medium">日本</span>

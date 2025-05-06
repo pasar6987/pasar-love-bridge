@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { ProgressBar } from "@/components/onboarding/ProgressBar";
@@ -14,6 +14,31 @@ import { useLanguage } from "@/i18n/useLanguage";
 import { ArrowLeft, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// 임시 데이터를 위한 인터페이스 정의
+interface OnboardingTempData {
+  nationality: "ko" | "ja" | null;
+  photos: string[];
+  basicInfo: {
+    name: string;
+    gender: string;
+    birthdate: string;
+    city: string;
+  };
+  questions: {
+    job: string;
+    education: string;
+    bio: string;
+    interests: string[];
+    koreanLevel: string;
+    japaneseLevel: string;
+  };
+  verification: {
+    docType: string;
+    frontUploaded: boolean;
+    file: File | null;
+  };
+}
+
 const Onboarding = () => {
   const { step } = useParams<{ step: string }>();
   const navigate = useNavigate();
@@ -23,7 +48,40 @@ const Onboarding = () => {
   const { t } = useLanguage();
   const [isUpdating, setIsUpdating] = useState(false);
   
-  const TOTAL_STEPS = 5; // Updated total steps
+  const TOTAL_STEPS = 5;
+
+  // 임시 데이터 상태 관리
+  const [tempData, setTempData] = useState<OnboardingTempData>({
+    nationality: null,
+    photos: [],
+    basicInfo: {
+      name: "",
+      gender: "male",
+      birthdate: "",
+      city: ""
+    },
+    questions: {
+      job: "",
+      education: "",
+      bio: "",
+      interests: [],
+      koreanLevel: "",
+      japaneseLevel: ""
+    },
+    verification: {
+      docType: "",
+      frontUploaded: false,
+      file: null
+    }
+  });
+
+  // 데이터 업데이트 함수
+  const updateTempData = (field: keyof OnboardingTempData, value: any) => {
+    setTempData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   const handleStepComplete = async (nextStep: number) => {
     setIsUpdating(true);
@@ -123,17 +181,53 @@ const Onboarding = () => {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <NationalitySelection onComplete={() => handleStepComplete(2)} />;
+        return (
+          <NationalitySelection 
+            onComplete={() => handleStepComplete(2)} 
+            tempData={tempData.nationality} 
+            updateTempData={(value) => updateTempData("nationality", value)} 
+          />
+        );
       case 2:
-        return <PhotoUpload onComplete={() => handleStepComplete(3)} />;
+        return (
+          <PhotoUpload 
+            onComplete={() => handleStepComplete(3)} 
+            tempData={tempData.photos} 
+            updateTempData={(value) => updateTempData("photos", value)} 
+          />
+        );
       case 3:
-        return <BasicInfo onComplete={() => handleStepComplete(4)} />;
+        return (
+          <BasicInfo 
+            onComplete={() => handleStepComplete(4)} 
+            tempData={tempData.basicInfo} 
+            updateTempData={(value) => updateTempData("basicInfo", value)} 
+          />
+        );
       case 4:
-        return <Questions onComplete={() => handleStepComplete(5)} />;
+        return (
+          <Questions 
+            onComplete={() => handleStepComplete(5)} 
+            tempData={tempData.questions} 
+            updateTempData={(value) => updateTempData("questions", value)} 
+          />
+        );
       case 5:
-        return <Verification onComplete={() => handleStepComplete(6)} />;
+        return (
+          <Verification 
+            onComplete={() => handleStepComplete(6)} 
+            tempData={tempData.verification} 
+            updateTempData={(value) => updateTempData("verification", value)} 
+          />
+        );
       default:
-        return <NationalitySelection onComplete={() => handleStepComplete(2)} />;
+        return (
+          <NationalitySelection 
+            onComplete={() => handleStepComplete(2)} 
+            tempData={tempData.nationality} 
+            updateTempData={(value) => updateTempData("nationality", value)} 
+          />
+        );
     }
   };
 
