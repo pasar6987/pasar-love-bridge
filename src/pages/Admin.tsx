@@ -2,501 +2,523 @@
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import { CheckCircle, XCircle, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
+type VerificationStatus = "pending" | "approved" | "rejected" | "submitted";
 
 interface VerificationRequest {
   id: string;
   user_id: string;
-  photo_url?: string;
   id_front_url?: string;
+  photo_url?: string;
   type: "identity" | "profile";
-  status: "pending" | "approved" | "rejected" | "submitted";
-  rejection_reason?: string;
+  status: VerificationStatus;
+  rejection_reason: string;
   created_at: string;
-}
-
-interface UserData {
-  id: string;
-  nickname: string;
+  user_email?: string;
+  user_display_name?: string;
 }
 
 export default function Admin() {
   const { t, language } = useLanguage();
   const { toast } = useToast();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [identityRequests, setIdentityRequests] = useState<VerificationRequest[]>([]);
-  const [profilePhotoRequests, setProfilePhotoRequests] = useState<VerificationRequest[]>([]);
-  const [userData, setUserData] = useState<Record<string, UserData>>({});
-  const [rejectionReason, setRejectionReason] = useState<Record<string, string>>({});
-  const [processingRequest, setProcessingRequest] = useState<Record<string, boolean>>({});
+  const { user } = useAuth();
   const navigate = useNavigate();
   
-  // Check if user is admin and load data
+  const [activeTab, setActiveTab] = useState("identity");
+  const [identityRequests, setIdentityRequests] = useState<VerificationRequest[]>([]);
+  const [photoRequests, setPhotoRequests] = useState<VerificationRequest[]>([]);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Check if user is admin
   useEffect(() => {
-    const checkAdminAndLoadData = async () => {
+    const checkAdminStatus = async () => {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+      
       try {
-        // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          navigate('/login');
-          return;
-        }
-        
-        // Check if user is admin
-        const { data: isAdminData, error: adminError } = await supabase.rpc('is_admin', {
-          user_id: user.id
-        });
-        
-        if (adminError) {
-          console.error('Error checking admin status:', adminError);
-          navigate('/home');
-          return;
-        }
-        
-        if (!isAdminData) {
-          // User is not an admin
+        const { data, error } = await supabase
+          .from('admins')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+          
+        if (error || !data) {
+          // Not an admin, redirect to home
           navigate('/home');
           return;
         }
         
         setIsAdmin(true);
-        
-        // Load identity verification requests
-        const { data: identityData, error: identityError } = await supabase
-          .from('identity_verifications')
-          .select('id, user_id, id_front_url, status, submitted_at, rejection_reason')
-          .eq('status', 'submitted')
-          .order('submitted_at', { ascending: false });
-          
-        if (identityError) {
-          console.error('Error loading identity verifications:', identityError);
-        } else {
-          const formattedIdentityRequests: VerificationRequest[] = identityData?.map(item => ({
-            id: item.id,
-            user_id: item.user_id,
-            id_front_url: item.id_front_url,
-            type: "identity",
-            status: item.status,
-            rejection_reason: item.rejection_reason,
-            created_at: item.submitted_at
-          })) || [];
-          
-          setIdentityRequests(formattedIdentityRequests);
-        }
-        
-        // Load profile photo verification requests
-        const { data: profileData, error: profileError } = await supabase
-          .from('verification_requests')
-          .select('id, user_id, photo_url, status, created_at, rejection_reason')
-          .eq('type', 'profile')
-          .eq('status', 'pending')
-          .order('created_at', { ascending: false });
-          
-        if (profileError) {
-          console.error('Error loading profile photo verifications:', profileError);
-        } else {
-          const formattedProfileRequests: VerificationRequest[] = profileData?.map(item => ({
-            id: item.id,
-            user_id: item.user_id,
-            photo_url: item.photo_url,
-            type: "profile",
-            status: item.status,
-            rejection_reason: item.rejection_reason,
-            created_at: item.created_at
-          })) || [];
-          
-          setProfilePhotoRequests(formattedProfileRequests);
-        }
-        
-        // Load user data for each request
-        const userIds = new Set([
-          ...(identityData?.map(r => r.user_id) || []),
-          ...(profileData?.map(r => r.user_id) || [])
-        ]);
-        
-        if (userIds.size > 0) {
-          const { data: users, error: usersError } = await supabase
-            .from('users')
-            .select('id, nickname')
-            .in('id', Array.from(userIds));
-            
-          if (usersError) {
-            console.error('Error loading user data:', usersError);
-          } else if (users) {
-            const userDataMap: Record<string, UserData> = {};
-            users.forEach(user => {
-              userDataMap[user.id] = {
-                id: user.id,
-                nickname: user.nickname || user.id.substring(0, 8)
-              };
-            });
-            
-            setUserData(userDataMap);
-          }
-        }
-        
-        setLoading(false);
+        fetchVerificationRequests();
       } catch (error) {
-        console.error('Error:', error);
+        console.error("Error checking admin status:", error);
         navigate('/home');
       }
     };
     
-    checkAdminAndLoadData();
-  }, [navigate, toast]);
+    checkAdminStatus();
+  }, [user, navigate]);
+
+  const fetchVerificationRequests = async () => {
+    try {
+      // Fetch identity verification requests
+      const { data: identityData, error: identityError } = await supabase
+        .from('identity_verifications')
+        .select('*, users(email, display_name)')
+        .eq('status', 'submitted')
+        .order('created_at', { ascending: false });
+        
+      if (identityError) throw identityError;
+      
+      const formattedIdentityRequests: VerificationRequest[] = (identityData || []).map((item: any) => ({
+        id: item.id,
+        user_id: item.user_id,
+        id_front_url: item.id_front_url,
+        type: "identity",
+        status: item.status as VerificationStatus,
+        rejection_reason: item.rejection_reason || "",
+        created_at: item.created_at,
+        user_email: item.users?.email,
+        user_display_name: item.users?.display_name
+      }));
+      
+      setIdentityRequests(formattedIdentityRequests);
+      
+      // Fetch profile photo verification requests
+      const { data: photoData, error: photoError } = await supabase
+        .from('profile_photo_verifications')
+        .select('*, users(email, display_name)')
+        .eq('status', 'submitted')
+        .order('created_at', { ascending: false });
+        
+      if (photoError) throw photoError;
+      
+      const formattedPhotoRequests: VerificationRequest[] = (photoData || []).map((item: any) => ({
+        id: item.id,
+        user_id: item.user_id,
+        photo_url: item.photo_url,
+        type: "profile",
+        status: item.status as VerificationStatus,
+        rejection_reason: item.rejection_reason || "",
+        created_at: item.created_at,
+        user_email: item.users?.email,
+        user_display_name: item.users?.display_name
+      }));
+      
+      setPhotoRequests(formattedPhotoRequests);
+      
+    } catch (error) {
+      console.error("Error fetching verification requests:", error);
+      toast({
+        title: t("error.generic"),
+        description: t("error.try_again"),
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const handleApprove = async (request: VerificationRequest) => {
-    setProcessingRequest(prev => ({ ...prev, [request.id]: true }));
+    setProcessingId(request.id);
     
     try {
-      if (request.type === 'identity') {
-        // 1. Update the identity_verifications table
-        const { error: updateVerificationError } = await supabase
-          .from('identity_verifications')
-          .update({
-            status: 'approved',
-            reviewed_at: new Date().toISOString()
-          })
-          .eq('id', request.id);
-          
-        if (updateVerificationError) throw updateVerificationError;
-        
-        // 2. Update the users table to mark the user as verified
-        const { error: updateUserError } = await supabase
-          .from('users')
-          .update({ is_verified: true })
-          .eq('id', request.user_id);
-          
-        if (updateUserError) throw updateUserError;
-        
-        // 3. Create a notification for the user
-        const { error: notificationError } = await supabase
-          .from('notifications')
-          .insert({
-            user_id: request.user_id,
-            type: 'verification',
-            title: language === 'ko' ? '본인 인증 완료' : '本人確認完了',
-            body: language === 'ko' 
-              ? '본인 인증이 완료되었습니다. 이제 모든 기능을 사용할 수 있습니다.' 
-              : '本人確認が完了しました。これですべての機能を使用できます。'
-          });
-          
-        if (notificationError) throw notificationError;
-        
-        // Remove the request from the list
-        setIdentityRequests(prev => prev.filter(r => r.id !== request.id));
-        
-        toast({
-          title: language === 'ko' ? '인증 승인 완료' : '認証承認完了',
-          description: language === 'ko' ? '사용자의 ID 인증이 승인되었습니다.' : 'ユーザーのID認証が承認されました。'
-        });
-      } else {
-        // Handle profile photo verification
+      if (request.type === "identity") {
+        // Update identity verification status
         const { error: updateError } = await supabase
-          .from('verification_requests')
-          .update({
-            status: 'approved',
-            updated_at: new Date().toISOString()
-          })
+          .from('identity_verifications')
+          .update({ status: 'approved', updated_at: new Date().toISOString() })
           .eq('id', request.id);
           
         if (updateError) throw updateError;
         
-        // Remove the request from the list
-        setProfilePhotoRequests(prev => prev.filter(r => r.id !== request.id));
+        // Update user is_verified status
+        const { error: userUpdateError } = await supabase
+          .from('users')
+          .update({ is_verified: true, updated_at: new Date().toISOString() })
+          .eq('id', request.user_id);
+          
+        if (userUpdateError) throw userUpdateError;
         
-        toast({
-          title: language === 'ko' ? '사진 승인 완료' : '写真承認完了',
-          description: language === 'ko' ? '사용자의 프로필 사진이 승인되었습니다.' : 'ユーザーのプロフィール写真が承認されました。'
-        });
+        // Create notification
+        const { error: notificationError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: request.user_id,
+            type: 'verify_passed',
+            title: language === 'ko' ? '신분증 인증 완료' : '本人確認完了',
+            content: language === 'ko' 
+              ? '신분증 인증이 완료되었습니다. 이제 채팅 기능을 사용할 수 있습니다.' 
+              : '本人確認が完了しました。チャット機能が使えるようになりました。',
+            is_read: false
+          });
+          
+        if (notificationError) throw notificationError;
+        
+      } else if (request.type === "profile") {
+        // Update profile photo verification status
+        const { error: updateError } = await supabase
+          .from('profile_photo_verifications')
+          .update({ status: 'approved', updated_at: new Date().toISOString() })
+          .eq('id', request.id);
+          
+        if (updateError) throw updateError;
+        
+        // Get profile data
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('photos')
+          .eq('user_id', request.user_id)
+          .single();
+          
+        if (profileError) throw profileError;
+        
+        // Add photo to approved photos array
+        let photos = profileData?.photos || [];
+        if (request.photo_url && !photos.includes(request.photo_url)) {
+          photos.push(request.photo_url);
+          
+          // Update profile photos
+          const { error: photoUpdateError } = await supabase
+            .from('profiles')
+            .update({ 
+              photos,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', request.user_id);
+            
+          if (photoUpdateError) throw photoUpdateError;
+        }
+        
+        // Create notification
+        const { error: notificationError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: request.user_id,
+            type: 'photo_approved',
+            title: language === 'ko' ? '프로필 사진 승인' : 'プロフィール写真承認',
+            content: language === 'ko' 
+              ? '프로필 사진이 승인되었습니다.' 
+              : 'プロフィール写真が承認されました。',
+            is_read: false
+          });
+          
+        if (notificationError) throw notificationError;
       }
-    } catch (error) {
-      console.error('Error approving request:', error);
+      
+      // Refresh requests
+      fetchVerificationRequests();
+      
       toast({
-        title: language === 'ko' ? '승인 처리 실패' : '承認処理失敗',
-        description: language === 'ko' ? '요청을 처리하는 중 오류가 발생했습니다.' : 'リクエストの処理中にエラーが発生しました。',
-        variant: 'destructive'
+        title: language === 'ko' ? '승인 완료' : '承認完了',
+        description: language === 'ko' ? '요청이 승인되었습니다.' : 'リクエストが承認されました。'
+      });
+      
+    } catch (error) {
+      console.error("Error approving request:", error);
+      toast({
+        title: t("error.generic"),
+        description: t("error.try_again"),
+        variant: "destructive"
       });
     } finally {
-      setProcessingRequest(prev => ({ ...prev, [request.id]: false }));
+      setProcessingId(null);
     }
   };
   
   const handleReject = async (request: VerificationRequest) => {
-    if (!rejectionReason[request.id]) {
+    if (!rejectionReason) {
       toast({
-        title: language === 'ko' ? '거부 사유 필요' : '拒否理由が必要',
+        title: language === 'ko' ? '거부 사유 필요' : '拒否理由が必要です',
         description: language === 'ko' ? '거부 사유를 입력해주세요.' : '拒否理由を入力してください。',
-        variant: 'destructive'
+        variant: "destructive"
       });
       return;
     }
     
-    setProcessingRequest(prev => ({ ...prev, [request.id]: true }));
+    setProcessingId(request.id);
     
     try {
-      if (request.type === 'identity') {
-        // Update the identity_verifications table
+      if (request.type === "identity") {
+        // Update identity verification status
         const { error: updateError } = await supabase
           .from('identity_verifications')
-          .update({
-            status: 'rejected',
-            rejection_reason: rejectionReason[request.id],
-            reviewed_at: new Date().toISOString()
+          .update({ 
+            status: 'rejected', 
+            rejection_reason: rejectionReason,
+            updated_at: new Date().toISOString() 
           })
           .eq('id', request.id);
           
         if (updateError) throw updateError;
         
-        // Create a notification for the user
-        const { error: notificationError } = await supabase
-          .from('notifications')
-          .insert({
-            user_id: request.user_id,
-            type: 'verification',
-            title: language === 'ko' ? '본인 인증 거부' : '本人確認拒否',
-            body: rejectionReason[request.id]
-          });
-          
-        if (notificationError) throw notificationError;
-        
-        // Remove the request from the list
-        setIdentityRequests(prev => prev.filter(r => r.id !== request.id));
-      } else {
-        // Handle profile photo verification rejection
+      } else if (request.type === "profile") {
+        // Update profile photo verification status
         const { error: updateError } = await supabase
-          .from('verification_requests')
-          .update({
-            status: 'rejected',
-            rejection_reason: rejectionReason[request.id],
-            updated_at: new Date().toISOString()
+          .from('profile_photo_verifications')
+          .update({ 
+            status: 'rejected', 
+            rejection_reason: rejectionReason,
+            updated_at: new Date().toISOString() 
           })
           .eq('id', request.id);
           
         if (updateError) throw updateError;
-        
-        // Remove the request from the list
-        setProfilePhotoRequests(prev => prev.filter(r => r.id !== request.id));
       }
       
-      // Clear the rejection reason
-      setRejectionReason(prev => {
-        const newReasons = { ...prev };
-        delete newReasons[request.id];
-        return newReasons;
-      });
+      // Create notification
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: request.user_id,
+          type: request.type === 'identity' ? 'verify_rejected' : 'photo_rejected',
+          title: language === 'ko' 
+            ? (request.type === 'identity' ? '신분증 인증 거부' : '프로필 사진 거부') 
+            : (request.type === 'identity' ? '本人確認拒否' : 'プロフィール写真拒否'),
+          content: language === 'ko' 
+            ? `사유: ${rejectionReason}` 
+            : `理由: ${rejectionReason}`,
+          is_read: false
+        });
+        
+      if (notificationError) throw notificationError;
+      
+      // Refresh requests
+      fetchVerificationRequests();
+      setRejectionReason("");
       
       toast({
-        title: language === 'ko' ? '요청 거부 완료' : 'リクエスト拒否完了',
+        title: language === 'ko' ? '거부 완료' : '拒否完了',
         description: language === 'ko' ? '요청이 거부되었습니다.' : 'リクエストが拒否されました。'
       });
+      
     } catch (error) {
-      console.error('Error rejecting request:', error);
+      console.error("Error rejecting request:", error);
       toast({
-        title: language === 'ko' ? '거부 처리 실패' : '拒否処理失敗',
-        description: language === 'ko' ? '요청을 처리하는 중 오류가 발생했습니다.' : 'リクエストの処理中にエラーが発生しました。',
-        variant: 'destructive'
+        title: t("error.generic"),
+        description: t("error.try_again"),
+        variant: "destructive"
       });
     } finally {
-      setProcessingRequest(prev => ({ ...prev, [request.id]: false }));
+      setProcessingId(null);
     }
   };
   
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(language === 'ko' ? 'ko-KR' : 'ja-JP', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-  
-  if (!isAdmin || loading) {
+  if (!isAdmin) {
     return (
       <MainLayout>
-        <div className="flex justify-center items-center h-[70vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="flex justify-center items-center h-[50vh]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </MainLayout>
     );
   }
-  
+
   return (
     <MainLayout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      <div className="max-w-5xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">
-          {language === "ko" ? "관리자 페이지" : "管理者ページ"}
+          {language === 'ko' ? '관리자 페이지' : '管理者ページ'}
         </h1>
         
-        <Tabs defaultValue="identity" className="space-y-4">
+        <Tabs defaultValue="identity" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="identity">
-              {t("admin.identity_verification")}
-              {identityRequests.length > 0 && (
-                <span className="ml-2 bg-primary text-primary-foreground text-xs rounded-full px-2 py-0.5">
-                  {identityRequests.length}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="profile">
-              {t("admin.profile_photo")}
-              {profilePhotoRequests.length > 0 && (
-                <span className="ml-2 bg-primary text-primary-foreground text-xs rounded-full px-2 py-0.5">
-                  {profilePhotoRequests.length}
-                </span>
-              )}
-            </TabsTrigger>
+            <TabsTrigger value="identity">{t("admin.identity_verification")}</TabsTrigger>
+            <TabsTrigger value="profile">{t("admin.profile_photo")}</TabsTrigger>
           </TabsList>
           
           <TabsContent value="identity">
-            <div className="space-y-4">
-              {identityRequests.length > 0 ? identityRequests.map((request) => (
-                <Card key={request.id} className="overflow-hidden">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex justify-between">
-                      <div className="flex items-center">
-                        <Shield className="w-5 h-5 mr-2 text-blue-500" />
-                        <span>{userData[request.user_id]?.nickname || request.user_id.substring(0, 8)}</span>
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("admin.identity_verification")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : identityRequests.length > 0 ? (
+                  <div className="space-y-8">
+                    {identityRequests.map((request) => (
+                      <div key={request.id} className="border rounded-lg p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium text-muted-foreground">
+                              {language === 'ko' ? '사용자' : 'ユーザー'}
+                            </p>
+                            <p>{request.user_display_name || request.user_email || request.user_id}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(request.created_at).toLocaleString()}
+                            </p>
+                          </div>
+                          
+                          <div className="col-span-2">
+                            <p className="text-sm font-medium text-muted-foreground mb-2">
+                              {language === 'ko' ? '신분증' : '身分証明書'}
+                            </p>
+                            {request.id_front_url && (
+                              <div className="max-w-sm mx-auto">
+                                <img 
+                                  src={request.id_front_url} 
+                                  alt="ID Document" 
+                                  className="w-full rounded-md border"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor={`rejection-reason-${request.id}`}>
+                              {language === 'ko' ? '거부 사유 (거부 시 필수)' : '拒否理由（拒否する場合は必須）'}
+                            </Label>
+                            <Input
+                              id={`rejection-reason-${request.id}`}
+                              value={rejectionReason}
+                              onChange={(e) => setRejectionReason(e.target.value)}
+                              placeholder={language === 'ko' ? '거부 사유를 입력하세요' : '拒否理由を入力してください'}
+                            />
+                          </div>
+                          
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="destructive"
+                              onClick={() => handleReject(request)}
+                              disabled={processingId === request.id}
+                            >
+                              {processingId === request.id ? (
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                              ) : (
+                                t("admin.reject")
+                              )}
+                            </Button>
+                            <Button
+                              onClick={() => handleApprove(request)}
+                              disabled={processingId === request.id}
+                            >
+                              {processingId === request.id ? (
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                              ) : (
+                                t("admin.approve")
+                              )}
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                      <span className="text-sm text-muted-foreground">
-                        {formatDate(request.created_at)}
-                      </span>
-                    </CardTitle>
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <div className="aspect-[3/2] rounded overflow-hidden mb-4">
-                      <img
-                        src={request.id_front_url}
-                        alt="ID Document"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    
-                    <div className="mt-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {language === "ko" ? "거부 사유 (거부 시에만 필요)" : "拒否理由（拒否する場合のみ必要）"}
-                      </label>
-                      <Textarea
-                        value={rejectionReason[request.id] || ''}
-                        onChange={(e) => setRejectionReason(prev => ({ 
-                          ...prev, 
-                          [request.id]: e.target.value 
-                        }))}
-                        placeholder={language === "ko" ? "거부 사유를 입력하세요" : "拒否理由を入力してください"}
-                      />
-                    </div>
-                  </CardContent>
-                  
-                  <CardFooter className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleReject(request)}
-                      disabled={processingRequest[request.id]}
-                      className="border-red-300 hover:bg-red-50 text-red-600"
-                    >
-                      <XCircle className="w-4 h-4 mr-2" />
-                      {t("admin.reject")}
-                    </Button>
-                    
-                    <Button
-                      onClick={() => handleApprove(request)}
-                      disabled={processingRequest[request.id]}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      {t("admin.approve")}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              )) : (
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                  <p className="text-muted-foreground">
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center text-muted-foreground">
                     {t("admin.no_requests")}
-                  </p>
-                </div>
-              )}
-            </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="profile">
-            <div className="space-y-4">
-              {profilePhotoRequests.length > 0 ? profilePhotoRequests.map((request) => (
-                <Card key={request.id} className="overflow-hidden">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex justify-between">
-                      <span>{userData[request.user_id]?.nickname || request.user_id.substring(0, 8)}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {formatDate(request.created_at)}
-                      </span>
-                    </CardTitle>
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <div className="aspect-[3/2] rounded overflow-hidden mb-4">
-                      <img
-                        src={request.photo_url}
-                        alt="Profile Photo"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    
-                    <div className="mt-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {language === "ko" ? "거부 사유 (거부 시에만 필요)" : "拒否理由（拒否する場合のみ必要）"}
-                      </label>
-                      <Textarea
-                        value={rejectionReason[request.id] || ''}
-                        onChange={(e) => setRejectionReason(prev => ({ 
-                          ...prev, 
-                          [request.id]: e.target.value 
-                        }))}
-                        placeholder={language === "ko" ? "거부 사유를 입력하세요" : "拒否理由を入力してください"}
-                      />
-                    </div>
-                  </CardContent>
-                  
-                  <CardFooter className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleReject(request)}
-                      disabled={processingRequest[request.id]}
-                      className="border-red-300 hover:bg-red-50 text-red-600"
-                    >
-                      <XCircle className="w-4 h-4 mr-2" />
-                      {t("admin.reject")}
-                    </Button>
-                    
-                    <Button
-                      onClick={() => handleApprove(request)}
-                      disabled={processingRequest[request.id]}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      {t("admin.approve")}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              )) : (
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                  <p className="text-muted-foreground">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("admin.profile_photo")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : photoRequests.length > 0 ? (
+                  <div className="space-y-8">
+                    {photoRequests.map((request) => (
+                      <div key={request.id} className="border rounded-lg p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium text-muted-foreground">
+                              {language === 'ko' ? '사용자' : 'ユーザー'}
+                            </p>
+                            <p>{request.user_display_name || request.user_email || request.user_id}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(request.created_at).toLocaleString()}
+                            </p>
+                          </div>
+                          
+                          <div className="col-span-2">
+                            <p className="text-sm font-medium text-muted-foreground mb-2">
+                              {language === 'ko' ? '프로필 사진' : 'プロフィール写真'}
+                            </p>
+                            {request.photo_url && (
+                              <div className="max-w-sm mx-auto">
+                                <img 
+                                  src={request.photo_url} 
+                                  alt="Profile" 
+                                  className="w-full rounded-md border"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor={`rejection-reason-${request.id}`}>
+                              {language === 'ko' ? '거부 사유 (거부 시 필수)' : '拒否理由（拒否する場合は必須）'}
+                            </Label>
+                            <Input
+                              id={`rejection-reason-${request.id}`}
+                              value={rejectionReason}
+                              onChange={(e) => setRejectionReason(e.target.value)}
+                              placeholder={language === 'ko' ? '거부 사유를 입력하세요' : '拒否理由を入力してください'}
+                            />
+                          </div>
+                          
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="destructive"
+                              onClick={() => handleReject(request)}
+                              disabled={processingId === request.id}
+                            >
+                              {processingId === request.id ? (
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                              ) : (
+                                t("admin.reject")
+                              )}
+                            </Button>
+                            <Button
+                              onClick={() => handleApprove(request)}
+                              disabled={processingId === request.id}
+                            >
+                              {processingId === request.id ? (
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                              ) : (
+                                t("admin.approve")
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center text-muted-foreground">
                     {t("admin.no_requests")}
-                  </p>
-                </div>
-              )}
-            </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

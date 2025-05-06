@@ -471,5 +471,29 @@ export const translations = {
   "profile.about": {
     ko: "자기소개",
     ja: "自己紹介"
+  },
+  "auth.switch_account": {
+    ko: "계정 전환",
+    ja: "アカウント切り替え"
+  },
+  "verify.title": {
+    ko: "신분증 인증",
+    ja: "本人確認"
+  },
+  "verify.desc": {
+    ko: "안전한 매칭 서비스를 위해 신분증 인증이 필요합니다",
+    ja: "安全なマッチングサービスのために身分証明書の確認が必要です"
+  },
+  "verify.required": {
+    ko: "신분증 인증 필요",
+    ja: "本人確認が必要です"
+  },
+  "verify.button": {
+    ko: "인증하러 가기",
+    ja: "確認しに行く"
+  },
+  "verify.later": {
+    ko: "나중에 하기",
+    ja: "後でする"
   }
 };

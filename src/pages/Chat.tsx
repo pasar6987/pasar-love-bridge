@@ -128,16 +128,16 @@ export default function Chat() {
             <Shield className="h-8 w-8 text-orange-500" />
           </div>
           <h2 className="text-xl font-semibold mb-2 text-center">
-            {t("chat.verification_required")}
+            {t("verify.required")}
           </h2>
           <p className="text-muted-foreground text-center mb-6">
-            {t("onboarding.verification.desc")}
+            {t("verify.desc")}
           </p>
           <Button 
-            onClick={() => navigate('/onboarding/4')} 
+            onClick={() => navigate('/verify')} 
             className="pasar-btn"
           >
-            {t("chat.verify_now")}
+            {t("verify.button")}
           </Button>
         </div>
       </MainLayout>

@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import UserProfile from "./pages/UserProfile";
 import Admin from "./pages/Admin";
+import VerifyIdentity from "./pages/VerifyIdentity";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,9 @@ const App = () => (
               
               {/* 온보딩 페이지 */}
               <Route path="/onboarding/:step" element={<Onboarding />} />
+              
+              {/* 신분증 인증 페이지 */}
+              <Route path="/verify" element={<VerifyIdentity />} />
               
               {/* 메인 페이지들 */}
               <Route path="/home" element={<Home />} />
