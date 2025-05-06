@@ -28,9 +28,9 @@ export default function Home() {
           return;
         }
         
-        // Call the RPC function we created to get recommended profiles
+        // Call the fixed RPC function we created to get recommended profiles
         const { data, error } = await supabase.rpc(
-          'get_recommended_profiles_by_nationality',
+          'get_recommended_profiles_by_nationality_fixed',
           { p_user_id: user.id }
         );
         
