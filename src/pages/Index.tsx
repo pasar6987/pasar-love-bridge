@@ -28,7 +28,6 @@ const Index = () => {
               const detectedLang = await determineBestLanguage();
               localStorage.setItem('user_selected_language', detectedLang);
               setLanguage(detectedLang);
-              console.log('랜딩 페이지에서 감지된 언어:', detectedLang);
             } catch (error) {
               console.error("언어 감지 오류:", error);
               // 오류 시 기본값 한국어로 설정
@@ -40,7 +39,6 @@ const Index = () => {
           // Only redirect on the landing page (/) 
           // This fixes the issue where all page navigations redirect to home
           if (window.location.pathname === '/') {
-            console.log("인덱스 페이지 리디렉션 - 사용자 상태:", user ? "로그인됨" : "로그인되지 않음");
             if (user) {
               navigate('/home');
             } else {
@@ -58,7 +56,6 @@ const Index = () => {
         }
       } else {
         // 인증 파라미터가 있는 경우 Supabase Auth가 자동으로 처리
-        console.log("인증 매개변수가 URL에 있습니다. Supabase Auth가 처리합니다.");
         setIsLoading(false);
       }
     };

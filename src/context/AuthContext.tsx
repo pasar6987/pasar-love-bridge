@@ -26,16 +26,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Set up auth state listener first - this is using Supabase's built-in auth functions
-    console.log("인증 상태 리스너 설정 중...");
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log("인증 상태 변경됨:", { event, userId: session?.user?.id });
         setSession(session);
         setUser(session?.user ?? null);
         
         // User sign-in event, check onboarding status and redirect accordingly
         if (event === 'SIGNED_IN') {
-          console.log("로그인 이벤트 감지됨!");
           // Use setTimeout to avoid deadlock with the onAuthStateChange listener
           setTimeout(() => {
             // Check user's onboarding status
@@ -48,9 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     // Then check for existing session - this is using Supabase's built-in auth functions
-    console.log("기존 세션 확인 중...");
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("현재 세션 상태:", session ? "세션 있음" : "세션 없음");
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -68,12 +63,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkUserOnboardingStatus = async (userId: string | undefined) => {
     if (!userId) {
-      console.log("온보딩 상태 확인: 사용자 ID가 없습니다");
       setLoading(false);
       return;
     }
-    
-    console.log("사용자 온보딩 상태 확인 중:", userId);
     
     try {
       // Use RPC function to get user onboarding status - already using RPC
@@ -82,12 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         { user_id: userId }
       );
       
-      console.log("온보딩 상태 조회 결과:", { userData, error });
-      
       if (error) throw error;
       
       if (!userData || userData.length === 0) {
-        console.log("사용자 레코드가 없어 새로 생성합니다");
         // User record doesn't exist yet, create it - already using RPC
         const { error: insertError } = await supabase.rpc(
           'upsert_user_profile',
@@ -100,7 +89,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         navigate('/onboarding/1');
       } else {
         const userProfile = userData[0];
-        console.log("온보딩 완료 상태:", userProfile.onboarding_completed);
         if (!userProfile.onboarding_completed) {
           // 온보딩이 완료되지 않은 경우, 마지막 단계로 리디렉션
           const nextStep = userProfile.onboarding_step ? userProfile.onboarding_step : 1;
@@ -121,7 +109,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      console.log("Google 로그인 시도 중...");
       // Using Supabase's built-in auth functions
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -135,7 +122,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       if (error) throw error;
-      console.log("Google 로그인 리디렉션 성공");
       
     } catch (error) {
       console.error("Google 로그인 오류:", error);
@@ -149,7 +135,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
-      console.log("로그아웃 시도 중...");
       // Using Supabase's built-in auth function
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
