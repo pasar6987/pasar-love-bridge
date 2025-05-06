@@ -8,7 +8,7 @@ import { useLanguage } from "@/i18n/useLanguage";
 const Index = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { setLanguage } = useLanguage();
 
   // 디버깅을 위한 로그 함수
@@ -18,7 +18,13 @@ const Index = () => {
 
   useEffect(() => {
     const redirectUser = async () => {
-      logIndexDebug("Index 페이지 리디렉션 로직 시작", { pathname: window.location.pathname, user: !!user });
+      logIndexDebug("Index 페이지 리디렉션 로직 시작", { pathname: window.location.pathname, user: !!user, authLoading });
+      
+      // 인증 로딩이 끝날 때까지 대기
+      if (authLoading) {
+        logIndexDebug("인증 로딩 중, 리디렉션 대기");
+        return;
+      }
       
       // URL에 access_token이 포함되어 있는지 확인
       const url = window.location.href;
@@ -81,7 +87,7 @@ const Index = () => {
     };
 
     redirectUser();
-  }, [navigate, user, setLanguage]);
+  }, [navigate, user, authLoading, setLanguage]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-pastel-pink/10 to-pastel-lavender/20">

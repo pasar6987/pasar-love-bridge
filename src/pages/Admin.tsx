@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
@@ -31,7 +30,7 @@ interface VerificationRequest {
 export default function Admin() {
   const { t, language } = useLanguage();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   
   const [activeTab, setActiveTab] = useState("identity");
@@ -41,27 +40,27 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<any>({});
-
-  // 디버깅을 위한 로그 함수
-  const logDebug = (message: string, data?: any) => {
-    console.log(`[Admin Debug] ${message}`, data || '');
-    setDebugInfo(prev => ({...prev, [message]: data || true}));
-  };
+  const [adminCheckComplete, setAdminCheckComplete] = useState(false);
 
   // Check if user is admin
   useEffect(() => {
     const checkAdminStatus = async () => {
-      logDebug("checkAdminStatus 시작", { userId: user?.id });
+      console.log("[Admin Debug] checkAdminStatus 시작", { userId: user?.id });
+      
+      // Wait until auth loading is complete
+      if (authLoading) {
+        console.log("[Admin Debug] 인증 로딩 중, 대기");
+        return;
+      }
       
       if (!user) {
-        logDebug("사용자가 로그인하지 않음, 로그인 페이지로 리디렉션");
+        console.log("[Admin Debug] 사용자가 로그인하지 않음, 로그인 페이지로 리디렉션");
         navigate('/login');
         return;
       }
       
       try {
-        logDebug("admin_users 테이블에서 사용자 조회 시작", { userId: user.id });
+        console.log("[Admin Debug] admin_users 테이블에서 사용자 조회 시작", { userId: user.id });
         
         const { data, error } = await supabase
           .from('admin_users')
@@ -69,33 +68,37 @@ export default function Admin() {
           .eq('user_id', user.id);
           
         if (error) {
-          logDebug("admin_users 조회 오류", error);
+          console.log("[Admin Debug] admin_users 조회 오류", error);
           throw error;
         }
         
-        logDebug("admin_users 조회 결과", { data });
+        console.log("[Admin Debug] admin_users 조회 결과", { data });
         
         if (!data || data.length === 0) {
-          logDebug("사용자가 관리자가 아님, 홈 페이지로 리디렉션");
+          console.log("[Admin Debug] 사용자가 관리자가 아님, 홈 페이지로 리디렉션");
+          setIsAdmin(false);
+          setAdminCheckComplete(true);
           navigate('/home');
           return;
         }
         
-        logDebug("사용자는 관리자임, 관리자 페이지 접근 허용");
+        console.log("[Admin Debug] 사용자는 관리자임, 관리자 페이지 접근 허용");
         setIsAdmin(true);
+        setAdminCheckComplete(true);
         fetchVerificationRequests();
       } catch (error) {
-        logDebug("관리자 상태 확인 오류", error);
+        console.log("[Admin Debug] 관리자 상태 확인 오류", error);
+        setAdminCheckComplete(true);
         navigate('/home');
       }
     };
     
     checkAdminStatus();
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const fetchVerificationRequests = async () => {
     try {
-      logDebug("인증 요청 조회 시작");
+      console.log("[Admin Debug] 인증 요청 조회 시작");
       
       // Fetch identity verification requests
       const { data: identityData, error: identityError } = await supabase
@@ -105,11 +108,11 @@ export default function Admin() {
         .order('created_at', { ascending: false });
         
       if (identityError) {
-        logDebug("신분증 인증 요청 조회 오류", identityError);
+        console.log("[Admin Debug] 신분증 인증 요청 조회 오류", identityError);
         throw identityError;
       }
       
-      logDebug("신분증 인증 요청 조회 결과", { count: identityData?.length });
+      console.log("[Admin Debug] 신분증 인증 요청 조회 결과", { count: identityData?.length });
       
       const formattedIdentityRequests: VerificationRequest[] = (identityData || []).map((item: any) => ({
         id: item.id,
@@ -134,11 +137,11 @@ export default function Admin() {
         .order('created_at', { ascending: false });
         
       if (photoError) {
-        logDebug("프로필 사진 인증 요청 조회 오류", photoError);
+        console.log("[Admin Debug] 프로필 사진 인증 요청 조회 오류", photoError);
         throw photoError;
       }
       
-      logDebug("프로필 사진 인증 요청 조회 결과", { count: photoData?.length });
+      console.log("[Admin Debug] 프로필 사진 인증 요청 조회 결과", { count: photoData?.length });
       
       const formattedPhotoRequests: VerificationRequest[] = (photoData || []).map((item: any) => ({
         id: item.id,
@@ -334,7 +337,7 @@ export default function Admin() {
       
       toast({
         title: language === 'ko' ? '거부 완료' : '拒否完了',
-        description: language === 'ko' ? '요청이 거부되었습니다.' : 'リクエストが拒否されました。'
+        description: language === 'ko' ? '요청이 거부되었습니다.' : 'リクエ스트が拒否されました。'
       });
       
     } catch (error) {
@@ -349,7 +352,18 @@ export default function Admin() {
     }
   };
   
-  if (!isAdmin) {
+  if (authLoading) {
+    return (
+      <MainLayout>
+        <div className="flex flex-col justify-center items-center h-[50vh] p-6">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+          <div>로그인 정보를 확인하는 중입니다...</div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!adminCheckComplete) {
     return (
       <MainLayout>
         <div className="flex flex-col justify-center items-center h-[50vh] p-6">
@@ -359,7 +373,26 @@ export default function Admin() {
           <div className="mt-6 p-4 bg-gray-100 rounded-md w-full max-w-xl">
             <h3 className="font-semibold mb-2">디버깅 정보:</h3>
             <div className="overflow-auto max-h-96 text-xs font-mono">
-              <pre>{JSON.stringify({user: user?.id, ...debugInfo}, null, 2)}</pre>
+              <pre>{JSON.stringify({user: user?.id, isAdmin, adminCheckComplete}, null, 2)}</pre>
+            </div>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <MainLayout>
+        <div className="flex flex-col justify-center items-center h-[50vh] p-6">
+          <div className="text-xl font-semibold mb-4">관리자 권한이 없습니다</div>
+          <div className="mb-6">이 페이지에 접근하려면 관리자 권한이 필요합니다.</div>
+          <Button onClick={() => navigate('/home')}>홈으로 돌아가기</Button>
+          
+          <div className="mt-6 p-4 bg-gray-100 rounded-md w-full max-w-xl">
+            <h3 className="font-semibold mb-2">디버깅 정보:</h3>
+            <div className="overflow-auto max-h-96 text-xs font-mono">
+              <pre>{JSON.stringify({user: user?.id, isAdmin, adminCheckComplete}, null, 2)}</pre>
             </div>
           </div>
         </div>
@@ -397,17 +430,13 @@ export default function Admin() {
                   <TableCell>{isAdmin ? '관리자임' : '관리자 아님'}</TableCell>
                 </TableRow>
                 <TableRow>
+                  <TableCell>관리자 확인 완료</TableCell>
+                  <TableCell>{adminCheckComplete ? '완료' : '진행 중'}</TableCell>
+                </TableRow>
+                <TableRow>
                   <TableCell>로딩 상태</TableCell>
                   <TableCell>{loading ? '로딩 중' : '로딩 완료'}</TableCell>
                 </TableRow>
-                {Object.entries(debugInfo).map(([key, value]) => (
-                  <TableRow key={key}>
-                    <TableCell>{key}</TableCell>
-                    <TableCell>
-                      {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                    </TableCell>
-                  </TableRow>
-                ))}
               </TableBody>
             </Table>
           </CardContent>

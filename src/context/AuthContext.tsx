@@ -32,21 +32,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     logAuthDebug("AuthContext 초기화");
     
+    let mounted = true;
+    
     // Set up auth state listener first - this is using Supabase's built-in auth functions
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        logAuthDebug(`Auth state changed: ${event}`, { userId: session?.user?.id });
-        setSession(session);
-        setUser(session?.user ?? null);
+      (event, newSession) => {
+        if (!mounted) return;
+        
+        logAuthDebug(`Auth state changed: ${event}`, { userId: newSession?.user?.id });
+        
+        if (newSession !== session) {
+          setSession(newSession);
+          setUser(newSession?.user ?? null);
+        }
         
         // User sign-in event, check onboarding status and redirect accordingly
-        if (event === 'SIGNED_IN') {
+        if (event === 'SIGNED_IN' && newSession?.user?.id) {
           logAuthDebug("User signed in, checking onboarding status");
           // Use setTimeout to avoid deadlock with the onAuthStateChange listener
           setTimeout(() => {
             // Check user's onboarding status
-            if (session?.user?.id) {
-              checkUserOnboardingStatus(session.user.id);
+            if (newSession?.user?.id) {
+              checkUserOnboardingStatus(newSession.user.id);
             }
           }, 0);
         }
@@ -54,23 +61,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     // Then check for existing session - this is using Supabase's built-in auth functions
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      logAuthDebug("세션 확인 결과", { exists: !!session, userId: session?.user?.id });
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        checkUserOnboardingStatus(session.user.id);
-      } else {
-        setLoading(false);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        logAuthDebug("세션 확인 결과", { exists: !!initialSession, userId: initialSession?.user?.id });
+        
+        if (mounted) {
+          setSession(initialSession);
+          setUser(initialSession?.user ?? null);
+          
+          if (initialSession?.user) {
+            checkUserOnboardingStatus(initialSession.user.id);
+          } else {
+            setLoading(false);
+          }
+        }
+      } catch (error) {
+        logAuthDebug("세션 확인 중 오류 발생", error);
+        if (mounted) setLoading(false);
       }
-    });
+    };
+
+    initializeAuth();
 
     return () => {
+      mounted = false;
       logAuthDebug("Auth subscription unsubscribe");
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
   const checkUserOnboardingStatus = async (userId: string | undefined) => {
     logAuthDebug("사용자 온보딩 상태 확인 시작", { userId });
