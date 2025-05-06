@@ -3,9 +3,12 @@ import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
 import { ChatBox } from "@/components/chat/ChatBox";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Shield } from "lucide-react";
 
 interface ChatPartner {
   id: string;
@@ -20,10 +23,40 @@ interface ChatPartner {
 export default function Chat() {
   const { id } = useParams<{ id?: string }>();
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [chatPartners, setChatPartners] = useState<ChatPartner[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPartner, setSelectedPartner] = useState<ChatPartner | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string>("user123"); // Default mock ID
+  const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [verificationLoading, setVerificationLoading] = useState<boolean>(true);
+  
+  // Check if user is verified
+  useEffect(() => {
+    const checkVerification = async () => {
+      if (!user) return;
+      
+      try {
+        // Get verification status from users table
+        const { data, error } = await supabase
+          .from('users')
+          .select('is_verified')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) throw error;
+        
+        setIsVerified(data?.is_verified || false);
+      } catch (error) {
+        console.error("Error checking verification status:", error);
+      } finally {
+        setVerificationLoading(false);
+      }
+    };
+    
+    checkVerification();
+  }, [user]);
   
   // Load user info and chat partners
   useEffect(() => {
@@ -74,6 +107,42 @@ export default function Chat() {
     // In production, this could be an RPC function or utility function
     return timeString;
   };
+  
+  // If verification is still being checked, show loading
+  if (verificationLoading) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center h-[50vh]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </MainLayout>
+    );
+  }
+  
+  // If user is not verified, show verification required message
+  if (!isVerified) {
+    return (
+      <MainLayout>
+        <div className="max-w-3xl mx-auto px-4 py-12 flex flex-col items-center justify-center h-[50vh]">
+          <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mb-4">
+            <Shield className="h-8 w-8 text-orange-500" />
+          </div>
+          <h2 className="text-xl font-semibold mb-2 text-center">
+            {t("chat.verification_required")}
+          </h2>
+          <p className="text-muted-foreground text-center mb-6">
+            {t("onboarding.verification.desc")}
+          </p>
+          <Button 
+            onClick={() => navigate('/onboarding/4')} 
+            className="pasar-btn"
+          >
+            {t("chat.verify_now")}
+          </Button>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout hideFooter>

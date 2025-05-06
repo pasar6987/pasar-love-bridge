@@ -80,6 +80,10 @@ export const translations = {
     ko: "Google 계정으로 로그인",
     ja: "Googleアカウントでログイン"
   },
+  "auth.account_switch_error": {
+    ko: "계정 전환 중 오류가 발생했습니다.",
+    ja: "アカウント切り替え中にエラーが発生しました。"
+  },
   "home.recommendations": {
     ko: "추천",
     ja: "おすすめ"
@@ -284,6 +288,14 @@ export const translations = {
     ko: "왼쪽에서 대화 상대를 선택하거나, 새로운 매치를 만들어보세요",
     ja: "左側から会話の相手を選択するか、新しいマッチを作ってみましょう"
   },
+  "chat.verification_required": {
+    ko: "채팅을 사용하기 위해서는 신분증 인증이 필요합니다",
+    ja: "チャットを使用するには身分証明書の確認が必要です"
+  },
+  "chat.verify_now": {
+    ko: "지금 인증하기",
+    ja: "今すぐ確認する"
+  },
   "admin.verificationRequests": {
     ko: "인증 요청",
     ja: "認証リクエスト"
@@ -291,6 +303,26 @@ export const translations = {
   "admin.profileUpdates": {
     ko: "프로필 업데이트",
     ja: "プロフィール更新"
+  },
+  "admin.approve": {
+    ko: "승인",
+    ja: "承認"
+  },
+  "admin.reject": {
+    ko: "거부",
+    ja: "拒否"
+  },
+  "admin.identity_verification": {
+    ko: "본인 인증 요청",
+    ja: "本人確認リクエスト"
+  },
+  "admin.profile_photo": {
+    ko: "프로필 사진 요청",
+    ja: "プロフィール写真リクエスト"
+  },
+  "admin.no_requests": {
+    ko: "대기 중인 요청이 없습니다",
+    ja: "保留中のリクエストはありません"
   },
   "profile.mypage": {
     ko: "마이페이지",
