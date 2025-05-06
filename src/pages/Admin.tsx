@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
@@ -125,10 +126,10 @@ export default function Admin() {
       
       setIdentityRequests(formattedIdentityRequests);
       
-      // Fetch profile photo verification requests - modified to avoid email column issue
+      // Modified approach for profile verification requests to handle missing foreign key relationship
       const { data: photoData, error: photoError } = await supabase
         .from('verification_requests')
-        .select('*, users(id, nickname)')
+        .select('*')
         .eq('status', 'submitted')
         .eq('type', 'profile')
         .order('created_at', { ascending: false });
@@ -140,18 +141,48 @@ export default function Admin() {
       
       console.log("[Admin Debug] 프로필 사진 인증 요청 조회 결과", { count: photoData?.length });
       
-      const formattedPhotoRequests: VerificationRequest[] = (photoData || []).map((item: any) => ({
-        id: item.id,
-        user_id: item.user_id,
-        photo_url: item.photo_url,
-        type: "profile",
-        status: item.status as VerificationStatus,
-        rejection_reason: item.rejection_reason || "",
-        created_at: item.created_at,
-        user_display_name: item.users?.nickname || item.user_id
-      }));
+      // Get associated user data separately since there's no foreign key relationship
+      const photoRequests: VerificationRequest[] = [];
       
-      setPhotoRequests(formattedPhotoRequests);
+      if (photoData && photoData.length > 0) {
+        // Get unique user IDs from photo verification requests
+        const userIds = [...new Set(photoData.map((item: any) => item.user_id))];
+        
+        // Fetch user data for these IDs
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('id, nickname')
+          .in('id', userIds);
+          
+        if (userError) {
+          console.log("[Admin Debug] 사용자 정보 조회 오류", userError);
+          // Continue with what we have even if user lookup fails
+        }
+        
+        // Create a lookup map for user data
+        const userMap = new Map();
+        if (userData) {
+          userData.forEach((user: any) => {
+            userMap.set(user.id, user.nickname);
+          });
+        }
+        
+        // Format photo verification requests with user data from the lookup map
+        photoData.forEach((item: any) => {
+          photoRequests.push({
+            id: item.id,
+            user_id: item.user_id,
+            photo_url: item.photo_url,
+            type: "profile",
+            status: item.status as VerificationStatus,
+            rejection_reason: item.rejection_reason || "",
+            created_at: item.created_at,
+            user_display_name: userMap.get(item.user_id) || item.user_id
+          });
+        });
+      }
+      
+      setPhotoRequests(photoRequests);
       
     } catch (error) {
       console.error("인증 요청 조회 오류:", error);

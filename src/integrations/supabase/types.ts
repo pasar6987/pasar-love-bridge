@@ -71,6 +71,7 @@ export type Database = {
       identity_verifications: {
         Row: {
           country_code: string | null
+          created_at: string
           doc_type: string | null
           id: string
           id_front_url: string
@@ -78,10 +79,12 @@ export type Database = {
           reviewed_at: string | null
           status: string | null
           submitted_at: string | null
+          updated_at: string
           user_id: string | null
         }
         Insert: {
           country_code?: string | null
+          created_at?: string
           doc_type?: string | null
           id?: string
           id_front_url: string
@@ -89,10 +92,12 @@ export type Database = {
           reviewed_at?: string | null
           status?: string | null
           submitted_at?: string | null
+          updated_at: string
           user_id?: string | null
         }
         Update: {
           country_code?: string | null
+          created_at?: string
           doc_type?: string | null
           id?: string
           id_front_url?: string
@@ -100,6 +105,7 @@ export type Database = {
           reviewed_at?: string | null
           status?: string | null
           submitted_at?: string | null
+          updated_at?: string
           user_id?: string | null
         }
         Relationships: [
