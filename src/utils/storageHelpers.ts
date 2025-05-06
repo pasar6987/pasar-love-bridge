@@ -22,6 +22,7 @@ export const uploadProfilePhoto = async (userId: string, file: File, sortOrder: 
       throw uploadError;
     }
     
+    // Get the correct public URL from Supabase
     const { data: urlData } = supabase.storage
       .from('profile_photos')
       .getPublicUrl(filePath);
@@ -71,7 +72,7 @@ export const uploadIdentityDocument = async (userId: string, file: File): Promis
       throw uploadError;
     }
     
-    // Get the public URL for the uploaded file
+    // Get the correct public URL from Supabase
     const { data: urlData } = supabase.storage
       .from('identity_documents')
       .getPublicUrl(filePath);
