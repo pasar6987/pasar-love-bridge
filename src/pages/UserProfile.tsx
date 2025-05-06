@@ -57,12 +57,24 @@ export default function UserProfile() {
     
     setIsDeleting(true);
     try {
-      // Call the delete_account_rpc stored procedure
-      const { error } = await supabase.rpc('delete_account_rpc');
+      // Call the delete-user-account edge function
+      const { data, error } = await supabase.functions.invoke('delete-user-account', {
+        method: 'POST',
+        body: {},
+        // Pass the session token to authenticate the request
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
+      });
       
       if (error) {
-        console.error("Delete account RPC error:", error);
+        console.error("Edge function error:", error);
         throw error;
+      }
+      
+      if (data?.error) {
+        console.error("Delete account error:", data.error);
+        throw new Error(data.error);
       }
       
       // Sign out after successful account deletion

@@ -39,15 +39,63 @@ serve(async (req) => {
 
     console.log('User found, proceeding with account deletion:', user.id);
 
-    // Call the RPC function we've created to handle account deletion
-    const { data, error } = await supabase.rpc('delete_account_rpc');
+    // 직접 user_id를 세션에서 가져와 사용
+    const userId = user.id;
     
-    if (error) {
-      console.error('RPC error:', error);
-      throw error;
+    // 1. First, delete user data from all related tables
+    
+    // Delete profile photos
+    await supabase.from('profile_photos').delete().eq('user_id', userId);
+    
+    // Delete user nationalities
+    await supabase.from('user_nationalities').delete().eq('user_id', userId);
+    
+    // Delete user interests
+    await supabase.from('user_interests').delete().eq('user_id', userId);
+    
+    // Delete language skills
+    await supabase.from('language_skills').delete().eq('user_id', userId);
+    
+    // Delete identity verifications
+    await supabase.from('identity_verifications').delete().eq('user_id', userId);
+    
+    // Delete verification requests
+    await supabase.from('verification_requests').delete().eq('user_id', userId);
+    
+    // Get match IDs where user is involved
+    const { data: matchIds } = await supabase
+      .from('matches')
+      .select('id')
+      .or(`user_id.eq.${userId},target_user_id.eq.${userId}`);
+    
+    if (matchIds && matchIds.length > 0) {
+      // Delete chat messages for those matches
+      await supabase
+        .from('chat_messages')
+        .delete()
+        .in('match_id', matchIds.map(m => m.id));
+      
+      // Delete matches
+      await supabase
+        .from('matches')
+        .delete()
+        .or(`user_id.eq.${userId},target_user_id.eq.${userId}`);
+    }
+    
+    // Delete notifications
+    await supabase.from('notifications').delete().eq('user_id', userId);
+    
+    // Delete user profile
+    await supabase.from('users').delete().eq('id', userId);
+    
+    // Finally, delete the user from auth.users using admin privileges
+    const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId);
+    
+    if (authDeleteError) {
+      throw authDeleteError;
     }
 
-    console.log('Account deletion successful:', data);
+    console.log('Account deletion successful for user:', userId);
 
     return new Response(
       JSON.stringify({ success: true }),
