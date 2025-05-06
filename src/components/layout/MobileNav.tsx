@@ -15,9 +15,9 @@ export function MobileNav() {
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
       <div className="flex justify-around items-center h-16">
         <Link
-          to="/home"
+          to="/recommendations"
           className={`flex flex-col items-center justify-center w-full h-full ${
-            isActive("/home") ? "text-primary" : "text-gray-500"
+            isActive("/recommendations") || isActive("/home") ? "text-primary" : "text-gray-500"
           }`}
         >
           <Home className="h-5 w-5" />

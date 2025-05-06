@@ -21,6 +21,7 @@ import Index from "./pages/Index";
 import UserProfile from "./pages/UserProfile";
 import Admin from "./pages/Admin";
 import VerifyIdentity from "./pages/VerifyIdentity";
+import Recommendations from "./pages/Recommendations";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
               
               {/* 메인 페이지들 */}
               <Route path="/home" element={<Home />} />
+              <Route path="/recommendations" element={<Recommendations />} />
               
               {/* 프로필 페이지 */}
               <Route path="/profile/:id" element={<ProfileDetail />} />
