@@ -51,13 +51,16 @@ export default function Admin() {
       
       try {
         const { data, error } = await supabase
-          .from('admins')
+          .from('admin_users')
           .select('*')
           .eq('user_id', user.id)
           .single();
           
         if (error || !data) {
           // Not an admin, redirect to home
+          console.error("Admin check error:", error);
+          console.log("Admin data:", data);
+          console.log("Current user ID:", user.id);
           navigate('/home');
           return;
         }
@@ -100,9 +103,10 @@ export default function Admin() {
       
       // Fetch profile photo verification requests
       const { data: photoData, error: photoError } = await supabase
-        .from('profile_photo_verifications')
+        .from('verification_requests')
         .select('*, users(email, display_name)')
         .eq('status', 'submitted')
+        .eq('type', 'profile')
         .order('created_at', { ascending: false });
         
       if (photoError) throw photoError;
@@ -161,7 +165,7 @@ export default function Admin() {
             user_id: request.user_id,
             type: 'verify_passed',
             title: language === 'ko' ? '신분증 인증 완료' : '本人確認完了',
-            content: language === 'ko' 
+            body: language === 'ko' 
               ? '신분증 인증이 완료되었습니다. 이제 채팅 기능을 사용할 수 있습니다.' 
               : '本人確認が完了しました。チャット機能が使えるようになりました。',
             is_read: false
@@ -172,7 +176,7 @@ export default function Admin() {
       } else if (request.type === "profile") {
         // Update profile photo verification status
         const { error: updateError } = await supabase
-          .from('profile_photo_verifications')
+          .from('verification_requests')
           .update({ status: 'approved', updated_at: new Date().toISOString() })
           .eq('id', request.id);
           
@@ -180,26 +184,24 @@ export default function Admin() {
         
         // Get profile data
         const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('photos')
-          .eq('user_id', request.user_id)
-          .single();
+          .from('profile_photos')
+          .select('*')
+          .eq('user_id', request.user_id);
           
         if (profileError) throw profileError;
         
-        // Add photo to approved photos array
-        let photos = profileData?.photos || [];
-        if (request.photo_url && !photos.includes(request.photo_url)) {
-          photos.push(request.photo_url);
+        // Add photo to user's profile photos
+        if (request.photo_url) {
+          const photoOrder = profileData ? profileData.length : 0;
           
-          // Update profile photos
+          // Insert the photo to profile_photos
           const { error: photoUpdateError } = await supabase
-            .from('profiles')
-            .update({ 
-              photos,
-              updated_at: new Date().toISOString()
-            })
-            .eq('user_id', request.user_id);
+            .from('profile_photos')
+            .insert({ 
+              user_id: request.user_id,
+              url: request.photo_url,
+              sort_order: photoOrder
+            });
             
           if (photoUpdateError) throw photoUpdateError;
         }
@@ -211,7 +213,7 @@ export default function Admin() {
             user_id: request.user_id,
             type: 'photo_approved',
             title: language === 'ko' ? '프로필 사진 승인' : 'プロフィール写真承認',
-            content: language === 'ko' 
+            body: language === 'ko' 
               ? '프로필 사진이 승인되었습니다.' 
               : 'プロフィール写真が承認されました。',
             is_read: false
@@ -269,7 +271,7 @@ export default function Admin() {
       } else if (request.type === "profile") {
         // Update profile photo verification status
         const { error: updateError } = await supabase
-          .from('profile_photo_verifications')
+          .from('verification_requests')
           .update({ 
             status: 'rejected', 
             rejection_reason: rejectionReason,
@@ -289,7 +291,7 @@ export default function Admin() {
           title: language === 'ko' 
             ? (request.type === 'identity' ? '신분증 인증 거부' : '프로필 사진 거부') 
             : (request.type === 'identity' ? '本人確認拒否' : 'プロフィール写真拒否'),
-          content: language === 'ko' 
+          body: language === 'ko' 
             ? `사유: ${rejectionReason}` 
             : `理由: ${rejectionReason}`,
           is_read: false
