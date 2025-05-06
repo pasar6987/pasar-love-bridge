@@ -142,7 +142,7 @@ const Onboarding = () => {
       <div className="container max-w-lg mx-auto py-12 px-4 sm:px-6">
         {/* 상단 헤더 영역 - 계정 전환 버튼 추가 */}
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-xl font-semibold text-primary">{t("onboarding.title")}</h1>
+          <h1 className="text-xl font-semibold text-primary">{t("app.name")}</h1>
           {user && (
             <Button 
               variant="ghost" 

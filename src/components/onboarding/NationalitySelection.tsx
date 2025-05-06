@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -18,6 +18,35 @@ export function NationalitySelection({ onComplete }: NationalitySelectionProps) 
   
   const [nationality, setNationality] = useState<"ko" | "ja" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existing, setExisting] = useState<boolean>(false);
+  
+  // 기존 사용자 국적 데이터 확인
+  useEffect(() => {
+    const checkExistingNationality = async () => {
+      if (!user) return;
+      
+      try {
+        // 사용자 국적 데이터 조회
+        const { data, error } = await supabase
+          .from('user_nationalities')
+          .select('nationality')
+          .eq('user_id', user.id)
+          .maybeSingle();
+          
+        if (error) throw error;
+        
+        // 기존 데이터가 있으면 설정
+        if (data) {
+          setNationality(data.nationality as "ko" | "ja");
+          setExisting(true);
+        }
+      } catch (error) {
+        console.error("Error checking nationality:", error);
+      }
+    };
+    
+    checkExistingNationality();
+  }, [user]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,20 +56,28 @@ export function NationalitySelection({ onComplete }: NationalitySelectionProps) 
     setIsSubmitting(true);
     
     try {
-      // Add user nationality to the database using RPC
-      // In a production app, we would create an RPC function:
-      // const { error } = await supabase.rpc('insert_user_nationality', {
-      //   p_user_id: user.id,
-      //   p_nationality: nationality
-      // });
+      let error = null;
       
-      // For now, use direct table operation
-      const { error } = await supabase
-        .from('user_nationalities')
-        .insert({
-          user_id: user.id,
-          nationality
-        });
+      // 기존 데이터가 있으면 업데이트, 없으면 삽입
+      if (existing) {
+        // 업데이트 쿼리
+        const { error: updateError } = await supabase
+          .from('user_nationalities')
+          .update({ nationality })
+          .eq('user_id', user.id);
+          
+        error = updateError;
+      } else {
+        // 삽입 쿼리
+        const { error: insertError } = await supabase
+          .from('user_nationalities')
+          .insert({
+            user_id: user.id,
+            nationality
+          });
+          
+        error = insertError;
+      }
       
       if (error) throw error;
       
