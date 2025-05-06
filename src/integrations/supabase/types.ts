@@ -384,6 +384,19 @@ export type Database = {
           nationality: string
         }[]
       }
+      get_recommended_profiles_by_nationality_fixed: {
+        Args: { p_user_id: string }
+        Returns: {
+          id: string
+          name: string
+          age: number
+          location: string
+          photo: string
+          bio: string
+          job: string
+          nationality: string
+        }[]
+      }
       get_user_notifications: {
         Args: { p_user_id: string }
         Returns: {

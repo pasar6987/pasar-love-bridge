@@ -394,5 +394,25 @@ export const translations = {
   "notifications.view_all": {
     ko: "모두 보기",
     ja: "すべて見る"
-  }
+  },
+  "onboarding.step": {
+    ko: "단계",
+    ja: "ステップ"
+  },
+  "onboarding.photos.title": {
+    ko: "프로필 사진을 올려주세요",
+    ja: "プロフィール写真をアップロードしてください"
+  },
+  "onboarding.photos.desc": {
+    ko: "본인을 가장 잘 나타내는 사진을 선택하세요. 최소 3장 이상 올려주세요.",
+    ja: "あなたを最もよく表現する写真を選んでください。最低3枚以上が必要です。"
+  },
+  "onboarding.photos.add": {
+    ko: "사진 추가",
+    ja: "写真を追加"
+  },
+  "onboarding.photos.min_required": {
+    ko: "최소 3장의 사진이 필요합니다.",
+    ja: "最低3枚の写真が必要です。"
+  },
 };

@@ -1,3 +1,4 @@
+
 import { useLanguage } from "@/i18n/useLanguage";
 
 interface ProgressBarProps {

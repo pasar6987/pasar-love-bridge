@@ -61,6 +61,7 @@ serve(async (req) => {
       );
 
       if (error) {
+        console.error('Error calling fixed recommendation function:', error);
         throw error;
       }
 
@@ -79,6 +80,7 @@ serve(async (req) => {
     );
 
     if (error) {
+      console.error('Error calling recommendation function:', error);
       throw error;
     }
 
