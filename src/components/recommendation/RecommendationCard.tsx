@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, X, ChevronRight, ChevronLeft } from "lucide-react";

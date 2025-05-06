@@ -369,6 +369,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_match_request_rpc: {
+        Args: { request_id: string }
+        Returns: Json
+      }
       create_admin_notification: {
         Args: {
           p_user_id: string
@@ -386,6 +390,18 @@ export type Database = {
       delete_profile_photo: {
         Args: { photo_id: string }
         Returns: undefined
+      }
+      generate_random_topic_rpc: {
+        Args: { match_id: string }
+        Returns: Json
+      }
+      get_chat_messages_rpc: {
+        Args: { match_id: string; message_limit?: number }
+        Returns: Json
+      }
+      get_daily_recommendations_rpc: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       get_recommended_profiles_by_nationality: {
         Args: { p_user_id: string }
@@ -412,6 +428,10 @@ export type Database = {
           job: string
           nationality: string
         }[]
+      }
+      get_user_chats_rpc: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       get_user_notifications: {
         Args: { p_user_id: string }
@@ -465,9 +485,25 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      mark_messages_as_read_rpc: {
+        Args: { match_id: string }
+        Returns: Json
+      }
       mark_notification_as_read: {
         Args: { p_notification_id: string }
         Returns: boolean
+      }
+      reject_match_request_rpc: {
+        Args: { request_id: string }
+        Returns: Json
+      }
+      send_chat_message_rpc: {
+        Args: { match_id: string; content: string }
+        Returns: Json
+      }
+      send_match_request_rpc: {
+        Args: { target_profile_id: string }
+        Returns: Json
       }
       update_user_onboarding_step: {
         Args: { user_id: string; step_number: number; is_completed?: boolean }

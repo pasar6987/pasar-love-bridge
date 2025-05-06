@@ -11,10 +11,12 @@ interface Profile {
   name: string;
   age: number;
   location: string;
-  photo: string;
+  photo_url?: string;
   bio: string;
   job: string;
   nationality?: string;
+  photos?: { url: string }[];
+  is_verified?: boolean;
 }
 
 // Interface matching what RecommendationCard expects
@@ -156,8 +158,8 @@ export function RecommendationList() {
     city: currentProfile.location, // Map location to city
     bio: currentProfile.bio,
     job: currentProfile.job,
-    photos: [{ url: currentProfile.photo }], // Convert single photo to photos array
-    isVerified: false // Default value
+    photos: currentProfile.photos || [{ url: currentProfile.photo_url || "/placeholder.svg" }], // Handle both formats
+    isVerified: !!currentProfile.is_verified // Convert to boolean
   };
   console.log("[RecommendationList Debug] Mapped profile:", mappedProfile);
 

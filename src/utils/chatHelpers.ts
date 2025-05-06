@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { format } from 'date-fns';
 import { ko, ja, enUS } from 'date-fns/locale';
@@ -25,89 +24,91 @@ export interface ChatSession {
   unread_count: number;
 }
 
-// Function to send a chat message
+// Function to send a chat message using RPC
 export const sendChatMessage = async (matchId: string, content: string): Promise<ChatMessage | null> => {
   try {
-    const { data, error } = await supabase.functions.invoke('send_chat_message', {
-      body: { match_id: matchId, content }
+    const { data, error } = await supabase.rpc('send_chat_message_rpc', {
+      match_id: matchId,
+      content
     });
     
     if (error) {
       throw error;
     }
     
-    return data as ChatMessage;
+    return data?.success ? data.data : null;
   } catch (error) {
     console.error("Error sending message:", error);
     return null;
   }
 };
 
-// Function to get chat messages
+// Function to get chat messages using RPC
 export const getChatMessages = async (matchId: string, limit = 50): Promise<ChatMessage[]> => {
   try {
-    const { data, error } = await supabase.functions.invoke('get_chat_messages', {
-      body: { match_id: matchId, limit }
+    const { data, error } = await supabase.rpc('get_chat_messages_rpc', {
+      match_id: matchId,
+      message_limit: limit
     });
     
     if (error) {
       throw error;
     }
     
-    return (data as ChatMessage[]) || [];
+    return (data?.success && Array.isArray(data.data)) ? data.data : [];
   } catch (error) {
     console.error("Error fetching messages:", error);
     return [];
   }
 };
 
-// Function to mark messages as read
+// Function to mark messages as read using RPC
 export const markMessagesAsRead = async (matchId: string): Promise<boolean> => {
   try {
-    const { error } = await supabase.functions.invoke('mark_messages_as_read', {
-      body: { match_id: matchId }
+    const { data, error } = await supabase.rpc('mark_messages_as_read_rpc', {
+      match_id: matchId
     });
     
     if (error) {
       throw error;
     }
     
-    return true;
+    return data?.success || false;
   } catch (error) {
     console.error("Error marking messages as read:", error);
     return false;
   }
 };
 
-// Function to generate a random topic
+// Function to generate a random topic using RPC
 export const generateRandomTopic = async (matchId: string): Promise<string | null> => {
   try {
-    const { data, error } = await supabase.functions.invoke('generate_random_topic', {
-      body: { match_id: matchId }
+    const { data, error } = await supabase.rpc('generate_random_topic_rpc', {
+      match_id: matchId
     });
     
     if (error) {
       throw error;
     }
     
-    return data as string;
+    return data?.success ? data.data : null;
   } catch (error) {
     console.error("Error generating random topic:", error);
     return null;
   }
 };
 
-// Function to get user's chat sessions
+// Function to get user's chat sessions using RPC
 export const getUserChats = async (): Promise<ChatSession[]> => {
   try {
-    const { data, error } = await supabase.functions.invoke('get_user_chats');
+    const { data, error } = await supabase.rpc('get_user_chats_rpc');
     
     if (error) {
-      console.error("Error invoking get_user_chats:", error);
+      console.error("Error executing get_user_chats_rpc:", error);
       throw error;
     }
     
-    return (data as ChatSession[]) || [];
+    return (data?.success && Array.isArray(data.data)) ? data.data : [];
   } catch (error) {
     console.error("Error fetching user chats:", error);
     // Return mock data for development
