@@ -76,7 +76,8 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
           doc_type: docType,
           id_front_url: publicUrl,
           status: 'submitted',
-          submitted_at: new Date().toISOString()
+          submitted_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()  // Add this field to fix TypeScript error
         });
       
       if (error) throw error;
