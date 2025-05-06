@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/useLanguage";
 import { Check, Upload, Loader2 } from "lucide-react";
@@ -17,19 +18,38 @@ import { useToast } from "@/hooks/use-toast";
 
 interface VerificationProps {
   onComplete: () => void;
+  tempData: {
+    docType: string;
+    frontUploaded: boolean;
+    file: File | null;
+  };
+  updateTempData: (value: {
+    docType: string;
+    frontUploaded: boolean;
+    file: File | null;
+  }) => void;
 }
 
-export function Verification({ onComplete }: VerificationProps) {
+export function Verification({ onComplete, tempData, updateTempData }: VerificationProps) {
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  const [docType, setDocType] = useState("");
-  const [frontUploaded, setFrontUploaded] = useState(false);
+  const [docType, setDocType] = useState(tempData.docType || "");
+  const [frontUploaded, setFrontUploaded] = useState(tempData.frontUploaded || false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(tempData.file || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // 임시 데이터 업데이트
+  useEffect(() => {
+    updateTempData({
+      docType,
+      frontUploaded,
+      file
+    });
+  }, [docType, frontUploaded, file, updateTempData]);
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

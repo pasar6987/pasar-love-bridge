@@ -7,11 +7,17 @@ import { useUploadPhotos } from "@/hooks/useUploadPhotos";
 
 interface PhotoUploadProps {
   onComplete: () => void;
+  tempData: string[];
+  updateTempData: (value: string[]) => void;
 }
 
-export function PhotoUpload({ onComplete }: PhotoUploadProps) {
+export function PhotoUpload({ 
+  onComplete, 
+  tempData, 
+  updateTempData 
+}: PhotoUploadProps) {
   const { t } = useLanguage();
-  const { photos, isUploading, handleFileUpload, removePhoto } = useUploadPhotos();
+  const { photos, isUploading, handleFileUpload, removePhoto } = useUploadPhotos(tempData, updateTempData);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const handleButtonClick = () => {

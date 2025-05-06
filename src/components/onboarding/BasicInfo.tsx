@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -17,18 +17,40 @@ import { Loader2 } from "lucide-react";
 
 interface BasicInfoProps {
   onComplete: () => void;
+  tempData: {
+    name: string;
+    gender: string;
+    birthdate: string;
+    city: string;
+  };
+  updateTempData: (value: {
+    name: string;
+    gender: string;
+    birthdate: string;
+    city: string;
+  }) => void;
 }
 
-export function BasicInfo({ onComplete }: BasicInfoProps) {
+export function BasicInfo({ onComplete, tempData, updateTempData }: BasicInfoProps) {
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const [name, setName] = useState("");
-  const [gender, setGender] = useState("male");
-  const [birthdate, setBirthdate] = useState("");
-  const [city, setCity] = useState("");
+  const [name, setName] = useState(tempData.name || "");
+  const [gender, setGender] = useState(tempData.gender || "male");
+  const [birthdate, setBirthdate] = useState(tempData.birthdate || "");
+  const [city, setCity] = useState(tempData.city || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // 임시 데이터 업데이트
+  useEffect(() => {
+    updateTempData({
+      name,
+      gender,
+      birthdate,
+      city
+    });
+  }, [name, gender, birthdate, city, updateTempData]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

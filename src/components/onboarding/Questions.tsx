@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -18,20 +19,48 @@ import { Loader2 } from "lucide-react";
 
 interface QuestionsProps {
   onComplete: () => void;
+  tempData: {
+    job: string;
+    education: string;
+    bio: string;
+    interests: string[];
+    koreanLevel: string;
+    japaneseLevel: string;
+  };
+  updateTempData: (value: {
+    job: string;
+    education: string;
+    bio: string;
+    interests: string[];
+    koreanLevel: string;
+    japaneseLevel: string;
+  }) => void;
 }
 
-export function Questions({ onComplete }: QuestionsProps) {
+export function Questions({ onComplete, tempData, updateTempData }: QuestionsProps) {
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const [job, setJob] = useState("");
-  const [education, setEducation] = useState("");
-  const [bio, setBio] = useState("");
-  const [interests, setInterests] = useState<string[]>([]);
-  const [koreanLevel, setKoreanLevel] = useState(language === "ko" ? "native" : "beginner");
-  const [japaneseLevel, setJapaneseLevel] = useState(language === "ko" ? "beginner" : "native");
+  const [job, setJob] = useState(tempData.job || "");
+  const [education, setEducation] = useState(tempData.education || "");
+  const [bio, setBio] = useState(tempData.bio || "");
+  const [interests, setInterests] = useState<string[]>(tempData.interests || []);
+  const [koreanLevel, setKoreanLevel] = useState(tempData.koreanLevel || (language === "ko" ? "native" : "beginner"));
+  const [japaneseLevel, setJapaneseLevel] = useState(tempData.japaneseLevel || (language === "ko" ? "beginner" : "native"));
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 임시 데이터 업데이트
+  useEffect(() => {
+    updateTempData({
+      job,
+      education,
+      bio,
+      interests,
+      koreanLevel,
+      japaneseLevel
+    });
+  }, [job, education, bio, interests, koreanLevel, japaneseLevel, updateTempData]);
   
   const availableInterests = {
     ko: [
