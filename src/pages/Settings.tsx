@@ -1,8 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Card,
   CardContent,
@@ -22,16 +25,96 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 
 export default function Settings() {
   const { t, language, setLanguage } = useLanguage();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [notifications, setNotifications] = useState({
     newMatches: true,
     messages: true,
     verificationStatus: true,
   });
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userData, setUserData] = useState({
+    email: "",
+    name: "",
+  });
+  const [isSaving, setIsSaving] = useState(false);
+
+  // 사용자 데이터 로드
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        
+        // users 테이블에서 사용자 데이터 가져오기
+        const { data: profileData, error: profileError } = await supabase
+          .from('users')
+          .select('nickname, gender, birthdate, city')
+          .eq('id', user.id)
+          .single();
+        
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error("유저 프로필 데이터 가져오기 오류:", profileError);
+        }
+
+        setUserData({
+          email: user.email || "",
+          name: profileData?.nickname || user.user_metadata?.full_name || user.email?.split('@')[0] || "",
+        });
+      } catch (error) {
+        console.error("사용자 데이터 로드 중 오류:", error);
+        toast({
+          title: t("error.generic"),
+          description: t("error.try_again"),
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [user, t, toast]);
+
+  // 사용자 이름 저장하기
+  const handleSaveChanges = async () => {
+    if (!user) return;
+    
+    setIsSaving(true);
+    
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ nickname: userData.name })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
+      toast({
+        title: language === "ko" ? "변경사항이 저장되었습니다" : "変更が保存されました",
+        description: language === "ko" ? "프로필이 업데이트 되었습니다" : "プロフィールが更新されました"
+      });
+    } catch (error) {
+      console.error("변경사항 저장 중 오류:", error);
+      toast({
+        title: t("error.generic"),
+        description: t("error.try_again"),
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleLogout = () => {
     setIsLoggingOut(true);
@@ -56,26 +139,46 @@ export default function Settings() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">{t("auth.email")}</Label>
-                <Input 
-                  id="email" 
-                  value="user@example.com" 
-                  disabled 
-                  className="pasar-input"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="name">{t("onboarding.basics.name")}</Label>
-                <Input 
-                  id="name" 
-                  value={language === "ko" ? "김민준" : "キム・ミンジュン"} 
-                  className="pasar-input"
-                />
-              </div>
-              <Button className="pasar-btn">
-                {language === "ko" ? "변경사항 저장" : "変更を保存"}
-              </Button>
+              {isLoading ? (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">{t("auth.email")}</Label>
+                    <Input 
+                      id="email" 
+                      value={userData.email} 
+                      disabled 
+                      className="pasar-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="name">{t("onboarding.basics.name")}</Label>
+                    <Input 
+                      id="name" 
+                      value={userData.name} 
+                      onChange={(e) => setUserData({...userData, name: e.target.value})}
+                      className="pasar-input"
+                    />
+                  </div>
+                  <Button 
+                    className="pasar-btn" 
+                    onClick={handleSaveChanges} 
+                    disabled={isSaving}
+                  >
+                    {isSaving ? (
+                      <span className="flex items-center">
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {language === "ko" ? "저장 중..." : "保存中..."}
+                      </span>
+                    ) : (
+                      language === "ko" ? "변경사항 저장" : "変更を保存"
+                    )}
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
 

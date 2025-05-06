@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
@@ -164,7 +163,7 @@ export default function VerifyIdentity() {
     
     if (bucketError) {
       return (
-        <Alert variant="destructive" className="mb-4">
+        <Alert variant="default" className="mb-4">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>
             {language === "ko" ? "스토리지 오류" : "ストレージエラー"}

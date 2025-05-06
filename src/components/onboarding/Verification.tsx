@@ -134,59 +134,6 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
     onComplete();
   };
   
-  // 버킷 상태 안내 메시지
-  const renderBucketStatus = () => {
-    if (!bucketChecked) {
-      return (
-        <div className="bg-yellow-50 p-2 rounded-md text-sm text-yellow-800 mb-4 flex items-center">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          {language === "ko" 
-            ? "스토리지 상태 확인 중..." 
-            : "ストレージ状態を確認中..."}
-        </div>
-      );
-    }
-    
-    if (bucketError) {
-      return (
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>
-            {language === "ko" ? "스토리지 오류" : "ストレージエラー"}
-          </AlertTitle>
-          <AlertDescription>
-            {bucketError}
-          </AlertDescription>
-        </Alert>
-      );
-    }
-    
-    if (!bucketExists) {
-      return (
-        <Alert variant="warning" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>
-            {language === "ko" ? "스토리지 준비 안됨" : "ストレージが準備されていません"}
-          </AlertTitle>
-          <AlertDescription>
-            {language === "ko" 
-              ? "신분증 저장소가 준비되지 않았습니다. 관리자에게 문의하세요." 
-              : "身分証明書の保存先が準備されていません。管理者に問い合わせてください。"}
-          </AlertDescription>
-        </Alert>
-      );
-    }
-    
-    return (
-      <div className="bg-green-50 p-2 rounded-md text-sm text-green-800 mb-4 flex items-center">
-        <Check className="mr-2 h-4 w-4 text-green-600" />
-        {language === "ko" 
-          ? "스토리지가 준비되었습니다." 
-          : "ストレージの準備ができています。"}
-      </div>
-    );
-  };
-  
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -198,7 +145,17 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
         </p>
       </div>
       
-      {renderBucketStatus()}
+      {bucketError && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>
+            {language === "ko" ? "스토리지 오류" : "ストレージエラー"}
+          </AlertTitle>
+          <AlertDescription>
+            {bucketError}
+          </AlertDescription>
+        </Alert>
+      )}
       
       <div className="bg-pastel-mint/30 rounded-lg p-4 border border-pastel-mint">
         <p className="text-sm">
