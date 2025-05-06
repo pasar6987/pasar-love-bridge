@@ -35,12 +35,12 @@ export default function Home() {
         //   { p_user_id: user.id }
         // );
         
-        // For now, directly query the table
+        // Fixed query - use 'eq' as a function not a parameter
         const { data: userNationalityData, error: nationalityError } = await supabase
           .from('user_nationalities')
           .select('nationality')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
           
         if (nationalityError) {
           console.error("Error fetching user nationality:", nationalityError);

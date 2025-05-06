@@ -374,5 +374,25 @@ export const translations = {
   "notification.yesterday": {
     ko: "어제",
     ja: "昨日"
+  },
+  "notifications.new_match": {
+    ko: "새로운 매치",
+    ja: "新しいマッチング"
+  },
+  "notifications.new_message": {
+    ko: "새 메시지",
+    ja: "新しいメッセージ"
+  },
+  "notifications.time_ago.minutes": {
+    ko: "{minutes}분 전",
+    ja: "{minutes}分前"
+  },
+  "notifications.time_ago.hours": {
+    ko: "{hours}시간 전",
+    ja: "{hours}時間前"
+  },
+  "notifications.view_all": {
+    ko: "모두 보기",
+    ja: "すべて見る"
   }
 };
