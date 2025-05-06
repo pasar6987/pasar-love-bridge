@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
@@ -24,7 +23,6 @@ interface VerificationRequest {
   status: VerificationStatus;
   rejection_reason: string;
   created_at: string;
-  user_email?: string;
   user_display_name?: string;
 }
 
@@ -100,10 +98,10 @@ export default function Admin() {
     try {
       console.log("[Admin Debug] 인증 요청 조회 시작");
       
-      // Fetch identity verification requests
+      // Fetch identity verification requests - modified to avoid email column issue
       const { data: identityData, error: identityError } = await supabase
         .from('identity_verifications')
-        .select('*, users(email, display_name)')
+        .select('*, users(id, nickname)')
         .eq('status', 'submitted')
         .order('created_at', { ascending: false });
         
@@ -122,16 +120,15 @@ export default function Admin() {
         status: item.status as VerificationStatus,
         rejection_reason: item.rejection_reason || "",
         created_at: item.created_at,
-        user_email: item.users?.email,
-        user_display_name: item.users?.display_name
+        user_display_name: item.users?.nickname || item.user_id
       }));
       
       setIdentityRequests(formattedIdentityRequests);
       
-      // Fetch profile photo verification requests
+      // Fetch profile photo verification requests - modified to avoid email column issue
       const { data: photoData, error: photoError } = await supabase
         .from('verification_requests')
-        .select('*, users(email, display_name)')
+        .select('*, users(id, nickname)')
         .eq('status', 'submitted')
         .eq('type', 'profile')
         .order('created_at', { ascending: false });
@@ -151,8 +148,7 @@ export default function Admin() {
         status: item.status as VerificationStatus,
         rejection_reason: item.rejection_reason || "",
         created_at: item.created_at,
-        user_email: item.users?.email,
-        user_display_name: item.users?.display_name
+        user_display_name: item.users?.nickname || item.user_id
       }));
       
       setPhotoRequests(formattedPhotoRequests);
@@ -467,7 +463,7 @@ export default function Admin() {
                             <p className="text-sm font-medium text-muted-foreground">
                               {language === 'ko' ? '사용자' : 'ユーザー'}
                             </p>
-                            <p>{request.user_display_name || request.user_email || request.user_id}</p>
+                            <p>{request.user_display_name}</p>
                             <p className="text-xs text-muted-foreground">
                               {new Date(request.created_at).toLocaleString()}
                             </p>
@@ -557,7 +553,7 @@ export default function Admin() {
                             <p className="text-sm font-medium text-muted-foreground">
                               {language === 'ko' ? '사용자' : 'ユーザー'}
                             </p>
-                            <p>{request.user_display_name || request.user_email || request.user_id}</p>
+                            <p>{request.user_display_name}</p>
                             <p className="text-xs text-muted-foreground">
                               {new Date(request.created_at).toLocaleString()}
                             </p>
