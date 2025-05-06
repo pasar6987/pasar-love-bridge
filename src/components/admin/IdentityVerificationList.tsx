@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/i18n/useLanguage";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { checkFileExists, getAdminSignedUrl } from "@/utils/storageHelpers";
+import { getAdminSignedUrl } from "@/utils/storageHelpers";
 import { Loader2, RefreshCw } from "lucide-react";
 
 export type VerificationStatus = "pending" | "approved" | "rejected" | "submitted";
@@ -41,8 +41,7 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
   const [retrying, setRetrying] = useState<Record<string, boolean>>({});
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   
-  // URL 디버깅용 정보 저장
-  const [imageUrls, setImageUrls] = useState<Record<string, {url: string, path: string}>>({});
+  // 버킷 목록 조회
   const [availableBuckets, setAvailableBuckets] = useState<string[]>([]);
   
   // 버킷 목록 조회
@@ -73,7 +72,7 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
   // 요청별로 서명된 URL 생성
   useEffect(() => {
     const generateSignedUrls = async () => {
-      if (identityRequests.length === 0 || !availableBuckets.includes('identity_documents')) {
+      if (identityRequests.length === 0) {
         return;
       }
       
@@ -91,11 +90,16 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
               newSignedUrls[request.id] = request.id_front_url;
             } else {
               // 파일 경로만 있는 경우 서명된 URL 생성
-              const signedUrl = await getAdminSignedUrl('identity_documents', request.id_front_url, 300);
-              if (signedUrl) {
-                newSignedUrls[request.id] = signedUrl;
-                console.log(`서명된 URL 생성됨 - 요청 ID: ${request.id}`, { signedUrl });
+              if (availableBuckets.includes('identity_documents')) {
+                const signedUrl = await getAdminSignedUrl('identity_documents', request.id_front_url, 300);
+                if (signedUrl) {
+                  newSignedUrls[request.id] = signedUrl;
+                  console.log(`서명된 URL 생성됨 - 요청 ID: ${request.id}`, { signedUrl });
+                } else {
+                  setImageErrors(prev => ({ ...prev, [request.id]: true }));
+                }
               } else {
+                console.error(`버킷 'identity_documents'가 존재하지 않아 서명된 URL을 생성할 수 없습니다.`);
                 setImageErrors(prev => ({ ...prev, [request.id]: true }));
               }
             }
@@ -249,7 +253,7 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
   
   const handleImageError = (id: string) => {
     setImageErrors(prev => ({ ...prev, [id]: true }));
-    console.error("Failed to load image for request ID:", id, imageUrls[id]);
+    console.error("Failed to load image for request ID:", id);
   };
 
   const handleRetryImage = async (id: string) => {
@@ -260,6 +264,10 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
       const request = identityRequests.find(req => req.id === id);
       if (!request || !request.id_front_url) {
         throw new Error("요청을 찾을 수 없거나 이미지 경로가 없습니다.");
+      }
+      
+      if (!availableBuckets.includes('identity_documents')) {
+        throw new Error("'identity_documents' 버킷이 존재하지 않습니다.");
       }
       
       // 파일 경로만 있는 경우 새로운 서명된 URL 생성
@@ -280,11 +288,44 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
     }
   };
 
+  // 버킷 동기화 함수
+  const synchronizeBuckets = async () => {
+    try {
+      const { data, error } = await supabase.storage.listBuckets();
+      if (error) {
+        console.error("버킷 목록 동기화 오류:", error);
+        toast({
+          title: "버킷 동기화 오류",
+          description: "스토리지 버킷 정보를 갱신하는 중 오류가 발생했습니다.",
+          variant: "destructive"
+        });
+      } else {
+        const bucketNames = data.map(bucket => bucket.name);
+        setAvailableBuckets(bucketNames);
+        toast({
+          title: "버킷 정보 갱신됨",
+          description: `사용 가능한 버킷: ${bucketNames.join(', ')}`,
+        });
+      }
+    } catch (error) {
+      console.error("버킷 동기화 중 오류:", error);
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{t("admin.identity_verification")}</CardTitle>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex gap-1 items-center"
+            onClick={synchronizeBuckets}
+          >
+            <RefreshCw className="h-4 w-4" />
+            {language === 'ko' ? '버킷 동기화' : 'バケット同期'}
+          </Button>
           <Button 
             variant="outline" 
             size="sm" 
