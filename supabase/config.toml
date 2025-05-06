@@ -48,3 +48,6 @@ verify_jwt = true
 
 [functions.get_user_chats]
 verify_jwt = true
+
+[functions.get_user_verification_status]
+verify_jwt = true
