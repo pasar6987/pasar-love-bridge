@@ -363,6 +363,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_account_rpc: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       delete_profile_photo: {
         Args: { photo_id: string }
         Returns: undefined

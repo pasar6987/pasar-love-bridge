@@ -45,7 +45,7 @@ export default function Notifications() {
           id: "3",
           type: "verify_passed",
           title: t("notification.verify_passed"),
-          body: t("notification.verify_passed_desc") || (t("language") === "ko" ? "본인 인증이 완료되었습니다." : "本人確認が完了しました。"),
+          body: t("notification.verify_passed_desc"),
           isRead: true,
           createdAt: new Date(Date.now() - 86400000).toISOString(),
         },
