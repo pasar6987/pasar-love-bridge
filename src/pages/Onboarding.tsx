@@ -11,14 +11,14 @@ import { Verification } from "@/components/onboarding/Verification";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/i18n/useLanguage";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Onboarding = () => {
   const { step } = useParams<{ step: string }>();
   const navigate = useNavigate();
   const currentStep = parseInt(step || "1", 10);
-  const { user } = useAuth();
+  const { user, signInWithGoogle, signOut } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
   const [isUpdating, setIsUpdating] = useState(false);
@@ -98,6 +98,28 @@ const Onboarding = () => {
     }
   };
 
+  // 계정 전환 핸들러
+  const handleSwitchAccount = async () => {
+    try {
+      // 먼저 현재 계정에서 로그아웃
+      await signOut();
+      // 그 다음 구글 로그인 실행 (새 계정으로 로그인 가능)
+      await signInWithGoogle();
+      
+      toast({
+        title: t("auth.account_switch"),
+        description: t("auth.account_switch_success"),
+      });
+    } catch (error) {
+      console.error("Error switching account:", error);
+      toast({
+        title: t("error.generic"),
+        description: t("error.try_again"),
+        variant: "destructive"
+      });
+    }
+  };
+
   const renderStep = () => {
     switch (currentStep) {
       case 1:
@@ -118,6 +140,22 @@ const Onboarding = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-pastel-pink/10 to-pastel-lavender/20">
       <div className="container max-w-lg mx-auto py-12 px-4 sm:px-6">
+        {/* 상단 헤더 영역 - 계정 전환 버튼 추가 */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-xl font-semibold text-primary">{t("onboarding.title")}</h1>
+          {user && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleSwitchAccount}
+              className="flex items-center text-muted-foreground hover:text-primary"
+            >
+              <LogOut className="w-4 h-4 mr-1" />
+              <span>{t("auth.switch_account")}</span>
+            </Button>
+          )}
+        </div>
+
         <ProgressBar currentStep={currentStep} totalSteps={TOTAL_STEPS} />
         <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-6">
           {currentStep > 1 && (
