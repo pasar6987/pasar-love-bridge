@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/i18n/useLanguage";
-import RecommendationCard from "./RecommendationCard";
+import { RecommendationCard } from "./RecommendationCard";
 import { getDailyRecommendations } from "@/utils/matchHelpers";
 
 export function RecommendationList() {
@@ -48,7 +48,12 @@ export function RecommendationList() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
       {recommendations.map((profile) => (
-        <RecommendationCard key={profile.id} profile={profile} />
+        <RecommendationCard 
+          key={profile.id} 
+          profile={profile} 
+          onLike={(id) => console.log('Liked:', id)} 
+          onPass={(id) => console.log('Passed:', id)}
+        />
       ))}
     </div>
   );

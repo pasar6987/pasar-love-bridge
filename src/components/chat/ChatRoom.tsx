@@ -1,22 +1,26 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/i18n/useLanguage";
-import { Globe, Lightbulb, ArrowUp } from "lucide-react";
+import { Globe, Lightbulb, ArrowUp, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
 import { ChatMessage } from "@/components/chat/ChatMessage";
-import { sendChatMessage, formatTimeAgo, generateRandomTopic, getChatMessages, markMessagesAsRead } from "@/utils/chatHelpers";
+import { sendChatMessage, formatTimeAgo, generateRandomTopic, getChatMessages, markMessagesAsRead, ChatMessage as ChatMessageType } from "@/utils/chatHelpers";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
 interface ChatRoomProps {
   matchId: string;
+  partnerName?: string;
+  partnerPhoto?: string;
+  onBack?: () => void;
 }
 
-export function ChatRoom({ matchId }: ChatRoomProps) {
+export function ChatRoom({ matchId, partnerName, partnerPhoto, onBack }: ChatRoomProps) {
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isTranslating, setIsTranslating] = useState(false);
   const [showOriginal, setShowOriginal] = useState(false);
@@ -116,7 +120,27 @@ export function ChatRoom({ matchId }: ChatRoomProps) {
       {/* Chat Header */}
       <div className="border-b p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{t("chat.chat_with_user")}</h2>
+          <div className="flex items-center">
+            {onBack && (
+              <Button variant="ghost" size="icon" onClick={onBack} className="mr-2">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            )}
+            <div className="flex items-center">
+              {partnerPhoto && (
+                <div className="h-8 w-8 rounded-full overflow-hidden mr-2">
+                  <img 
+                    src={partnerPhoto || "/placeholder.svg"} 
+                    alt={partnerName || "Chat partner"}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              )}
+              <h2 className="text-lg font-semibold">
+                {partnerName || t("chat.chat_with_user")}
+              </h2>
+            </div>
+          </div>
           <div className="flex items-center space-x-2">
             <Toggle
               aria-label="Translate"

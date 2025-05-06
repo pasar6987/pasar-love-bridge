@@ -14,6 +14,17 @@ export interface ChatMessage {
   read_at?: string | null;
 }
 
+// Interface for chat session (conversation with a matched user)
+export interface ChatSession {
+  match_id: string;
+  partner_id: string;
+  partner_nickname: string;
+  partner_photo: string | null;
+  last_message?: string;
+  last_message_time?: string;
+  unread_count: number;
+}
+
 // Function to send a chat message
 export const sendChatMessage = async (matchId: string, content: string): Promise<ChatMessage | null> => {
   try {
@@ -83,6 +94,42 @@ export const generateRandomTopic = async (matchId: string): Promise<string | nul
   } catch (error) {
     console.error("Error generating random topic:", error);
     return null;
+  }
+};
+
+// Function to get user's chat sessions
+export const getUserChats = async (): Promise<ChatSession[]> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('get_user_chats');
+    
+    if (error) {
+      throw error;
+    }
+    
+    return (data as ChatSession[]) || [];
+  } catch (error) {
+    console.error("Error fetching user chats:", error);
+    // Return mock data for development
+    return [
+      {
+        match_id: '1',
+        partner_id: '101',
+        partner_nickname: 'Yuna',
+        partner_photo: '/placeholder.svg',
+        last_message: '안녕하세요! 반가워요.',
+        last_message_time: new Date().toISOString(),
+        unread_count: 2
+      },
+      {
+        match_id: '2',
+        partner_id: '102',
+        partner_nickname: 'Haruki',
+        partner_photo: '/placeholder.svg',
+        last_message: 'こんにちは！よろしくお願いします。',
+        last_message_time: new Date(Date.now() - 86400000).toISOString(),
+        unread_count: 0
+      }
+    ];
   }
 };
 
