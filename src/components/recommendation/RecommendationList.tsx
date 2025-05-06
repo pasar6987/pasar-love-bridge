@@ -40,19 +40,23 @@ export function RecommendationList() {
   useEffect(() => {
     const loadRecommendations = async () => {
       try {
+        console.log("[RecommendationList Debug] Loading recommendations");
         setLoading(true);
         const recommendations = await getDailyRecommendations();
         
+        console.log("[RecommendationList Debug] Recommendations data received:", JSON.stringify(recommendations));
+        
         // Ensure recommendations is an array before setting state
         if (Array.isArray(recommendations)) {
+          console.log("[RecommendationList Debug] Valid array of recommendations, length:", recommendations.length);
           setProfiles(recommendations);
         } else {
-          console.error("Recommendations is not an array:", recommendations);
+          console.error("[RecommendationList Debug] Recommendations is not an array:", recommendations);
           setProfiles([]);
           setError("No recommendations available");
         }
       } catch (error) {
-        console.error("Error loading recommendations:", error);
+        console.error("[RecommendationList Debug] Error loading recommendations:", error);
         setError("Error loading recommendations");
         toast({
           title: language === "ko" ? "추천 목록을 불러오는데 실패했습니다" : "おすすめリストの読み込みに失敗しました",
@@ -68,6 +72,7 @@ export function RecommendationList() {
   }, [toast, language]);
 
   const handleLike = (id: string) => {
+    console.log("[RecommendationList Debug] Like clicked for profile:", id);
     if (currentIndex < profiles.length - 1) {
       setCurrentIndex(prev => prev + 1);
     } else {
@@ -77,6 +82,7 @@ export function RecommendationList() {
   };
 
   const handlePass = (id: string) => {
+    console.log("[RecommendationList Debug] Pass clicked for profile:", id);
     if (currentIndex < profiles.length - 1) {
       setCurrentIndex(prev => prev + 1);
     } else {
@@ -84,6 +90,14 @@ export function RecommendationList() {
       setProfiles([]);
     }
   };
+
+  console.log("[RecommendationList Debug] Render state:", { 
+    loading, 
+    error, 
+    profileCount: profiles.length,
+    currentIndex,
+    hasCurrentProfile: currentIndex < profiles.length && !!profiles[currentIndex]
+  });
 
   if (loading) {
     return (
@@ -111,10 +125,21 @@ export function RecommendationList() {
     );
   }
 
+  // Safety check for array bounds
+  if (currentIndex >= profiles.length) {
+    console.error("[RecommendationList Debug] Current index out of bounds:", { currentIndex, profilesLength: profiles.length });
+    return (
+      <div className="text-center py-4">
+        {language === "ko" ? "추천 프로필이 더 이상 없습니다." : "おすすめのプロフィールはこれ以上ありません。"}
+      </div>
+    );
+  }
+
   const currentProfile = profiles[currentIndex];
   
   // Safety check for currentProfile before rendering
   if (!currentProfile) {
+    console.error("[RecommendationList Debug] Current profile is undefined:", { currentIndex, profiles });
     return (
       <div className="text-center py-4">
         {language === "ko" ? "추천 프로필이 더 이상 없습니다." : "おすすめのプロフィールはこれ以上ありません。"}
@@ -123,6 +148,7 @@ export function RecommendationList() {
   }
 
   // Convert Profile to RecommendationProfile format
+  console.log("[RecommendationList Debug] Converting profile:", currentProfile);
   const mappedProfile: RecommendationProfile = {
     id: currentProfile.id,
     name: currentProfile.name,
@@ -133,6 +159,7 @@ export function RecommendationList() {
     photos: [{ url: currentProfile.photo }], // Convert single photo to photos array
     isVerified: false // Default value
   };
+  console.log("[RecommendationList Debug] Mapped profile:", mappedProfile);
 
   return (
     <div>

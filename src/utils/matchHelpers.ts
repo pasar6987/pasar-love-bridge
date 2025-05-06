@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 // Function to send a match request
@@ -58,27 +57,35 @@ export const rejectMatchRequest = async (requestId: string): Promise<boolean> =>
 // Function to get daily recommendations
 export const getDailyRecommendations = async (): Promise<any[]> => {
   try {
+    console.log("[matchHelpers Debug] Fetching daily recommendations");
     const { data, error } = await supabase.functions.invoke('get_daily_recommendations');
     
     if (error) {
-      console.error("Error invoking get_daily_recommendations:", error);
+      console.error("[matchHelpers Debug] Error invoking get_daily_recommendations:", error);
       throw error;
     }
     
+    console.log("[matchHelpers Debug] Raw recommendations data:", data);
+    
     // Ensure we always return an array
     if (!data) {
-      console.warn("No recommendation data returned");
+      console.warn("[matchHelpers Debug] No recommendation data returned");
       return [];
     }
     
     if (!Array.isArray(data)) {
-      console.error("Recommendation data is not an array:", data);
-      return [];
+      console.error("[matchHelpers Debug] Recommendation data is not an array:", data);
+      // If it's an object with data property that is an array, return that
+      if (data && typeof data === 'object' && Array.isArray((data as any).data)) {
+        return (data as any).data;
+      }
+      // Otherwise, wrap it in an array if it's not null
+      return data ? [data] : [];
     }
     
     return data;
   } catch (error) {
-    console.error("Error fetching daily recommendations:", error);
+    console.error("[matchHelpers Debug] Error fetching daily recommendations:", error);
     return [];
   }
 };

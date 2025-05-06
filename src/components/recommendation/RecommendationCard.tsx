@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, X, ChevronRight, ChevronLeft } from "lucide-react";
@@ -34,11 +33,28 @@ export function RecommendationCard({
   onLike,
   onPass
 }: RecommendationCardProps) {
+  console.log("[RecommendationCard Debug] Rendering with profile:", JSON.stringify(profile));
   const { t, language } = useLanguage();
   const { toast } = useToast();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Safety check for profile
+  if (!profile) {
+    console.error("[RecommendationCard Debug] Profile is undefined");
+    return (
+      <div className="pasar-card w-full max-w-sm mx-auto p-4 text-center">
+        <p>{language === "ko" ? "프로필 정보를 불러올 수 없습니다." : "プロフィール情報を読み込めません。"}</p>
+      </div>
+    );
+  }
+
+  // Safety check for photos array
+  if (!profile.photos || !Array.isArray(profile.photos) || profile.photos.length === 0) {
+    console.error("[RecommendationCard Debug] Photos array is invalid:", profile.photos);
+    profile.photos = [{ url: "/placeholder.svg" }];
+  }
 
   const nextPhoto = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -73,7 +89,7 @@ export function RecommendationCard({
         description: language === "ko" ? "상대방이 수락하면 채팅이 가능해집니다." : "相手が承認するとチャットが可能になります。"
       });
     } catch (error) {
-      console.error("Error sending match request:", error);
+      console.error("[RecommendationCard Debug] Error sending match request:", error);
       toast({
         title: t("common.error"),
         description: t("common.tryAgain"),
@@ -89,6 +105,8 @@ export function RecommendationCard({
     e.stopPropagation();
     if (onPass) onPass(profile.id);
   };
+
+  console.log("[RecommendationCard Debug] Current photo URL:", profile.photos[currentPhotoIndex]?.url);
 
   return (
     <Link to={`/profile/${profile.id}`}>

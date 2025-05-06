@@ -5,10 +5,13 @@ import { useNavigate } from "react-router-dom";
 export default function Home() {
   const navigate = useNavigate();
   
-  // Redirect to the recommendations page
+  // Add debugging logs to track navigation process
   useEffect(() => {
+    console.log("[Home Debug] Home page loaded, redirecting to recommendations");
     navigate('/recommendations');
   }, [navigate]);
+  
+  console.log("[Home Debug] Home component rendered");
   
   return null;
 }
