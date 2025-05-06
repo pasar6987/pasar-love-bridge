@@ -71,6 +71,21 @@ export const uploadIdentityDocument = async (userId: string, file: File): Promis
       console.warn("Large file detected, may encounter upload issues:", file.size);
     }
     
+    // 버킷이 존재하는지 먼저 확인
+    const { data: buckets, error: bucketsError } = await supabase.storage
+      .listBuckets();
+      
+    if (bucketsError) {
+      console.error("Error listing buckets:", bucketsError);
+    } else {
+      console.log("Available buckets:", buckets.map(b => b.name));
+      const identityBucket = buckets.find(b => b.name === 'identity_documents');
+      if (!identityBucket) {
+        console.error("identity_documents bucket not found! Documents cannot be uploaded!");
+        throw new Error("Storage bucket 'identity_documents' does not exist");
+      }
+    }
+    
     // Supabase 스토리지 업로드
     const { error: uploadError } = await supabase.storage
       .from('identity_documents')
@@ -84,12 +99,30 @@ export const uploadIdentityDocument = async (userId: string, file: File): Promis
       throw uploadError;
     }
     
-    // 스토리지에 업로드된 파일 확인
-    const fileExists = await checkFileExists('identity_documents', filePath);
-    console.log("파일 업로드 확인 결과:", fileExists);
+    // 스토리지에 업로드된 파일 확인 - 직접 확인 방식으로 변경
+    const { data: fileList, error: listError } = await supabase.storage
+      .from('identity_documents')
+      .list(userId, {
+        limit: 100,
+        offset: 0,
+        sortBy: { column: 'name', order: 'asc' },
+      });
+      
+    if (listError) {
+      console.error("Error checking file existence:", listError);
+      throw listError;
+    }
     
-    if (!fileExists) {
-      throw new Error("File upload verified failed - file does not exist after upload");
+    const uploadedFileName = fileName.split('/').pop();
+    const fileExistsInList = fileList?.some(item => item.name === uploadedFileName);
+    console.log("파일 업로드 확인 결과 (직접 조회):", fileExistsInList, { 
+      folderPath: userId, 
+      uploadedFile: uploadedFileName,
+      filesInFolder: fileList?.map(f => f.name)
+    });
+    
+    if (!fileExistsInList) {
+      throw new Error("File upload verification failed - file not found in storage listing");
     }
     
     const { data: urlData } = supabase.storage
@@ -106,35 +139,82 @@ export const uploadIdentityDocument = async (userId: string, file: File): Promis
   }
 };
 
-// 파일 존재 여부를 확인하는 함수
+// 파일 존재 여부를 확인하는 함수 (개선된 버전)
 export const checkFileExists = async (bucket: string, path: string): Promise<boolean> => {
   try {
     console.log(`Checking if file exists in bucket ${bucket}, path: ${path}`);
     
-    // HEAD 요청으로 파일 존재 여부 확인 (더 효율적)
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .createSignedUrl(path, 60);
+    // 버킷이 존재하는지 먼저 확인
+    const { data: buckets, error: bucketsError } = await supabase.storage
+      .listBuckets();
       
-    if (error) {
-      console.error("File check error:", error);
+    if (bucketsError) {
+      console.error("Error listing buckets:", bucketsError);
       return false;
     }
     
-    if (data && data.signedUrl) {
-      // 실제로 URL이 유효한지 확인
-      try {
-        const response = await fetch(data.signedUrl, { method: 'HEAD' });
-        return response.ok;
-      } catch (fetchError) {
-        console.error("Error checking URL validity:", fetchError);
-        return false;
-      }
+    const bucketExists = buckets.some(b => b.name === bucket);
+    if (!bucketExists) {
+      console.error(`Bucket '${bucket}' does not exist!`);
+      return false;
     }
     
-    return false;
+    // 경로에서 폴더와 파일명 분리
+    const pathParts = path.split('/');
+    const fileName = pathParts.pop() || '';
+    const folderPath = pathParts.join('/');
+    
+    // 폴더 내 파일 목록 확인
+    const { data: files, error: listError } = await supabase.storage
+      .from(bucket)
+      .list(folderPath, {
+        limit: 100,
+        offset: 0,
+        sortBy: { column: 'name', order: 'asc' },
+      });
+      
+    if (listError) {
+      console.error("Error listing files:", listError);
+      return false;
+    }
+    
+    const fileExists = files?.some(file => file.name === fileName);
+    console.log(`File check result (direct listing): ${fileExists}`, {
+      bucket,
+      folderPath,
+      fileName,
+      filesInFolder: files?.map(f => f.name)
+    });
+    
+    // 백업 방법: signed URL로 확인 (이 방법은 현재 문제가 있을 수 있음)
+    try {
+      console.log("Backup check method: Creating signed URL");
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from(bucket)
+        .createSignedUrl(path, 60);
+        
+      if (signedError) {
+        console.error("Error creating signed URL:", signedError);
+      } else if (signedData?.signedUrl) {
+        console.log("Created signed URL:", signedData.signedUrl);
+        try {
+          const response = await fetch(signedData.signedUrl, { method: 'HEAD' });
+          console.log("Signed URL check result:", response.ok, response.status);
+          if (response.ok) {
+            return true;
+          }
+        } catch (fetchError) {
+          console.error("Error checking signed URL:", fetchError);
+        }
+      }
+    } catch (signedUrlError) {
+      console.error("Error with signed URL check:", signedUrlError);
+    }
+    
+    return fileExists || false;
   } catch (error) {
-    console.error("Error checking file existence:", error);
+    console.error("Error in checkFileExists:", error);
     return false;
   }
 };
+
