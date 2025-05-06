@@ -125,14 +125,12 @@ export const uploadIdentityDocument = async (userId: string, file: File): Promis
       throw new Error("File upload verification failed - file not found in storage listing");
     }
     
-    const { data: urlData } = supabase.storage
-      .from('identity_documents')
-      .getPublicUrl(filePath);
+    // 관리자가 접근할 수 있는 URL 저장 (파일 경로만)
+    // 관리자 페이지에서는 서명된 URL로 이미지를 표시
+    const dbPath = `${userId}/${uploadedFileName}`;
+    console.log("Saving file path to database:", dbPath);
     
-    const publicUrl = urlData.publicUrl;
-    console.log("Generated public URL:", publicUrl);
-    
-    return publicUrl;
+    return dbPath;
   } catch (error) {
     console.error("Error uploading identity document:", error);
     throw error;
@@ -218,3 +216,23 @@ export const checkFileExists = async (bucket: string, path: string): Promise<boo
   }
 };
 
+// 관리자용 서명된 URL을 생성하는 함수 
+export const getAdminSignedUrl = async (bucket: string, path: string, expiresIn: number = 300): Promise<string | null> => {
+  try {
+    console.log(`Creating admin signed URL for bucket: ${bucket}, path: ${path}`);
+    
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .createSignedUrl(path, expiresIn);
+    
+    if (error) {
+      console.error("Error creating signed URL:", error);
+      return null;
+    }
+    
+    return data.signedUrl;
+  } catch (error) {
+    console.error("Error in getAdminSignedUrl:", error);
+    return null;
+  }
+};

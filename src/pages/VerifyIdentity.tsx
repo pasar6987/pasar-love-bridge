@@ -79,8 +79,8 @@ export default function VerifyIdentity() {
     setIsSubmitting(true);
     
     try {
-      // Upload ID document to Storage
-      const publicUrl = await uploadIdentityDocument(user.id, file);
+      // Upload ID document to Storage - 이제 파일 경로만 반환
+      const filePath = await uploadIdentityDocument(user.id, file);
       
       // Save verification record in the database
       const { error } = await supabase
@@ -89,10 +89,10 @@ export default function VerifyIdentity() {
           user_id: user.id,
           country_code: language === "ko" ? "KR" : "JP",
           doc_type: docType,
-          id_front_url: publicUrl,
+          id_front_url: filePath,  // 이제 파일 경로만 저장
           status: 'submitted',
           submitted_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()  // Add this field to fix TypeScript error
+          updated_at: new Date().toISOString()
         });
       
       if (error) throw error;
