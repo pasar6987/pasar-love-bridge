@@ -1,0 +1,48 @@
+
+:root {
+  --pastel-pink: #FFD1DC;
+  --pastel-blue: #A2D2FF;
+  --pastel-green: #B5EAD7;
+  --pastel-yellow: #FCEEB5;
+  --pastel-lavender: #E0BBE4;
+}
+
+.bg-pastel-pink {
+  background-color: var(--pastel-pink);
+}
+
+.bg-pastel-blue {
+  background-color: var(--pastel-blue);
+}
+
+.bg-pastel-green {
+  background-color: var(--pastel-green);
+}
+
+.bg-pastel-yellow {
+  background-color: var(--pastel-yellow);
+}
+
+.bg-pastel-lavender {
+  background-color: var(--pastel-lavender);
+}
+
+.text-pastel-pink {
+  color: var(--pastel-pink);
+}
+
+.text-pastel-blue {
+  color: var(--pastel-blue);
+}
+
+.text-pastel-green {
+  color: var(--pastel-green);
+}
+
+.text-pastel-yellow {
+  color: var(--pastel-yellow);
+}
+
+.text-pastel-lavender {
+  color: var(--pastel-lavender);
+}
