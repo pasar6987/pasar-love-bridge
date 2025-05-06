@@ -2,41 +2,8 @@
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
 
-// 버킷이 존재하는지 확인하는 함수
-export const ensureBucketExists = async (bucketName: string): Promise<boolean> => {
-  try {
-    // 버킷 목록 조회
-    const { data: buckets, error } = await supabase.storage.listBuckets();
-    if (error) {
-      console.error("버킷 목록 조회 오류:", error);
-      return false;
-    }
-
-    // 버킷이 존재하는지 확인
-    const bucketExists = buckets.some(b => b.name === bucketName);
-    
-    // 버킷이 존재하지 않으면 false 반환 (버킷 생성 시도하지 않음)
-    if (!bucketExists) {
-      console.log(`버킷 '${bucketName}'이 존재하지 않습니다. 관리자에게 문의하세요.`);
-      return false;
-    }
-    
-    console.log(`버킷 '${bucketName}'이 존재합니다.`);
-    return true;
-  } catch (error) {
-    console.error(`버킷 '${bucketName}' 확인 중 오류:`, error);
-    return false;
-  }
-};
-
 export const uploadProfilePhoto = async (userId: string, file: File, sortOrder: number): Promise<string> => {
   try {
-    // 버킷 존재 여부 확인 (생성 시도하지 않음)
-    const bucketExists = await ensureBucketExists('profile_photos');
-    if (!bucketExists) {
-      throw new Error("프로필 사진 저장소가 없습니다. 관리자에게 문의하세요.");
-    }
-    
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}/${uuidv4()}.${fileExt}`;
     const filePath = `${fileName}`;
@@ -93,12 +60,6 @@ export const uploadProfilePhoto = async (userId: string, file: File, sortOrder: 
 
 export const uploadIdentityDocument = async (userId: string, file: File): Promise<string> => {
   try {
-    // 버킷 존재 여부만 확인 (생성 시도하지 않음)
-    const bucketExists = await ensureBucketExists('identity_documents');
-    if (!bucketExists) {
-      throw new Error("신분증 저장소가 없습니다. 관리자에게 문의하세요.");
-    }
-    
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}/${uuidv4()}.${fileExt}`;
     const filePath = `${fileName}`;
@@ -142,21 +103,6 @@ export const uploadIdentityDocument = async (userId: string, file: File): Promis
 export const checkFileExists = async (bucket: string, path: string): Promise<boolean> => {
   try {
     console.log(`Checking if file exists in bucket ${bucket}, path: ${path}`);
-    
-    // 버킷이 존재하는지 먼저 확인
-    const { data: buckets, error: bucketsError } = await supabase.storage
-      .listBuckets();
-      
-    if (bucketsError) {
-      console.error("Error listing buckets:", bucketsError);
-      return false;
-    }
-    
-    const bucketExists = buckets.some(b => b.name === bucket);
-    if (!bucketExists) {
-      console.error(`Bucket '${bucket}' does not exist!`);
-      return false;
-    }
     
     // 경로에서 폴더와 파일명 분리
     const pathParts = path.split('/');

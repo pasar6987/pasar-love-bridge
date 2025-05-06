@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/useLanguage";
-import { Check, Upload, Loader2, AlertCircle } from "lucide-react";
+import { Check, Upload, Loader2 } from "lucide-react";
 import { 
   Select, 
   SelectContent, 
@@ -11,11 +11,10 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { uploadIdentityDocument, ensureBucketExists } from "@/utils/storageHelpers";
+import { uploadIdentityDocument } from "@/utils/storageHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface VerificationProps {
   onComplete: () => void;
@@ -41,30 +40,7 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
   const [frontUploaded, setFrontUploaded] = useState(tempData.frontUploaded || false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [file, setFile] = useState<File | null>(tempData.file || null);
-  const [bucketChecked, setBucketChecked] = useState(false);
-  const [bucketExists, setBucketExists] = useState(false);
-  const [bucketError, setBucketError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  // 버킷 존재 확인
-  useEffect(() => {
-    const checkBucket = async () => {
-      try {
-        const exists = await ensureBucketExists('identity_documents');
-        setBucketExists(exists);
-        if (!exists) {
-          setBucketError("신분증 저장소가 준비되지 않았습니다. 관리자에게 문의하세요.");
-        }
-        setBucketChecked(true);
-      } catch (error) {
-        console.error("버킷 확인 중 오류:", error);
-        setBucketError("스토리지 상태 확인 중 오류가 발생했습니다.");
-        setBucketChecked(true);
-      }
-    };
-    
-    checkBucket();
-  }, []);
   
   // 임시 데이터 업데이트
   useEffect(() => {
@@ -88,11 +64,6 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
     setIsSubmitting(true);
     
     try {
-      // 버킷이 생성되었는지 확인
-      if (!bucketExists) {
-        throw new Error("신분증 저장소가 준비되지 않았습니다. 관리자에게 문의하세요.");
-      }
-      
       // Upload ID document to Storage
       const filePath = await uploadIdentityDocument(user.id, file);
       
@@ -144,18 +115,6 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
           {t("onboarding.verification.desc")}
         </p>
       </div>
-      
-      {bucketError && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>
-            {language === "ko" ? "스토리지 오류" : "ストレージエラー"}
-          </AlertTitle>
-          <AlertDescription>
-            {bucketError}
-          </AlertDescription>
-        </Alert>
-      )}
       
       <div className="bg-pastel-mint/30 rounded-lg p-4 border border-pastel-mint">
         <p className="text-sm">
@@ -243,7 +202,6 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
                 accept="image/*"
                 className={`absolute inset-0 w-full h-full opacity-0 cursor-pointer ${frontUploaded ? 'hidden' : ''}`}
                 onChange={handleFileChange}
-                disabled={!bucketExists}
               />
             </div>
           </div>
@@ -261,7 +219,7 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
         <Button
           onClick={handleSubmit}
           className="pasar-btn"
-          disabled={!docType || !frontUploaded || isSubmitting || !bucketExists}
+          disabled={!docType || !frontUploaded || isSubmitting}
         >
           {isSubmitting ? (
             <span className="flex items-center">
