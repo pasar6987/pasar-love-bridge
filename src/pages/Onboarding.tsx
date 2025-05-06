@@ -64,9 +64,37 @@ const Onboarding = () => {
     }
   };
 
-  const handlePreviousStep = () => {
+  const handlePreviousStep = async () => {
     if (currentStep > 1) {
-      navigate(`/onboarding/${currentStep - 1}`);
+      setIsUpdating(true);
+      
+      try {
+        if (user) {
+          // 이전 단계로 이동 시 DB 업데이트
+          const { error } = await supabase.rpc(
+            'update_user_onboarding_step',
+            { 
+              user_id: user.id,
+              step_number: currentStep - 1,
+              is_completed: false
+            }
+          );
+          
+          if (error) throw error;
+        }
+        
+        // 이전 온보딩 단계로 이동
+        navigate(`/onboarding/${currentStep - 1}`);
+      } catch (error) {
+        console.error("Error updating onboarding step:", error);
+        toast({
+          title: t("error.generic"),
+          description: t("error.try_again"),
+          variant: "destructive"
+        });
+      } finally {
+        setIsUpdating(false);
+      }
     }
   };
 
@@ -98,6 +126,7 @@ const Onboarding = () => {
               onClick={handlePreviousStep} 
               className="mb-4 p-2"
               aria-label={t("onboarding.previous")}
+              disabled={isUpdating}
             >
               <ArrowLeft className="w-5 h-5 mr-1" />
               <span>{t("onboarding.previous")}</span>
