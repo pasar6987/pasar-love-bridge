@@ -1,5 +1,13 @@
 
 export const translations = {
+  "chat.type_message": {
+    ko: "메세지를 입력 해 주세요",
+    ja: "メッセージを入力してください"
+  },
+  "chat.send": {
+    ko: "보내기",
+    ja: "送信"
+  },
   "settings.account": {
     ko: "계정 정보",
     ja: "アカウント情報"
