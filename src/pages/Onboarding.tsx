@@ -11,6 +11,8 @@ import { Verification } from "@/components/onboarding/Verification";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/i18n/useLanguage";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Onboarding = () => {
   const { step } = useParams<{ step: string }>();
@@ -62,6 +64,12 @@ const Onboarding = () => {
     }
   };
 
+  const handlePreviousStep = () => {
+    if (currentStep > 1) {
+      navigate(`/onboarding/${currentStep - 1}`);
+    }
+  };
+
   const renderStep = () => {
     switch (currentStep) {
       case 1:
@@ -84,6 +92,17 @@ const Onboarding = () => {
       <div className="container max-w-lg mx-auto py-12 px-4 sm:px-6">
         <ProgressBar currentStep={currentStep} totalSteps={TOTAL_STEPS} />
         <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-6">
+          {currentStep > 1 && (
+            <Button 
+              variant="ghost" 
+              onClick={handlePreviousStep} 
+              className="mb-4 p-2"
+              aria-label={t("onboarding.previous")}
+            >
+              <ArrowLeft className="w-5 h-5 mr-1" />
+              <span>{t("onboarding.previous")}</span>
+            </Button>
+          )}
           {renderStep()}
         </div>
       </div>

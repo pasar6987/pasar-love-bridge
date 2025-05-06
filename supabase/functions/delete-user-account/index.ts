@@ -37,13 +37,17 @@ serve(async (req) => {
       throw new Error('Error getting user')
     }
 
+    console.log('User found, proceeding with account deletion:', user.id);
+
     // Call the RPC function we've created to handle account deletion
-    const { error } = await supabase.rpc('delete_account_rpc');
+    const { data, error } = await supabase.rpc('delete_account_rpc');
     
     if (error) {
       console.error('RPC error:', error);
       throw error;
     }
+
+    console.log('Account deletion successful:', data);
 
     return new Response(
       JSON.stringify({ success: true }),

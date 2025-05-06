@@ -1,3 +1,4 @@
+
 export const translations = {
   "nav.messages": {
     ko: "메시지",
@@ -415,4 +416,28 @@ export const translations = {
     ko: "최소 3장의 사진이 필요합니다.",
     ja: "最低3枚の写真が必要です。"
   },
+  "onboarding.previous": {
+    ko: "이전",
+    ja: "前へ"
+  },
+  "onboarding.questions.job": {
+    ko: "직업",
+    ja: "職業"
+  },
+  "onboarding.questions.education": {
+    ko: "학력",
+    ja: "学歴"
+  },
+  "onboarding.questions.interests": {
+    ko: "관심사",
+    ja: "趣味・関心"
+  },
+  "onboarding.questions.languages": {
+    ko: "언어 능력",
+    ja: "言語能力"
+  },
+  "profile.about": {
+    ko: "자기소개",
+    ja: "自己紹介"
+  }
 };
