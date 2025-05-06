@@ -28,11 +28,17 @@ export default function Home() {
           return;
         }
         
-        // Call the fixed RPC function we created to get recommended profiles
-        const { data, error } = await supabase.rpc(
-          'get_recommended_profiles_by_nationality_fixed',
-          { p_user_id: user.id }
-        );
+        // Call the Edge Function instead of the RPC function
+        const { data, error } = await fetch(
+          'https://jnupeddogxvcrqoolamn.functions.supabase.co/get-recommendations',
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+            }
+          }
+        ).then(res => res.json());
         
         if (error) {
           console.error("Error fetching recommendations:", error);
@@ -40,7 +46,7 @@ export default function Home() {
           return;
         }
         
-        setRecommendations(data || []);
+        setRecommendations(data?.recommendations || []);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching profiles:', error);

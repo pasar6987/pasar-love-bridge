@@ -37,7 +37,35 @@ serve(async (req) => {
       throw new Error('Error getting user');
     }
 
-    // Fix the ambiguous nationality column reference by updating the query
+    // Get user nationality from the user_nationalities table
+    const { data: nationalityData, error: nationalityError } = await supabase
+      .from('user_nationalities')
+      .select('nationality')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (nationalityError) {
+      console.log('Error fetching nationality:', nationalityError);
+      // Fallback to the fixed function if we can't get the nationality
+      const { data, error } = await supabase.rpc(
+        'get_recommended_profiles_by_nationality_fixed',
+        { p_user_id: user.id }
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      return new Response(
+        JSON.stringify({ recommendations: data }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // Get recommended profiles based on nationality
+    // We're using the mock function since we don't have real user data yet
     const { data, error } = await supabase.rpc(
       'get_recommended_profiles_by_nationality_fixed',
       { p_user_id: user.id }
