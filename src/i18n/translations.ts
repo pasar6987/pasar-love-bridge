@@ -1,5 +1,13 @@
 
 export const translations = {
+  "settings.account": {
+    ko: "계정 정보",
+    ja: "アカウント情報"
+  },
+  "auth.email": {
+    ko: "이메일",
+    ja: "メール"
+  },
   "nav.messages": {
     ko: "메시지",
     ja: "メッセージ"
