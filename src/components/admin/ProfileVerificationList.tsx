@@ -37,14 +37,17 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
       if (updateError) throw updateError;
       
       // Create notification - Use RPC function to bypass RLS
-      const { error: notificationError } = await supabase.rpc('create_admin_notification', {
-        p_user_id: request.user_id,
-        p_type: 'profile_approved',
-        p_title: language === 'ko' ? '프로필 사진 승인' : 'プロフィール写真承認',
-        p_body: language === 'ko' 
-          ? '프로필 사진이 승인되었습니다.' 
-          : 'プロフィール写真が承認されました。'
-      });
+      const { data: notificationData, error: notificationError } = await supabase.rpc(
+        'create_admin_notification',
+        {
+          p_user_id: request.user_id,
+          p_type: 'profile_approved',
+          p_title: language === 'ko' ? '프로필 사진 승인' : 'プロフィール写真承認',
+          p_body: language === 'ko' 
+            ? '프로필 사진이 승인되었습니다.' 
+            : 'プロフィール写真が承認されました。'
+        }
+      );
         
       if (notificationError) throw notificationError;
       
@@ -94,12 +97,15 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
       if (updateError) throw updateError;
       
       // Create notification - Use RPC function to bypass RLS
-      const { error: notificationError } = await supabase.rpc('create_admin_notification', {
-        p_user_id: request.user_id,
-        p_type: 'profile_rejected',
-        p_title: language === 'ko' ? '프로필 사진 거부' : 'プロフィール写真拒否',
-        p_body: language === 'ko' ? `사유: ${rejectionReason}` : `理由: ${rejectionReason}`
-      });
+      const { data: notificationData, error: notificationError } = await supabase.rpc(
+        'create_admin_notification',
+        {
+          p_user_id: request.user_id,
+          p_type: 'profile_rejected',
+          p_title: language === 'ko' ? '프로필 사진 거부' : 'プロフィール写真拒否',
+          p_body: language === 'ko' ? `사유: ${rejectionReason}` : `理由: ${rejectionReason}`
+        }
+      );
         
       if (notificationError) throw notificationError;
       

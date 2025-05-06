@@ -61,14 +61,17 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
       if (userUpdateError) throw userUpdateError;
       
       // Create notification - Use RPC function to bypass RLS
-      const { error: notificationError } = await supabase.rpc('create_admin_notification', {
-        p_user_id: request.user_id,
-        p_type: 'verify_passed',
-        p_title: language === 'ko' ? '신분증 인증 완료' : '本人確認完了',
-        p_body: language === 'ko' 
-          ? '신분증 인증이 완료되었습니다. 이제 채팅 기능을 사용할 수 있습니다.' 
-          : '本人確認が完了しました。チャット機能が使えるようになりました。'
-      });
+      const { data: notificationData, error: notificationError } = await supabase.rpc(
+        'create_admin_notification',
+        {
+          p_user_id: request.user_id,
+          p_type: 'verify_passed',
+          p_title: language === 'ko' ? '신분증 인증 완료' : '本人確認完了',
+          p_body: language === 'ko' 
+            ? '신분증 인증이 완료되었습니다. 이제 채팅 기능을 사용할 수 있습니다.' 
+            : '本人確認が完了しました。チャット機能が使えるようになりました。'
+        }
+      );
         
       if (notificationError) throw notificationError;
       
@@ -118,12 +121,15 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
       if (updateError) throw updateError;
       
       // Create notification - Use RPC function to bypass RLS
-      const { error: notificationError } = await supabase.rpc('create_admin_notification', {
-        p_user_id: request.user_id,
-        p_type: 'verify_rejected',
-        p_title: language === 'ko' ? '신분증 인증 거부' : '本人確認拒否',
-        p_body: language === 'ko' ? `사유: ${rejectionReason}` : `理由: ${rejectionReason}`
-      });
+      const { data: notificationData, error: notificationError } = await supabase.rpc(
+        'create_admin_notification',
+        {
+          p_user_id: request.user_id,
+          p_type: 'verify_rejected',
+          p_title: language === 'ko' ? '신분증 인증 거부' : '本人確認拒否',
+          p_body: language === 'ko' ? `사유: ${rejectionReason}` : `理由: ${rejectionReason}`
+        }
+      );
         
       if (notificationError) throw notificationError;
       

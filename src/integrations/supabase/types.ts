@@ -369,6 +369,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_admin_notification: {
+        Args: {
+          p_user_id: string
+          p_type: string
+          p_title: string
+          p_body: string
+          p_related_id?: string
+        }
+        Returns: string
+      }
       delete_account_rpc: {
         Args: Record<PropertyKey, never>
         Returns: boolean
