@@ -65,7 +65,7 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
     
     try {
       // Upload ID document to Storage
-      const filePath = await uploadIdentityDocument(user.id, file);
+      const publicUrl = await uploadIdentityDocument(user.id, file);
       
       // Save verification record in the database
       const { error } = await supabase
@@ -74,10 +74,10 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
           user_id: user.id,
           country_code: language === "ko" ? "KR" : "JP",
           doc_type: docType,
-          id_front_url: filePath,
+          id_front_url: publicUrl,
           status: 'submitted',
           submitted_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString()  // Add this field to fix TypeScript error
         });
       
       if (error) throw error;
@@ -93,7 +93,7 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
       console.error("Error submitting verification:", error);
       toast({
         title: t("error.generic"),
-        description: error instanceof Error ? error.message : t("error.try_again"),
+        description: t("error.try_again"),
         variant: "destructive"
       });
     } finally {
