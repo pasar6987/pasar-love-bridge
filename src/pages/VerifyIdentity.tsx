@@ -13,7 +13,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { uploadIdentityDocument } from "@/utils/storageHelpers";
+import { uploadIdentityDocument, ensureBucketExists } from "@/utils/storageHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +31,19 @@ export default function VerifyIdentity() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [verificationLoading, setVerificationLoading] = useState<boolean>(true);
+  const [bucketChecked, setBucketChecked] = useState(false);
+  const [bucketExists, setBucketExists] = useState(false);
+  
+  // 버킷 존재 확인
+  useEffect(() => {
+    const checkBucket = async () => {
+      const exists = await ensureBucketExists('identity_documents');
+      setBucketExists(exists);
+      setBucketChecked(true);
+    };
+    
+    checkBucket();
+  }, []);
   
   // Check if user is already verified
   useEffect(() => {
@@ -79,8 +92,16 @@ export default function VerifyIdentity() {
     setIsSubmitting(true);
     
     try {
-      // Upload ID document to Storage
-      const publicUrl = await uploadIdentityDocument(user.id, file);
+      // 버킷이 생성되었는지 확인
+      if (!bucketExists) {
+        const created = await ensureBucketExists('identity_documents');
+        if (!created) {
+          throw new Error("신분증 저장소를 생성할 수 없습니다. 관리자에게 문의하세요.");
+        }
+      }
+      
+      // Upload ID document to Storage - 이제 파일 경로만 반환
+      const filePath = await uploadIdentityDocument(user.id, file);
       
       // Save verification record in the database
       const { error } = await supabase
@@ -89,10 +110,10 @@ export default function VerifyIdentity() {
           user_id: user.id,
           country_code: language === "ko" ? "KR" : "JP",
           doc_type: docType,
-          id_front_url: publicUrl,
+          id_front_url: filePath,  // 이제 파일 경로만 저장
           status: 'submitted',
           submitted_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()  // Add this field to fix TypeScript error
+          updated_at: new Date().toISOString()
         });
       
       if (error) throw error;
@@ -108,7 +129,7 @@ export default function VerifyIdentity() {
       console.error("Error submitting verification:", error);
       toast({
         title: t("error.generic"),
-        description: t("error.try_again"),
+        description: error instanceof Error ? error.message : t("error.try_again"),
         variant: "destructive"
       });
     } finally {
@@ -118,6 +139,37 @@ export default function VerifyIdentity() {
   
   const handleSkip = () => {
     navigate('/home');
+  };
+  
+  // 버킷 상태 안내 메시지
+  const renderBucketStatus = () => {
+    if (!bucketChecked) {
+      return (
+        <div className="bg-yellow-50 p-2 rounded-md text-sm text-yellow-800 mb-4">
+          {language === "ko" 
+            ? "스토리지 상태 확인 중..." 
+            : "ストレージ状態を確認中..."}
+        </div>
+      );
+    }
+    
+    if (!bucketExists) {
+      return (
+        <div className="bg-amber-50 p-2 rounded-md text-sm text-amber-800 mb-4">
+          {language === "ko" 
+            ? "스토리지가 준비되지 않았습니다. 제출 시 자동으로 생성됩니다." 
+            : "ストレージが準備されていません。提出時に自動的に作成されます。"}
+        </div>
+      );
+    }
+    
+    return (
+      <div className="bg-green-50 p-2 rounded-md text-sm text-green-800 mb-4">
+        {language === "ko" 
+          ? "스토리지가 준비되었습니다." 
+          : "ストレージの準備ができています。"}
+      </div>
+    );
   };
   
   if (verificationLoading) {
@@ -147,9 +199,11 @@ export default function VerifyIdentity() {
           </CardHeader>
           
           <CardContent className="space-y-6">
+            {renderBucketStatus()}
+            
             <div className="bg-pastel-mint/30 rounded-lg p-4 border border-pastel-mint">
               <p className="text-sm">
-                {language === "ko" 
+                {language === 'ko' 
                   ? "신분증 정보는 안전하게 암호화되어 저장됩니다. 신분증 인증은 안전한 매칭 서비스를 제공하기 위함입니다."
                   : "身分証明書の情報は安全に暗号化されて保存されます。身分証明書の確認は安全なマッチングサービスを提供するためです。"}
               </p>
@@ -158,21 +212,21 @@ export default function VerifyIdentity() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label htmlFor="docType" className="text-sm font-medium">
-                  {language === "ko" ? "신분증 종류" : "身分証明書の種類"}
+                  {language === 'ko' ? "신분증 종류" : "身分証明書の種類"}
                 </label>
                 <Select value={docType} onValueChange={setDocType}>
                   <SelectTrigger id="docType" className="pasar-input">
-                    <SelectValue placeholder={language === "ko" ? "신분증 종류 선택" : "身分証明書の種類を選択"} />
+                    <SelectValue placeholder={language === 'ko' ? "신분증 종류 선택" : "身分証明書の種類を選択"} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="resident_card">
-                      {language === "ko" ? "주민등록증" : "住民基本台帳カード"}
+                      {language === 'ko' ? "주민등록증" : "住民基本台帳カード"}
                     </SelectItem>
                     <SelectItem value="driver_license">
-                      {language === "ko" ? "운전면허증" : "運転免許証"}
+                      {language === 'ko' ? "운전면허증" : "運転免許証"}
                     </SelectItem>
                     <SelectItem value="passport">
-                      {language === "ko" ? "여권" : "パスポート"}
+                      {language === 'ko' ? "여권" : "パスポート"}
                     </SelectItem>
                     {language === "ja" && (
                       <SelectItem value="my_number_card">
@@ -186,7 +240,7 @@ export default function VerifyIdentity() {
               {docType && (
                 <div className="space-y-3">
                   <label className="text-sm font-medium">
-                    {language === "ko" ? "신분증 앞면" : "身分証明書の表面"}
+                    {language === 'ko' ? "신분증 앞면" : "身分証明書の表面"}
                   </label>
                   <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center relative">
                     {frontUploaded ? (
@@ -195,7 +249,7 @@ export default function VerifyIdentity() {
                           <Check className="w-6 h-6 text-green-600" />
                         </div>
                         <p className="text-sm font-medium text-gray-700">
-                          {language === "ko" ? "파일이 업로드되었습니다" : "ファイルがアップロードされました"}
+                          {language === 'ko' ? "파일이 업로드되었습니다" : "ファイルがアップロードされました"}
                         </p>
                         <Button 
                           variant="outline" 
@@ -209,7 +263,7 @@ export default function VerifyIdentity() {
                             }
                           }}
                         >
-                          {language === "ko" ? "다시 선택" : "再選択"}
+                          {language === 'ko' ? "다시 선택" : "再選択"}
                         </Button>
                       </div>
                     ) : (
@@ -218,12 +272,12 @@ export default function VerifyIdentity() {
                           <Upload className="w-6 h-6 text-gray-500" />
                         </div>
                         <p className="text-sm text-gray-600 mb-2">
-                          {language === "ko" 
+                          {language === 'ko' 
                             ? "이미지를 끌어다 놓거나 클릭하여 업로드" 
                             : "画像をドラッグ＆ドロップするか、クリックしてアップロード"}
                         </p>
                         <p className="text-xs text-gray-400">
-                          {language === "ko" ? "JPG, PNG, 최대 5MB" : "JPG、PNG、最大5MB"}
+                          {language === 'ko' ? "JPG, PNG, 최대 5MB" : "JPG、PNG、最大5MB"}
                         </p>
                       </>
                     )}
@@ -255,10 +309,10 @@ export default function VerifyIdentity() {
                 {isSubmitting ? (
                   <span className="flex items-center">
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {language === "ko" ? "제출 중..." : "送信中..."}
+                    {language === 'ko' ? "제출 중..." : "送信中..."}
                   </span>
                 ) : (
-                  language === "ko" ? "제출하기" : "送信する"
+                  language === 'ko' ? "제출하기" : "送信する"
                 )}
               </Button>
             </div>

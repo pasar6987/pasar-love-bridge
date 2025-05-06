@@ -11,7 +11,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { uploadIdentityDocument } from "@/utils/storageHelpers";
+import { uploadIdentityDocument, ensureBucketExists } from "@/utils/storageHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -40,7 +40,20 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
   const [frontUploaded, setFrontUploaded] = useState(tempData.frontUploaded || false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [file, setFile] = useState<File | null>(tempData.file || null);
+  const [bucketChecked, setBucketChecked] = useState(false);
+  const [bucketExists, setBucketExists] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // 버킷 존재 확인
+  useEffect(() => {
+    const checkBucket = async () => {
+      const exists = await ensureBucketExists('identity_documents');
+      setBucketExists(exists);
+      setBucketChecked(true);
+    };
+    
+    checkBucket();
+  }, []);
   
   // 임시 데이터 업데이트
   useEffect(() => {
@@ -64,8 +77,16 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
     setIsSubmitting(true);
     
     try {
+      // 버킷이 생성되었는지 확인
+      if (!bucketExists) {
+        const created = await ensureBucketExists('identity_documents');
+        if (!created) {
+          throw new Error("신분증 저장소를 생성할 수 없습니다. 관리자에게 문의하세요.");
+        }
+      }
+      
       // Upload ID document to Storage
-      const publicUrl = await uploadIdentityDocument(user.id, file);
+      const filePath = await uploadIdentityDocument(user.id, file);
       
       // Save verification record in the database
       const { error } = await supabase
@@ -74,10 +95,10 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
           user_id: user.id,
           country_code: language === "ko" ? "KR" : "JP",
           doc_type: docType,
-          id_front_url: publicUrl,
+          id_front_url: filePath,
           status: 'submitted',
           submitted_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()  // Add this field to fix TypeScript error
+          updated_at: new Date().toISOString()
         });
       
       if (error) throw error;
@@ -93,7 +114,7 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
       console.error("Error submitting verification:", error);
       toast({
         title: t("error.generic"),
-        description: t("error.try_again"),
+        description: error instanceof Error ? error.message : t("error.try_again"),
         variant: "destructive"
       });
     } finally {
@@ -103,6 +124,37 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
   
   const handleSkip = () => {
     onComplete();
+  };
+  
+  // 버킷 상태 안내 메시지
+  const renderBucketStatus = () => {
+    if (!bucketChecked) {
+      return (
+        <div className="bg-yellow-50 p-2 rounded-md text-sm text-yellow-800 mb-4">
+          {language === "ko" 
+            ? "스토리지 상태 확인 중..." 
+            : "ストレージ状態を確認中..."}
+        </div>
+      );
+    }
+    
+    if (!bucketExists) {
+      return (
+        <div className="bg-amber-50 p-2 rounded-md text-sm text-amber-800 mb-4">
+          {language === "ko" 
+            ? "스토리지가 준비되지 않았습니다. 제출 시 자동으로 생성됩니다." 
+            : "ストレージが準備されていません。提出時に自動的に作成されます。"}
+        </div>
+      );
+    }
+    
+    return (
+      <div className="bg-green-50 p-2 rounded-md text-sm text-green-800 mb-4">
+        {language === "ko" 
+          ? "스토리지가 준비되었습니다." 
+          : "ストレージの準備ができています。"}
+      </div>
+    );
   };
   
   return (
@@ -115,6 +167,8 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
           {t("onboarding.verification.desc")}
         </p>
       </div>
+      
+      {renderBucketStatus()}
       
       <div className="bg-pastel-mint/30 rounded-lg p-4 border border-pastel-mint">
         <p className="text-sm">
