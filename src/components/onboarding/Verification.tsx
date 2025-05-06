@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/useLanguage";
-import { Check, Upload, Loader2 } from "lucide-react";
+import { Check, Upload, Loader2, AlertCircle } from "lucide-react";
 import { 
   Select, 
   SelectContent, 
@@ -15,6 +15,7 @@ import { uploadIdentityDocument, ensureBucketExists } from "@/utils/storageHelpe
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface VerificationProps {
   onComplete: () => void;
@@ -42,14 +43,24 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
   const [file, setFile] = useState<File | null>(tempData.file || null);
   const [bucketChecked, setBucketChecked] = useState(false);
   const [bucketExists, setBucketExists] = useState(false);
+  const [bucketError, setBucketError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // 버킷 존재 확인
   useEffect(() => {
     const checkBucket = async () => {
-      const exists = await ensureBucketExists('identity_documents');
-      setBucketExists(exists);
-      setBucketChecked(true);
+      try {
+        const exists = await ensureBucketExists('identity_documents');
+        setBucketExists(exists);
+        if (!exists) {
+          setBucketError("신분증 저장소가 준비되지 않았습니다. 관리자에게 문의하세요.");
+        }
+        setBucketChecked(true);
+      } catch (error) {
+        console.error("버킷 확인 중 오류:", error);
+        setBucketError("스토리지 상태 확인 중 오류가 발생했습니다.");
+        setBucketChecked(true);
+      }
     };
     
     checkBucket();
@@ -79,10 +90,7 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
     try {
       // 버킷이 생성되었는지 확인
       if (!bucketExists) {
-        const created = await ensureBucketExists('identity_documents');
-        if (!created) {
-          throw new Error("신분증 저장소를 생성할 수 없습니다. 관리자에게 문의하세요.");
-        }
+        throw new Error("신분증 저장소가 준비되지 않았습니다. 관리자에게 문의하세요.");
       }
       
       // Upload ID document to Storage
@@ -130,7 +138,8 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
   const renderBucketStatus = () => {
     if (!bucketChecked) {
       return (
-        <div className="bg-yellow-50 p-2 rounded-md text-sm text-yellow-800 mb-4">
+        <div className="bg-yellow-50 p-2 rounded-md text-sm text-yellow-800 mb-4 flex items-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           {language === "ko" 
             ? "스토리지 상태 확인 중..." 
             : "ストレージ状態を確認中..."}
@@ -138,18 +147,39 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
       );
     }
     
+    if (bucketError) {
+      return (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>
+            {language === "ko" ? "스토리지 오류" : "ストレージエラー"}
+          </AlertTitle>
+          <AlertDescription>
+            {bucketError}
+          </AlertDescription>
+        </Alert>
+      );
+    }
+    
     if (!bucketExists) {
       return (
-        <div className="bg-amber-50 p-2 rounded-md text-sm text-amber-800 mb-4">
-          {language === "ko" 
-            ? "스토리지가 준비되지 않았습니다. 제출 시 자동으로 생성됩니다." 
-            : "ストレージが準備されていません。提出時に自動的に作成されます。"}
-        </div>
+        <Alert variant="warning" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>
+            {language === "ko" ? "스토리지 준비 안됨" : "ストレージが準備されていません"}
+          </AlertTitle>
+          <AlertDescription>
+            {language === "ko" 
+              ? "신분증 저장소가 준비되지 않았습니다. 관리자에게 문의하세요." 
+              : "身分証明書の保存先が準備されていません。管理者に問い合わせてください。"}
+          </AlertDescription>
+        </Alert>
       );
     }
     
     return (
-      <div className="bg-green-50 p-2 rounded-md text-sm text-green-800 mb-4">
+      <div className="bg-green-50 p-2 rounded-md text-sm text-green-800 mb-4 flex items-center">
+        <Check className="mr-2 h-4 w-4 text-green-600" />
         {language === "ko" 
           ? "스토리지가 준비되었습니다." 
           : "ストレージの準備ができています。"}
@@ -256,6 +286,7 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
                 accept="image/*"
                 className={`absolute inset-0 w-full h-full opacity-0 cursor-pointer ${frontUploaded ? 'hidden' : ''}`}
                 onChange={handleFileChange}
+                disabled={!bucketExists}
               />
             </div>
           </div>
@@ -273,7 +304,7 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
         <Button
           onClick={handleSubmit}
           className="pasar-btn"
-          disabled={!docType || !frontUploaded || isSubmitting}
+          disabled={!docType || !frontUploaded || isSubmitting || !bucketExists}
         >
           {isSubmitting ? (
             <span className="flex items-center">

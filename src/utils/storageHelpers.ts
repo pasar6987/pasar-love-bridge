@@ -14,25 +14,14 @@ export const ensureBucketExists = async (bucketName: string): Promise<boolean> =
 
     // 버킷이 존재하는지 확인
     const bucketExists = buckets.some(b => b.name === bucketName);
+    
+    // 버킷이 존재하지 않으면 false 반환 (버킷 생성 시도하지 않음)
     if (!bucketExists) {
-      console.log(`버킷 '${bucketName}'이 존재하지 않습니다. 버킷을 생성합니다.`);
-      
-      // 버킷 생성 시도
-      const { data, error: createError } = await supabase.storage.createBucket(bucketName, {
-        public: bucketName === 'profile_photos', // profile_photos만 공개
-        fileSizeLimit: 5 * 1024 * 1024 // 5MB 제한
-      });
-      
-      if (createError) {
-        console.error(`버킷 '${bucketName}' 생성 오류:`, createError);
-        return false;
-      }
-      
-      console.log(`버킷 '${bucketName}'이 성공적으로 생성되었습니다!`);
-      return true;
+      console.log(`버킷 '${bucketName}'이 존재하지 않습니다. 관리자에게 문의하세요.`);
+      return false;
     }
     
-    console.log(`버킷 '${bucketName}'이 이미 존재합니다.`);
+    console.log(`버킷 '${bucketName}'이 존재합니다.`);
     return true;
   } catch (error) {
     console.error(`버킷 '${bucketName}' 확인 중 오류:`, error);
@@ -42,10 +31,10 @@ export const ensureBucketExists = async (bucketName: string): Promise<boolean> =
 
 export const uploadProfilePhoto = async (userId: string, file: File, sortOrder: number): Promise<string> => {
   try {
-    // 버킷 존재 여부 확인 및 생성
+    // 버킷 존재 여부 확인 (생성 시도하지 않음)
     const bucketExists = await ensureBucketExists('profile_photos');
     if (!bucketExists) {
-      throw new Error("버킷 생성에 실패했습니다. 관리자에게 문의하세요.");
+      throw new Error("프로필 사진 저장소가 없습니다. 관리자에게 문의하세요.");
     }
     
     const fileExt = file.name.split('.').pop();
@@ -104,10 +93,10 @@ export const uploadProfilePhoto = async (userId: string, file: File, sortOrder: 
 
 export const uploadIdentityDocument = async (userId: string, file: File): Promise<string> => {
   try {
-    // 버킷 존재 여부 확인 및 생성
+    // 버킷 존재 여부만 확인 (생성 시도하지 않음)
     const bucketExists = await ensureBucketExists('identity_documents');
     if (!bucketExists) {
-      throw new Error("신분증 문서 저장소 생성에 실패했습니다. 관리자에게 문의하세요.");
+      throw new Error("신분증 저장소가 없습니다. 관리자에게 문의하세요.");
     }
     
     const fileExt = file.name.split('.').pop();
