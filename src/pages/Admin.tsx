@@ -40,35 +40,45 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   // Check if user is admin
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (!user) {
+        console.log("관리자 확인: 사용자가 로그인되어 있지 않습니다.");
         navigate('/login');
         return;
       }
       
+      console.log("관리자 확인 중... 사용자 ID:", user.id);
+      
       try {
+        // 명시적으로 admin_users 테이블 이름 사용
         const { data, error } = await supabase
           .from('admin_users')
           .select('*')
-          .eq('user_id', user.id)
-          .single();
+          .eq('user_id', user.id);
           
-        if (error || !data) {
-          // Not an admin, redirect to home
-          console.error("Admin check error:", error);
-          console.log("Admin data:", data);
-          console.log("Current user ID:", user.id);
+        console.log("관리자 확인 결과:", { data, error });
+        setDebugInfo({ adminCheck: { data, error, userId: user.id } });
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (!data || data.length === 0) {
+          console.log("관리자 권한 없음:", user.id);
           navigate('/home');
           return;
         }
         
+        console.log("관리자 권한 확인됨!");
         setIsAdmin(true);
         fetchVerificationRequests();
       } catch (error) {
-        console.error("Error checking admin status:", error);
+        console.error("관리자 상태 확인 오류:", error);
+        setDebugInfo((prev: any) => ({ ...prev, adminCheckError: error }));
         navigate('/home');
       }
     };
@@ -78,6 +88,8 @@ export default function Admin() {
 
   const fetchVerificationRequests = async () => {
     try {
+      console.log("인증 요청 조회 중...");
+      
       // Fetch identity verification requests
       const { data: identityData, error: identityError } = await supabase
         .from('identity_verifications')
@@ -86,6 +98,8 @@ export default function Admin() {
         .order('created_at', { ascending: false });
         
       if (identityError) throw identityError;
+      
+      console.log("신분증 인증 요청 결과:", identityData);
       
       const formattedIdentityRequests: VerificationRequest[] = (identityData || []).map((item: any) => ({
         id: item.id,
@@ -111,6 +125,8 @@ export default function Admin() {
         
       if (photoError) throw photoError;
       
+      console.log("프로필 사진 인증 요청 결과:", photoData);
+      
       const formattedPhotoRequests: VerificationRequest[] = (photoData || []).map((item: any) => ({
         id: item.id,
         user_id: item.user_id,
@@ -126,7 +142,8 @@ export default function Admin() {
       setPhotoRequests(formattedPhotoRequests);
       
     } catch (error) {
-      console.error("Error fetching verification requests:", error);
+      console.error("인증 요청 조회 오류:", error);
+      setDebugInfo((prev: any) => ({ ...prev, fetchRequestsError: error }));
       toast({
         title: t("error.generic"),
         description: t("error.try_again"),
@@ -231,7 +248,8 @@ export default function Admin() {
       });
       
     } catch (error) {
-      console.error("Error approving request:", error);
+      console.error("요청 승인 오류:", error);
+      setDebugInfo((prev: any) => ({ ...prev, approveError: error }));
       toast({
         title: t("error.generic"),
         description: t("error.try_again"),
@@ -309,7 +327,8 @@ export default function Admin() {
       });
       
     } catch (error) {
-      console.error("Error rejecting request:", error);
+      console.error("요청 거부 오류:", error);
+      setDebugInfo((prev: any) => ({ ...prev, rejectError: error }));
       toast({
         title: t("error.generic"),
         description: t("error.try_again"),
@@ -323,8 +342,14 @@ export default function Admin() {
   if (!isAdmin) {
     return (
       <MainLayout>
-        <div className="flex justify-center items-center h-[50vh]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="flex flex-col justify-center items-center h-[50vh]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+          <div>관리자 권한을 확인하는 중입니다...</div>
+          {debugInfo && (
+            <div className="mt-4 p-4 bg-gray-100 rounded-md overflow-auto max-w-full text-xs">
+              <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+            </div>
+          )}
         </div>
       </MainLayout>
     );
