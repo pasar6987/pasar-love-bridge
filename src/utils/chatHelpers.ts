@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { format } from 'date-fns';
 import { ko, ja, enUS } from 'date-fns/locale';
@@ -24,6 +25,14 @@ export interface ChatSession {
   unread_count: number;
 }
 
+// Define an interface for RPC responses
+interface RpcResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
 // Function to send a chat message using RPC
 export const sendChatMessage = async (matchId: string, content: string): Promise<ChatMessage | null> => {
   try {
@@ -36,7 +45,8 @@ export const sendChatMessage = async (matchId: string, content: string): Promise
       throw error;
     }
     
-    return data?.success ? data.data : null;
+    const response = data as RpcResponse<ChatMessage>;
+    return response.success ? response.data! : null;
   } catch (error) {
     console.error("Error sending message:", error);
     return null;
@@ -55,7 +65,8 @@ export const getChatMessages = async (matchId: string, limit = 50): Promise<Chat
       throw error;
     }
     
-    return (data?.success && Array.isArray(data.data)) ? data.data : [];
+    const response = data as RpcResponse<ChatMessage[]>;
+    return (response.success && Array.isArray(response.data)) ? response.data : [];
   } catch (error) {
     console.error("Error fetching messages:", error);
     return [];
@@ -73,7 +84,8 @@ export const markMessagesAsRead = async (matchId: string): Promise<boolean> => {
       throw error;
     }
     
-    return data?.success || false;
+    const response = data as RpcResponse<any>;
+    return response.success || false;
   } catch (error) {
     console.error("Error marking messages as read:", error);
     return false;
@@ -91,7 +103,8 @@ export const generateRandomTopic = async (matchId: string): Promise<string | nul
       throw error;
     }
     
-    return data?.success ? data.data : null;
+    const response = data as RpcResponse<string>;
+    return response.success ? response.data! : null;
   } catch (error) {
     console.error("Error generating random topic:", error);
     return null;
@@ -108,7 +121,8 @@ export const getUserChats = async (): Promise<ChatSession[]> => {
       throw error;
     }
     
-    return (data?.success && Array.isArray(data.data)) ? data.data : [];
+    const response = data as RpcResponse<ChatSession[]>;
+    return (response.success && Array.isArray(response.data)) ? response.data : [];
   } catch (error) {
     console.error("Error fetching user chats:", error);
     // Return mock data for development

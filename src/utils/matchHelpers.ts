@@ -1,6 +1,14 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+// Define an interface for RPC responses
+interface RpcResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
 // Function to send a match request using RPC
 export const sendMatchRequest = async (targetProfileId: string): Promise<boolean> => {
   try {
@@ -22,7 +30,8 @@ export const sendMatchRequest = async (targetProfileId: string): Promise<boolean
     }
     
     console.log("[matchHelpers Debug] Match request response:", data);
-    return true;
+    const response = data as RpcResponse<any>;
+    return response.success || false;
   } catch (error) {
     console.error("[matchHelpers Debug] Error sending match request:", error);
     console.error("[matchHelpers Debug] Error object details:", JSON.stringify(error));
@@ -45,7 +54,8 @@ export const acceptMatchRequest = async (requestId: string): Promise<boolean> =>
     }
     
     console.log("[matchHelpers Debug] Accept request response:", data);
-    return true;
+    const response = data as RpcResponse<any>;
+    return response.success || false;
   } catch (error) {
     console.error("[matchHelpers Debug] Error accepting match request:", error);
     throw error;
@@ -67,7 +77,8 @@ export const rejectMatchRequest = async (requestId: string): Promise<boolean> =>
     }
     
     console.log("[matchHelpers Debug] Reject request response:", data);
-    return true;
+    const response = data as RpcResponse<any>;
+    return response.success || false;
   } catch (error) {
     console.error("[matchHelpers Debug] Error rejecting match request:", error);
     throw error;
@@ -90,8 +101,9 @@ export const getDailyRecommendations = async (): Promise<any[]> => {
     console.log("[matchHelpers Debug] Raw recommendations data:", data);
     
     // Check if data contains a success and data property
-    if (data && data.success && Array.isArray(data.data)) {
-      return data.data;
+    const response = data as RpcResponse<any[]>;
+    if (response && response.success && Array.isArray(response.data)) {
+      return response.data;
     }
     
     // If the response format is unexpected, return empty array
