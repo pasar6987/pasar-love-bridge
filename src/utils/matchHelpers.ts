@@ -65,7 +65,18 @@ export const getDailyRecommendations = async (): Promise<any[]> => {
       throw error;
     }
     
-    return data as any[] || [];
+    // Ensure we always return an array
+    if (!data) {
+      console.warn("No recommendation data returned");
+      return [];
+    }
+    
+    if (!Array.isArray(data)) {
+      console.error("Recommendation data is not an array:", data);
+      return [];
+    }
+    
+    return data;
   } catch (error) {
     console.error("Error fetching daily recommendations:", error);
     return [];

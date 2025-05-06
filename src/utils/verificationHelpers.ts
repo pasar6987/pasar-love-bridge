@@ -24,3 +24,15 @@ export const checkVerificationStatus = async (): Promise<VerificationStatus> => 
     return { is_verified: false, verification_status: 'error' };
   }
 };
+
+// Function to check if a user can access recommendations
+export const canAccessRecommendations = async (): Promise<boolean> => {
+  try {
+    const status = await checkVerificationStatus();
+    // User can access recommendations if they're verified OR if verification is still in progress
+    return status.is_verified || ['submitted', 'pending'].includes(status.verification_status);
+  } catch (error) {
+    console.error("Error checking recommendation access:", error);
+    return false;
+  }
+};
