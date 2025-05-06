@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -85,10 +84,7 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
             newImageLoading[request.id] = true;
             
             // id_front_url이 경로 형식인 경우 (비공개 버킷)
-            if (request.id_front_url.startsWith('http')) {
-              // 기존 URL 형식일 경우
-              newSignedUrls[request.id] = request.id_front_url;
-            } else {
+            if (!request.id_front_url.startsWith('http')) {
               // 파일 경로만 있는 경우 서명된 URL 생성
               if (availableBuckets.includes('identity_documents')) {
                 const signedUrl = await getAdminSignedUrl('identity_documents', request.id_front_url, 300);
@@ -102,6 +98,9 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
                 console.error(`버킷 'identity_documents'가 존재하지 않아 서명된 URL을 생성할 수 없습니다.`);
                 setImageErrors(prev => ({ ...prev, [request.id]: true }));
               }
+            } else {
+              // 기존 URL 형식일 경우 (기존 데이터 호환성 유지)
+              newSignedUrls[request.id] = request.id_front_url;
             }
             
             newImageLoading[request.id] = false;
@@ -236,7 +235,7 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
       
       toast({
         title: language === 'ko' ? '거부 완료' : '拒否完了',
-        description: language === 'ko' ? '요청이 거부되었습니다.' : 'リクエ스トが拒否されました。'
+        description: language === 'ko' ? '요청이 거부되었습니다.' : 'リクエストが拒否されました。'
       });
       
     } catch (error) {
@@ -270,13 +269,18 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
         throw new Error("'identity_documents' 버킷이 존재하지 않습니다.");
       }
       
-      // 파일 경로만 있는 경우 새로운 서명된 URL 생성
-      const signedUrl = await getAdminSignedUrl('identity_documents', request.id_front_url, 300);
-      if (signedUrl) {
-        setSignedUrls(prev => ({ ...prev, [id]: signedUrl }));
-        console.log(`새로운 서명된 URL 생성됨 - 요청 ID: ${id}`, { signedUrl });
+      // URL이 아닌 파일 경로만 있는 경우 새로운 서명된 URL 생성
+      if (!request.id_front_url.startsWith('http')) {
+        const signedUrl = await getAdminSignedUrl('identity_documents', request.id_front_url, 300);
+        if (signedUrl) {
+          setSignedUrls(prev => ({ ...prev, [id]: signedUrl }));
+          console.log(`새로운 서명된 URL 생성됨 - 요청 ID: ${id}`, { signedUrl });
+        } else {
+          throw new Error("서명된 URL을 생성할 수 없습니다.");
+        }
       } else {
-        throw new Error("서명된 URL을 생성할 수 없습니다.");
+        // 기존 URL을 그대로 사용
+        setSignedUrls(prev => ({ ...prev, [id]: request.id_front_url || '' }));
       }
     } catch (error) {
       console.error("이미지 재시도 중 오류:", error);
