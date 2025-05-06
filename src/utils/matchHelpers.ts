@@ -61,6 +61,7 @@ export const getDailyRecommendations = async (): Promise<any[]> => {
     const { data, error } = await supabase.functions.invoke('get_daily_recommendations');
     
     if (error) {
+      console.error("Error invoking get_daily_recommendations:", error);
       throw error;
     }
     
@@ -118,4 +119,3 @@ export const fetchReceivedRequests = async (): Promise<MatchRequest[]> => {
 
 // For compatibility with RecommendationList.tsx
 export const fetchDailyRecommendations = getDailyRecommendations;
-

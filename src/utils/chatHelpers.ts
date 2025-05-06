@@ -103,6 +103,7 @@ export const getUserChats = async (): Promise<ChatSession[]> => {
     const { data, error } = await supabase.functions.invoke('get_user_chats');
     
     if (error) {
+      console.error("Error invoking get_user_chats:", error);
       throw error;
     }
     

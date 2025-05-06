@@ -42,3 +42,9 @@ verify_jwt = true
 
 [functions.send-external-notification]
 verify_jwt = true
+
+[functions.get_daily_recommendations]
+verify_jwt = true
+
+[functions.get_user_chats]
+verify_jwt = true
