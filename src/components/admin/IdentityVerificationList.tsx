@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/i18n/useLanguage";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export type VerificationStatus = "pending" | "approved" | "rejected" | "submitted";
 
@@ -33,6 +34,7 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
   const { toast } = useToast();
   const [rejectionReason, setRejectionReason] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   
   const handleApprove = async (request: VerificationRequest) => {
     setProcessingId(request.id);
@@ -153,6 +155,11 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
       setProcessingId(null);
     }
   };
+  
+  const handleImageError = (id: string) => {
+    setImageErrors(prev => ({ ...prev, [id]: true }));
+    console.error("Failed to load image for request ID:", id);
+  };
 
   return (
     <Card>
@@ -185,18 +192,28 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
                     </p>
                     {request.id_front_url && (
                       <div className="max-w-sm mx-auto">
-                        <a href={request.id_front_url} target="_blank" rel="noopener noreferrer">
-                          <img 
-                            src={request.id_front_url} 
-                            alt="ID Document" 
-                            className="w-full rounded-md border object-contain max-h-64"
-                            onError={(e) => {
-                              console.error("Image failed to load:", request.id_front_url);
-                              e.currentTarget.src = "/placeholder.svg";
-                              e.currentTarget.alt = "이미지 로드 실패";
-                            }}
-                          />
-                        </a>
+                        {imageErrors[request.id] ? (
+                          <div className="border rounded-md p-4 text-center bg-gray-100 h-64 flex flex-col items-center justify-center">
+                            <Avatar className="h-16 w-16 mb-2">
+                              <AvatarFallback>{request.user_display_name?.substring(0, 2) || "??"}</AvatarFallback>
+                            </Avatar>
+                            <p className="text-sm text-muted-foreground">
+                              {language === 'ko' ? '이미지를 불러올 수 없습니다' : '画像を読み込めません'}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {request.id_front_url ? new URL(request.id_front_url).pathname.split('/').pop() : 'Unknown file'}
+                            </p>
+                          </div>
+                        ) : (
+                          <a href={request.id_front_url} target="_blank" rel="noopener noreferrer">
+                            <img 
+                              src={request.id_front_url} 
+                              alt="ID Document" 
+                              className="w-full rounded-md border object-contain max-h-64"
+                              onError={() => handleImageError(request.id)}
+                            />
+                          </a>
+                        )}
                       </div>
                     )}
                   </div>

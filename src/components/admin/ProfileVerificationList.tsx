@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/i18n/useLanguage";
 import { VerificationRequest } from "./IdentityVerificationList";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ProfileVerificationListProps {
   photoRequests: VerificationRequest[];
@@ -20,6 +21,7 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
   const { toast } = useToast();
   const [rejectionReason, setRejectionReason] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   
   const handleApprove = async (request: VerificationRequest) => {
     setProcessingId(request.id);
@@ -129,6 +131,11 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
       setProcessingId(null);
     }
   };
+  
+  const handleImageError = (id: string) => {
+    setImageErrors(prev => ({ ...prev, [id]: true }));
+    console.error("Failed to load image for request ID:", id);
+  };
 
   return (
     <Card>
@@ -161,18 +168,28 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
                     </p>
                     {request.photo_url && (
                       <div className="max-w-sm mx-auto">
-                        <a href={request.photo_url} target="_blank" rel="noopener noreferrer">
-                          <img 
-                            src={request.photo_url} 
-                            alt="Profile Photo" 
-                            className="w-full rounded-md border object-contain max-h-64"
-                            onError={(e) => {
-                              console.error("Image failed to load:", request.photo_url);
-                              e.currentTarget.src = "/placeholder.svg";
-                              e.currentTarget.alt = "이미지 로드 실패";
-                            }}
-                          />
-                        </a>
+                        {imageErrors[request.id] ? (
+                          <div className="border rounded-md p-4 text-center bg-gray-100 h-64 flex flex-col items-center justify-center">
+                            <Avatar className="h-16 w-16 mb-2">
+                              <AvatarFallback>{request.user_display_name?.substring(0, 2) || "??"}</AvatarFallback>
+                            </Avatar>
+                            <p className="text-sm text-muted-foreground">
+                              {language === 'ko' ? '이미지를 불러올 수 없습니다' : '画像を読み込めません'}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {request.photo_url ? new URL(request.photo_url).pathname.split('/').pop() : 'Unknown file'}
+                            </p>
+                          </div>
+                        ) : (
+                          <a href={request.photo_url} target="_blank" rel="noopener noreferrer">
+                            <img 
+                              src={request.photo_url} 
+                              alt="Profile Photo" 
+                              className="w-full rounded-md border object-contain max-h-64"
+                              onError={() => handleImageError(request.id)}
+                            />
+                          </a>
+                        )}
                       </div>
                     )}
                   </div>

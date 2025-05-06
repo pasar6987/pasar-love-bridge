@@ -8,17 +8,23 @@ export const uploadProfilePhoto = async (userId: string, file: File, sortOrder: 
     const fileName = `${userId}/${uuidv4()}.${fileExt}`;
     const filePath = `${fileName}`;
     
-    const { error: uploadError } = await supabase.storage
+    console.log("Uploading profile photo:", {userId, filePath, bucket: 'profile_photos'});
+    
+    const { error: uploadError, data } = await supabase.storage
       .from('profile_photos')
       .upload(filePath, file);
     
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error("Storage upload error:", uploadError);
+      throw uploadError;
+    }
     
-    const { data } = supabase.storage
+    const { data: urlData } = supabase.storage
       .from('profile_photos')
       .getPublicUrl(filePath);
     
-    const publicUrl = data.publicUrl;
+    const publicUrl = urlData.publicUrl;
+    console.log("Generated public URL:", publicUrl);
     
     // Save reference in profile_photos table
     const { error: dbError } = await supabase
@@ -29,7 +35,10 @@ export const uploadProfilePhoto = async (userId: string, file: File, sortOrder: 
         sort_order: sortOrder
       });
       
-    if (dbError) throw dbError;
+    if (dbError) {
+      console.error("Database insert error:", dbError);
+      throw dbError;
+    }
     
     return publicUrl;
   } catch (error) {
@@ -44,17 +53,24 @@ export const uploadIdentityDocument = async (userId: string, file: File): Promis
     const fileName = `${userId}/${uuidv4()}.${fileExt}`;
     const filePath = `${fileName}`;
     
+    console.log("Uploading identity document:", {userId, filePath, bucket: 'identity_documents'});
+    
     const { error: uploadError } = await supabase.storage
       .from('identity_documents')
       .upload(filePath, file);
     
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error("Storage upload error:", uploadError);
+      throw uploadError;
+    }
     
-    const { data } = supabase.storage
+    const { data: urlData } = supabase.storage
       .from('identity_documents')
       .getPublicUrl(filePath);
     
-    return data.publicUrl;
+    console.log("Generated public URL:", urlData.publicUrl);
+    
+    return urlData.publicUrl;
   } catch (error) {
     console.error("Error uploading identity document:", error);
     throw error;
