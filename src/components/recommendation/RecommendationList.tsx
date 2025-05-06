@@ -5,6 +5,7 @@ import { getDailyRecommendations } from "@/utils/matchHelpers";
 import { useLanguage } from "@/i18n/useLanguage";
 import { useToast } from "@/hooks/use-toast";
 
+// Interface for the profile data received from the API
 interface Profile {
   id: string;
   name: string;
@@ -14,6 +15,18 @@ interface Profile {
   bio: string;
   job: string;
   nationality?: string;
+}
+
+// Interface matching what RecommendationCard expects
+interface RecommendationProfile {
+  id: string;
+  name: string;
+  age: number;
+  city: string;
+  bio: string;
+  job?: string;
+  photos: { url: string }[];
+  isVerified?: boolean;
 }
 
 export function RecommendationList() {
@@ -109,10 +122,22 @@ export function RecommendationList() {
     );
   }
 
+  // Convert Profile to RecommendationProfile format
+  const mappedProfile: RecommendationProfile = {
+    id: currentProfile.id,
+    name: currentProfile.name,
+    age: currentProfile.age,
+    city: currentProfile.location, // Map location to city
+    bio: currentProfile.bio,
+    job: currentProfile.job,
+    photos: [{ url: currentProfile.photo }], // Convert single photo to photos array
+    isVerified: false // Default value
+  };
+
   return (
     <div>
       <RecommendationCard
-        profile={currentProfile}
+        profile={mappedProfile}
         onLike={handleLike}
         onPass={handlePass}
       />
