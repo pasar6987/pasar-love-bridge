@@ -30,7 +30,7 @@ export const sendMatchRequest = async (targetProfileId: string): Promise<boolean
     }
     
     console.log("[matchHelpers Debug] Match request response:", data);
-    const response = data as RpcResponse<any>;
+    const response = data as unknown as RpcResponse<any>;
     return response.success || false;
   } catch (error) {
     console.error("[matchHelpers Debug] Error sending match request:", error);
@@ -54,7 +54,7 @@ export const acceptMatchRequest = async (requestId: string): Promise<boolean> =>
     }
     
     console.log("[matchHelpers Debug] Accept request response:", data);
-    const response = data as RpcResponse<any>;
+    const response = data as unknown as RpcResponse<any>;
     return response.success || false;
   } catch (error) {
     console.error("[matchHelpers Debug] Error accepting match request:", error);
@@ -77,7 +77,7 @@ export const rejectMatchRequest = async (requestId: string): Promise<boolean> =>
     }
     
     console.log("[matchHelpers Debug] Reject request response:", data);
-    const response = data as RpcResponse<any>;
+    const response = data as unknown as RpcResponse<any>;
     return response.success || false;
   } catch (error) {
     console.error("[matchHelpers Debug] Error rejecting match request:", error);
@@ -101,7 +101,7 @@ export const getDailyRecommendations = async (): Promise<any[]> => {
     console.log("[matchHelpers Debug] Raw recommendations data:", data);
     
     // Check if data contains a success and data property
-    const response = data as RpcResponse<any[]>;
+    const response = data as unknown as RpcResponse<any[]>;
     if (response && response.success && Array.isArray(response.data)) {
       return response.data;
     }

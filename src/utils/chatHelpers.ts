@@ -45,7 +45,7 @@ export const sendChatMessage = async (matchId: string, content: string): Promise
       throw error;
     }
     
-    const response = data as RpcResponse<ChatMessage>;
+    const response = data as unknown as RpcResponse<ChatMessage>;
     return response.success ? response.data! : null;
   } catch (error) {
     console.error("Error sending message:", error);
@@ -65,7 +65,7 @@ export const getChatMessages = async (matchId: string, limit = 50): Promise<Chat
       throw error;
     }
     
-    const response = data as RpcResponse<ChatMessage[]>;
+    const response = data as unknown as RpcResponse<ChatMessage[]>;
     return (response.success && Array.isArray(response.data)) ? response.data : [];
   } catch (error) {
     console.error("Error fetching messages:", error);
@@ -84,7 +84,7 @@ export const markMessagesAsRead = async (matchId: string): Promise<boolean> => {
       throw error;
     }
     
-    const response = data as RpcResponse<any>;
+    const response = data as unknown as RpcResponse<any>;
     return response.success || false;
   } catch (error) {
     console.error("Error marking messages as read:", error);
@@ -103,7 +103,7 @@ export const generateRandomTopic = async (matchId: string): Promise<string | nul
       throw error;
     }
     
-    const response = data as RpcResponse<string>;
+    const response = data as unknown as RpcResponse<string>;
     return response.success ? response.data! : null;
   } catch (error) {
     console.error("Error generating random topic:", error);
@@ -121,7 +121,7 @@ export const getUserChats = async (): Promise<ChatSession[]> => {
       throw error;
     }
     
-    const response = data as RpcResponse<ChatSession[]>;
+    const response = data as unknown as RpcResponse<ChatSession[]>;
     return (response.success && Array.isArray(response.data)) ? response.data : [];
   } catch (error) {
     console.error("Error fetching user chats:", error);
