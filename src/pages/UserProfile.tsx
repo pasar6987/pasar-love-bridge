@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
@@ -66,10 +67,10 @@ export default function UserProfile() {
       
       console.log("Session obtained, calling delete-user-account function");
       
-      // Call the delete-user-account edge function
+      // Call the delete-user-account edge function with the token in the request body
       const { data, error } = await supabase.functions.invoke('delete-user-account', {
         method: 'POST',
-        body: {},
+        body: { token: accessToken },
         headers: {
           Authorization: `Bearer ${accessToken}`
         }
@@ -87,7 +88,7 @@ export default function UserProfile() {
         throw new Error(data.error);
       }
       
-      // Sign out after successful account deletion
+      // 성공적인 계정 삭제 후 로그아웃
       console.log("Account deleted successfully, signing out");
       await signOut();
       
