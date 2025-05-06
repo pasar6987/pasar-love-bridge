@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
@@ -16,7 +15,7 @@ interface Notification {
 }
 
 export default function Notifications() {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,8 +26,8 @@ export default function Notifications() {
         {
           id: "1",
           type: "match_accepted",
-          title: language === "ko" ? "매칭 수락됨" : "マッチングが承認されました",
-          body: language === "ko" ? "유카님이 매칭을 수락했습니다." : "ゆかさんがマッチングを承認しました。",
+          title: t("notification.match_accepted"),
+          body: "유카님이 매칭을 수락했습니다.",
           relatedId: "2",
           isRead: false,
           createdAt: new Date(Date.now() - 3600000).toISOString(),
@@ -36,8 +35,8 @@ export default function Notifications() {
         {
           id: "2",
           type: "new_message",
-          title: language === "ko" ? "새 메시지" : "新しいメッセージ",
-          body: language === "ko" ? "유카님이 메시지를 보냈습니다." : "ゆかさんがメッセージを送信しました。",
+          title: t("notification.new_message"),
+          body: "유카님이 메시지를 보냈습니다.",
           relatedId: "2",
           isRead: false,
           createdAt: new Date(Date.now() - 7200000).toISOString(),
@@ -45,8 +44,8 @@ export default function Notifications() {
         {
           id: "3",
           type: "verify_passed",
-          title: language === "ko" ? "인증 완료" : "認証完了",
-          body: language === "ko" ? "신분증 인증이 완료되었습니다." : "身分証明書の確認が完了しました。",
+          title: t("notification.verify_passed"),
+          body: t("notification.verify_passed_desc"),
           isRead: true,
           createdAt: new Date(Date.now() - 86400000).toISOString(),
         },
@@ -54,7 +53,7 @@ export default function Notifications() {
       setNotifications(mockNotifications);
       setLoading(false);
     }, 1000);
-  }, [language]);
+  }, [t]);
 
   const markAsRead = (id: string) => {
     setNotifications(
@@ -72,16 +71,16 @@ export default function Notifications() {
     
     if (diffDays === 0) {
       // Today
-      return date.toLocaleTimeString(language === "ko" ? "ko-KR" : "ja-JP", {
+      return date.toLocaleTimeString(t("language") === "ko" ? "ko-KR" : "ja-JP", {
         hour: "numeric",
         minute: "numeric",
       });
     } else if (diffDays === 1) {
       // Yesterday
-      return language === "ko" ? "어제" : "昨日";
+      return t("notification.yesterday");
     } else {
       // Other days
-      return date.toLocaleDateString(language === "ko" ? "ko-KR" : "ja-JP", {
+      return date.toLocaleDateString(t("language") === "ko" ? "ko-KR" : "ja-JP", {
         month: "short",
         day: "numeric",
       });
@@ -123,7 +122,7 @@ export default function Notifications() {
     <MainLayout>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 md:py-12">
         <h1 className="text-3xl font-bold mb-8">
-          {language === "ko" ? "알림" : "通知"}
+          {t("notification.title")}
         </h1>
 
         {loading ? (
@@ -163,7 +162,7 @@ export default function Notifications() {
         ) : (
           <div className="text-center py-12 pasar-card">
             <p className="text-muted-foreground">
-              {language === "ko" ? "알림이 없습니다" : "通知がありません"}
+              {t("notification.empty")}
             </p>
           </div>
         )}

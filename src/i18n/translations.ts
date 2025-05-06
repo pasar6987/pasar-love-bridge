@@ -291,5 +291,85 @@ export const translations = {
   "admin.profileUpdates": {
     ko: "프로필 업데이트",
     ja: "プロフィール更新"
+  },
+  "profile.mypage": {
+    ko: "마이페이지",
+    ja: "マイページ"
+  },
+  "profile.basic_info": {
+    ko: "기본 정보",
+    ja: "基本情報"
+  },
+  "profile.email": {
+    ko: "이메일",
+    ja: "メール"
+  },
+  "profile.join_date": {
+    ko: "가입일",
+    ja: "登録日"
+  },
+  "profile.delete_account": {
+    ko: "계정 삭제",
+    ja: "アカウント削除"
+  },
+  "profile.confirm_delete": {
+    ko: "정말 계정을 삭제하시겠습니까?",
+    ja: "本当にアカウントを削除しますか？"
+  },
+  "profile.delete_warning": {
+    ko: "계정을 삭제하면 모든 데이터가 영구적으로 삭제됩니다. 이 작업은 취소할 수 없습니다.",
+    ja: "アカウントを削除すると、すべてのデータが永久に削除されます。この操作は取り消せません。"
+  },
+  "profile.delete": {
+    ko: "삭제",
+    ja: "削除"
+  },
+  "profile.deleting": {
+    ko: "삭제 중...",
+    ja: "削除中..."
+  },
+  "profile.logout_in_progress": {
+    ko: "로그아웃 중...",
+    ja: "ログアウト中..."
+  },
+  "profile.account_deleted": {
+    ko: "계정이 삭제되었습니다",
+    ja: "アカウントが削除されました"
+  },
+  "profile.account_deleted_desc": {
+    ko: "계정과 관련된 모든 정보가 삭제되었습니다",
+    ja: "アカウントに関連するすべての情報が削除されました"
+  },
+  "profile.delete_failed": {
+    ko: "계정 삭제 실패",
+    ja: "アカウント削除に失敗しました"
+  },
+  "common.cancel": {
+    ko: "취소",
+    ja: "キャンセル"
+  },
+  "notification.title": {
+    ko: "알림",
+    ja: "通知"
+  },
+  "notification.empty": {
+    ko: "알림이 없습니다",
+    ja: "通知がありません"
+  },
+  "notification.match_accepted": {
+    ko: "매칭 수락됨",
+    ja: "マッチングが承認されました"
+  },
+  "notification.new_message": {
+    ko: "새 메시지",
+    ja: "新しいメッセージ"
+  },
+  "notification.verify_passed": {
+    ko: "인증 완료",
+    ja: "認証完了"
+  },
+  "notification.yesterday": {
+    ko: "어제",
+    ja: "昨日"
   }
 };

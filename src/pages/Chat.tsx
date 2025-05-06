@@ -19,7 +19,7 @@ interface ChatPartner {
 
 export default function Chat() {
   const { id } = useParams<{ id?: string }>();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [chatPartners, setChatPartners] = useState<ChatPartner[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPartner, setSelectedPartner] = useState<ChatPartner | null>(null);
@@ -41,9 +41,9 @@ export default function Chat() {
         const mockChatPartners: ChatPartner[] = [
           {
             id: "2",
-            name: language === "ko" ? "유카" : "ゆか",
+            name: "유카", // Keep names as is regardless of interface language
             photo: "https://images.unsplash.com/photo-1606406054219-619c4c2e2100?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGFzaWFuJTIwd29tYW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
-            lastMessage: language === "ko" ? "안녕하세요! 반가워요 :)" : "こんにちは！よろしくお願いします :)",
+            lastMessage: "안녕하세요! 반가워요 :)", // Message content stays original
             lastMessageTime: "14:30",
             unread: 0,
             matchId: "match123"
@@ -67,7 +67,7 @@ export default function Chat() {
     };
     
     loadUserAndChats();
-  }, [id, language]);
+  }, [id]);
 
   const formatTimeRelative = (timeString: string) => {
     // For demonstration, just return the time string

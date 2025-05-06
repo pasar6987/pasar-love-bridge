@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,15 +39,13 @@ export function ChatBox({ chatPartner, userId, matchId }: ChatBoxProps) {
       
       try {
         // In a real implementation, we would use an RPC function to fetch messages
-        // const { data, error } = await supabase.rpc('get_match_messages', { match_id: matchId });
-        
-        // For now, use mock data
+        // For now, use mock data - keeping the content unchanged regardless of language
         setTimeout(() => {
           const initialMessages: Message[] = [
             {
               id: "1",
               senderId: chatPartner.id,
-              content: language === "ko" ? "안녕하세요! 반가워요 :)" : "こんにちは！よろしくお願いします :)",
+              content: "안녕하세요! 반가워요 :)",
               timestamp: new Date(Date.now() - 3600000).toISOString(),
               type: "user"
             }
@@ -61,7 +58,7 @@ export function ChatBox({ chatPartner, userId, matchId }: ChatBoxProps) {
     };
     
     loadMessages();
-  }, [chatPartner.id, language, matchId]);
+  }, [chatPartner.id, matchId]);
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -103,14 +100,12 @@ export function ChatBox({ chatPartner, userId, matchId }: ChatBoxProps) {
         });
       }
       
-      // Simulate a response
+      // Simulate a response - keep message content unchanged regardless of interface language
       setTimeout(() => {
         const responseMsg: Message = {
           id: (Date.now() + 1).toString(),
           senderId: chatPartner.id,
-          content: language === "ko" 
-            ? "네, 저도 반가워요! 취미가 뭐예요?" 
-            : "はい、私も嬉しいです！趣味は何ですか？",
+          content: "네, 저도 반가워요! 취미가 뭐예요?",
           timestamp: new Date().toISOString(),
           type: "user"
         };
