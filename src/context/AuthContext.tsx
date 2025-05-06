@@ -24,15 +24,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const { t } = useLanguage();
 
+  // 디버깅을 위한 로그 함수
+  const logAuthDebug = (message: string, data?: any) => {
+    console.log(`[Auth Debug] ${message}`, data || '');
+  };
+
   useEffect(() => {
+    logAuthDebug("AuthContext 초기화");
+    
     // Set up auth state listener first - this is using Supabase's built-in auth functions
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        logAuthDebug(`Auth state changed: ${event}`, { userId: session?.user?.id });
         setSession(session);
         setUser(session?.user ?? null);
         
         // User sign-in event, check onboarding status and redirect accordingly
         if (event === 'SIGNED_IN') {
+          logAuthDebug("User signed in, checking onboarding status");
           // Use setTimeout to avoid deadlock with the onAuthStateChange listener
           setTimeout(() => {
             // Check user's onboarding status
@@ -46,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Then check for existing session - this is using Supabase's built-in auth functions
     supabase.auth.getSession().then(({ data: { session } }) => {
+      logAuthDebug("세션 확인 결과", { exists: !!session, userId: session?.user?.id });
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -57,46 +67,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => {
+      logAuthDebug("Auth subscription unsubscribe");
       subscription.unsubscribe();
     };
   }, [navigate]);
 
   const checkUserOnboardingStatus = async (userId: string | undefined) => {
+    logAuthDebug("사용자 온보딩 상태 확인 시작", { userId });
     if (!userId) {
+      logAuthDebug("유효한 사용자 ID가 없음");
       setLoading(false);
       return;
     }
     
     try {
       // Use RPC function to get user onboarding status - already using RPC
+      logAuthDebug("get_user_onboarding_status RPC 호출");
       const { data: userData, error } = await supabase.rpc(
         'get_user_onboarding_status',
         { user_id: userId }
       );
       
-      if (error) throw error;
+      if (error) {
+        logAuthDebug("온보딩 상태 조회 오류", error);
+        throw error;
+      }
+      
+      logAuthDebug("온보딩 상태 조회 결과", userData);
       
       if (!userData || userData.length === 0) {
         // User record doesn't exist yet, create it - already using RPC
+        logAuthDebug("사용자 프로필이 없음, 새로 생성");
         const { error: insertError } = await supabase.rpc(
           'upsert_user_profile',
           { user_id: userId }
         );
         
-        if (insertError) throw insertError;
+        if (insertError) {
+          logAuthDebug("사용자 프로필 생성 오류", insertError);
+          throw insertError;
+        }
         
-        // 새로운 사용자는 온보딩 페이지로 리디렉션
+        logAuthDebug("온보딩 1단계로 리디렉션");
         navigate('/onboarding/1');
       } else {
         const userProfile = userData[0];
+        logAuthDebug("사용자 프로필 확인됨", userProfile);
         if (!userProfile.onboarding_completed) {
           // 온보딩이 완료되지 않은 경우, 마지막 단계로 리디렉션
           const nextStep = userProfile.onboarding_step ? userProfile.onboarding_step : 1;
+          logAuthDebug(`온보딩 ${nextStep}단계로 리디렉션`);
           navigate(`/onboarding/${nextStep}`);
+        } else {
+          logAuthDebug("온보딩 완료됨");
         }
       }
     } catch (error) {
       console.error("사용자 온보딩 상태 확인 오류:", error);
+      logAuthDebug("사용자 온보딩 상태 확인 오류", error);
       toast({
         title: t("error.generic"),
         description: t("error.try_again"),

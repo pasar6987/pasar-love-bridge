@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 type VerificationStatus = "pending" | "approved" | "rejected" | "submitted";
 
@@ -40,34 +41,51 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<any>({});
+
+  // 디버깅을 위한 로그 함수
+  const logDebug = (message: string, data?: any) => {
+    console.log(`[Admin Debug] ${message}`, data || '');
+    setDebugInfo(prev => ({...prev, [message]: data || true}));
+  };
 
   // Check if user is admin
   useEffect(() => {
     const checkAdminStatus = async () => {
+      logDebug("checkAdminStatus 시작", { userId: user?.id });
+      
       if (!user) {
+        logDebug("사용자가 로그인하지 않음, 로그인 페이지로 리디렉션");
         navigate('/login');
         return;
       }
       
       try {
+        logDebug("admin_users 테이블에서 사용자 조회 시작", { userId: user.id });
+        
         const { data, error } = await supabase
           .from('admin_users')
           .select('*')
           .eq('user_id', user.id);
           
         if (error) {
+          logDebug("admin_users 조회 오류", error);
           throw error;
         }
         
+        logDebug("admin_users 조회 결과", { data });
+        
         if (!data || data.length === 0) {
+          logDebug("사용자가 관리자가 아님, 홈 페이지로 리디렉션");
           navigate('/home');
           return;
         }
         
+        logDebug("사용자는 관리자임, 관리자 페이지 접근 허용");
         setIsAdmin(true);
         fetchVerificationRequests();
       } catch (error) {
-        console.error("관리자 상태 확인 오류:", error);
+        logDebug("관리자 상태 확인 오류", error);
         navigate('/home');
       }
     };
@@ -77,6 +95,8 @@ export default function Admin() {
 
   const fetchVerificationRequests = async () => {
     try {
+      logDebug("인증 요청 조회 시작");
+      
       // Fetch identity verification requests
       const { data: identityData, error: identityError } = await supabase
         .from('identity_verifications')
@@ -84,7 +104,12 @@ export default function Admin() {
         .eq('status', 'submitted')
         .order('created_at', { ascending: false });
         
-      if (identityError) throw identityError;
+      if (identityError) {
+        logDebug("신분증 인증 요청 조회 오류", identityError);
+        throw identityError;
+      }
+      
+      logDebug("신분증 인증 요청 조회 결과", { count: identityData?.length });
       
       const formattedIdentityRequests: VerificationRequest[] = (identityData || []).map((item: any) => ({
         id: item.id,
@@ -108,7 +133,12 @@ export default function Admin() {
         .eq('type', 'profile')
         .order('created_at', { ascending: false });
         
-      if (photoError) throw photoError;
+      if (photoError) {
+        logDebug("프로필 사진 인증 요청 조회 오류", photoError);
+        throw photoError;
+      }
+      
+      logDebug("프로필 사진 인증 요청 조회 결과", { count: photoData?.length });
       
       const formattedPhotoRequests: VerificationRequest[] = (photoData || []).map((item: any) => ({
         id: item.id,
@@ -322,9 +352,16 @@ export default function Admin() {
   if (!isAdmin) {
     return (
       <MainLayout>
-        <div className="flex flex-col justify-center items-center h-[50vh]">
+        <div className="flex flex-col justify-center items-center h-[50vh] p-6">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
           <div>관리자 권한을 확인하는 중입니다...</div>
+          
+          <div className="mt-6 p-4 bg-gray-100 rounded-md w-full max-w-xl">
+            <h3 className="font-semibold mb-2">디버깅 정보:</h3>
+            <div className="overflow-auto max-h-96 text-xs font-mono">
+              <pre>{JSON.stringify({user: user?.id, ...debugInfo}, null, 2)}</pre>
+            </div>
+          </div>
         </div>
       </MainLayout>
     );
@@ -336,6 +373,45 @@ export default function Admin() {
         <h1 className="text-3xl font-bold mb-8">
           {language === 'ko' ? '관리자 페이지' : '管理者ページ'}
         </h1>
+        
+        {/* 디버깅 정보 표시 */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>디버깅 정보</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>키</TableHead>
+                  <TableHead>값</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>사용자 ID</TableCell>
+                  <TableCell>{user?.id || '없음'}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>관리자 상태</TableCell>
+                  <TableCell>{isAdmin ? '관리자임' : '관리자 아님'}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>로딩 상태</TableCell>
+                  <TableCell>{loading ? '로딩 중' : '로딩 완료'}</TableCell>
+                </TableRow>
+                {Object.entries(debugInfo).map(([key, value]) => (
+                  <TableRow key={key}>
+                    <TableCell>{key}</TableCell>
+                    <TableCell>
+                      {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
         
         <Tabs defaultValue="identity" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2">
