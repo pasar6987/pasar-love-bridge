@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
@@ -57,15 +56,26 @@ export default function UserProfile() {
     
     setIsDeleting(true);
     try {
+      console.log("Starting account deletion process");
+      const session = await supabase.auth.getSession();
+      const accessToken = session.data.session?.access_token;
+      
+      if (!accessToken) {
+        throw new Error("No access token available");
+      }
+      
+      console.log("Session obtained, calling delete-user-account function");
+      
       // Call the delete-user-account edge function
       const { data, error } = await supabase.functions.invoke('delete-user-account', {
         method: 'POST',
         body: {},
-        // Pass the session token to authenticate the request
         headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+          Authorization: `Bearer ${accessToken}`
         }
       });
+      
+      console.log("Edge function response:", data, error);
       
       if (error) {
         console.error("Edge function error:", error);
@@ -78,6 +88,7 @@ export default function UserProfile() {
       }
       
       // Sign out after successful account deletion
+      console.log("Account deleted successfully, signing out");
       await signOut();
       
       toast({

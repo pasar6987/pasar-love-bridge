@@ -13,12 +13,16 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
+  console.log('Delete user account function called')
+
   try {
     // Get the authorization header
     const authorization = req.headers.get('Authorization')
     if (!authorization) {
       throw new Error('Missing authorization header')
     }
+
+    console.log('Authorization header found')
 
     // Create a Supabase client with the auth header
     const supabase = createClient(
@@ -27,84 +31,115 @@ serve(async (req) => {
       { global: { headers: { Authorization: authorization } } }
     )
 
+    console.log('Supabase client created with service role key')
+
     // Get user from the auth header
     const {
       data: { user },
       error: userError,
     } = await supabase.auth.getUser()
 
+    console.log('User data response:', user ? 'User found' : 'User not found', 'Error:', userError)
+
     if (userError || !user) {
-      throw new Error('Error getting user')
+      throw new Error('Error getting user: ' + (userError?.message || 'User not found'))
     }
 
-    console.log('User found, proceeding with account deletion:', user.id);
+    console.log('User found, proceeding with account deletion:', user.id)
 
-    // 직접 user_id를 세션에서 가져와 사용
-    const userId = user.id;
+    // Get the user ID from the authenticated user
+    const userId = user.id
     
     // 1. First, delete user data from all related tables
+    console.log('Deleting user data from related tables')
     
-    // Delete profile photos
-    await supabase.from('profile_photos').delete().eq('user_id', userId);
-    
-    // Delete user nationalities
-    await supabase.from('user_nationalities').delete().eq('user_id', userId);
-    
-    // Delete user interests
-    await supabase.from('user_interests').delete().eq('user_id', userId);
-    
-    // Delete language skills
-    await supabase.from('language_skills').delete().eq('user_id', userId);
-    
-    // Delete identity verifications
-    await supabase.from('identity_verifications').delete().eq('user_id', userId);
-    
-    // Delete verification requests
-    await supabase.from('verification_requests').delete().eq('user_id', userId);
-    
-    // Get match IDs where user is involved
-    const { data: matchIds } = await supabase
-      .from('matches')
-      .select('id')
-      .or(`user_id.eq.${userId},target_user_id.eq.${userId}`);
-    
-    if (matchIds && matchIds.length > 0) {
-      // Delete chat messages for those matches
-      await supabase
-        .from('chat_messages')
-        .delete()
-        .in('match_id', matchIds.map(m => m.id));
+    try {
+      // Delete profile photos
+      await supabase.from('profile_photos').delete().eq('user_id', userId)
+      console.log('Deleted profile photos')
       
-      // Delete matches
-      await supabase
+      // Delete user nationalities
+      await supabase.from('user_nationalities').delete().eq('user_id', userId)
+      console.log('Deleted user nationalities')
+      
+      // Delete user interests
+      await supabase.from('user_interests').delete().eq('user_id', userId)
+      console.log('Deleted user interests')
+      
+      // Delete language skills
+      await supabase.from('language_skills').delete().eq('user_id', userId)
+      console.log('Deleted language skills')
+      
+      // Delete identity verifications
+      await supabase.from('identity_verifications').delete().eq('user_id', userId)
+      console.log('Deleted identity verifications')
+      
+      // Delete verification requests
+      await supabase.from('verification_requests').delete().eq('user_id', userId)
+      console.log('Deleted verification requests')
+      
+      // Get match IDs where user is involved
+      const { data: matchIds, error: matchError } = await supabase
         .from('matches')
-        .delete()
-        .or(`user_id.eq.${userId},target_user_id.eq.${userId}`);
-    }
-    
-    // Delete notifications
-    await supabase.from('notifications').delete().eq('user_id', userId);
-    
-    // Delete user profile
-    await supabase.from('users').delete().eq('id', userId);
-    
-    // Finally, delete the user from auth.users using admin privileges
-    const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId);
-    
-    if (authDeleteError) {
-      throw authDeleteError;
+        .select('id')
+        .or(`user_id.eq.${userId},target_user_id.eq.${userId}`)
+      
+      if (matchError) {
+        console.error('Error getting matches:', matchError)
+      }
+      
+      if (matchIds && matchIds.length > 0) {
+        console.log('Found matches to delete:', matchIds.length)
+        
+        // Delete chat messages for those matches
+        await supabase
+          .from('chat_messages')
+          .delete()
+          .in('match_id', matchIds.map(m => m.id))
+        console.log('Deleted chat messages for matches')
+        
+        // Delete matches
+        await supabase
+          .from('matches')
+          .delete()
+          .or(`user_id.eq.${userId},target_user_id.eq.${userId}`)
+        console.log('Deleted matches')
+      } else {
+        console.log('No matches found for this user')
+      }
+      
+      // Delete notifications
+      await supabase.from('notifications').delete().eq('user_id', userId)
+      console.log('Deleted notifications')
+      
+      // Delete user profile
+      await supabase.from('users').delete().eq('id', userId)
+      console.log('Deleted user profile')
+      
+      // Finally, delete the user from auth.users
+      const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId)
+      
+      if (authDeleteError) {
+        console.error('Error deleting user from auth.users:', authDeleteError)
+        throw authDeleteError
+      }
+      
+      console.log('Successfully deleted user from auth.users')
+    } catch (deleteError) {
+      console.error('Error during deletion process:', deleteError)
+      throw deleteError
     }
 
-    console.log('Account deletion successful for user:', userId);
+    console.log('Account deletion completed successfully for user:', userId)
 
     return new Response(
       JSON.stringify({ success: true }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
-    console.error('Error in delete-user-account function:', error);
+    console.error('Error in delete-user-account function:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || 'Unknown error occurred' }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,

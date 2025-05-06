@@ -12,6 +12,8 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  console.log('Deprecated delete_account function called, redirecting to delete-user-account');
+
   // This function is deprecated, redirect to delete-user-account
   return new Response(
     JSON.stringify({ 
