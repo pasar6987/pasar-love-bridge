@@ -1,19 +1,24 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 // Function to send a match request
 export const sendMatchRequest = async (targetProfileId: string): Promise<boolean> => {
   try {
+    console.log("[matchHelpers Debug] Sending match request to:", targetProfileId);
+    
     const { data, error } = await supabase.functions.invoke('send_match_request', {
       body: { target_profile_id: targetProfileId }
     });
     
     if (error) {
+      console.error("[matchHelpers Debug] Error invoking send_match_request:", error);
       throw error;
     }
     
-    return data as boolean;
+    console.log("[matchHelpers Debug] Match request response:", data);
+    return true;
   } catch (error) {
-    console.error("Error sending match request:", error);
+    console.error("[matchHelpers Debug] Error sending match request:", error);
     throw error;
   }
 };
@@ -21,17 +26,21 @@ export const sendMatchRequest = async (targetProfileId: string): Promise<boolean
 // Function to accept a match request
 export const acceptMatchRequest = async (requestId: string): Promise<boolean> => {
   try {
+    console.log("[matchHelpers Debug] Accepting match request:", requestId);
+    
     const { data, error } = await supabase.functions.invoke('accept_match_request', {
       body: { request_id: requestId }
     });
     
     if (error) {
+      console.error("[matchHelpers Debug] Error invoking accept_match_request:", error);
       throw error;
     }
     
-    return data as boolean;
+    console.log("[matchHelpers Debug] Accept request response:", data);
+    return true;
   } catch (error) {
-    console.error("Error accepting match request:", error);
+    console.error("[matchHelpers Debug] Error accepting match request:", error);
     throw error;
   }
 };
@@ -39,17 +48,21 @@ export const acceptMatchRequest = async (requestId: string): Promise<boolean> =>
 // Function to reject a match request
 export const rejectMatchRequest = async (requestId: string): Promise<boolean> => {
   try {
+    console.log("[matchHelpers Debug] Rejecting match request:", requestId);
+    
     const { data, error } = await supabase.functions.invoke('reject_match_request', {
       body: { request_id: requestId }
     });
     
     if (error) {
+      console.error("[matchHelpers Debug] Error invoking reject_match_request:", error);
       throw error;
     }
     
-    return data as boolean;
+    console.log("[matchHelpers Debug] Reject request response:", data);
+    return true;
   } catch (error) {
-    console.error("Error rejecting match request:", error);
+    console.error("[matchHelpers Debug] Error rejecting match request:", error);
     throw error;
   }
 };
@@ -58,6 +71,7 @@ export const rejectMatchRequest = async (requestId: string): Promise<boolean> =>
 export const getDailyRecommendations = async (): Promise<any[]> => {
   try {
     console.log("[matchHelpers Debug] Fetching daily recommendations");
+    
     const { data, error } = await supabase.functions.invoke('get_daily_recommendations');
     
     if (error) {
