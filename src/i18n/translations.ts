@@ -1,4 +1,3 @@
-
 export const translations = {
   "nav.messages": {
     ko: "메세지",
@@ -367,6 +366,10 @@ export const translations = {
   "notification.verify_passed": {
     ko: "인증 완료",
     ja: "認証完了"
+  },
+  "notification.verify_passed_desc": {
+    ko: "본인 인증이 완료되었습니다.",
+    ja: "本人確認が完了しました。"
   },
   "notification.yesterday": {
     ko: "어제",

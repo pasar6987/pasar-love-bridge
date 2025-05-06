@@ -57,10 +57,8 @@ export default function UserProfile() {
     
     setIsDeleting(true);
     try {
-      // Call the delete_account edge function through the Supabase function invoke method
-      const { error } = await supabase.functions.invoke('delete_account', {
-        method: 'POST'
-      });
+      // Call the delete_account_rpc stored procedure
+      const { error } = await supabase.rpc('delete_account_rpc');
       
       if (error) throw error;
       
