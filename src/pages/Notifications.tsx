@@ -47,7 +47,13 @@ export default function Notifications() {
           throw error;
         }
         
-        setNotifications(data || []);
+        // Type casting to ensure the data matches our Notification interface
+        const typedNotifications = (data || []).map(item => ({
+          ...item,
+          type: item.type as "match_accepted" | "match_rejected" | "new_message" | "verify_passed" | "verify_rejected"
+        }));
+        
+        setNotifications(typedNotifications);
       } catch (error) {
         console.error("Error fetching notifications:", error);
         toast({

@@ -40,7 +40,7 @@ export default function UserProfile() {
     setIsLoggingOut(true);
     try {
       await signOut();
-      // 토스트 메시지는 AuthContext에서 처리됨
+      // Toast message is handled in AuthContext
     } catch (error) {
       toast({
         title: t("auth.logout_failed"),
@@ -60,7 +60,10 @@ export default function UserProfile() {
       // Call the delete_account_rpc stored procedure
       const { error } = await supabase.rpc('delete_account_rpc');
       
-      if (error) throw error;
+      if (error) {
+        console.error("Delete account RPC error:", error);
+        throw error;
+      }
       
       // Sign out after successful account deletion
       await signOut();

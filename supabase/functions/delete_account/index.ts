@@ -39,37 +39,11 @@ serve(async (req) => {
 
     const userId = user.id;
 
-    // Delete user data from all related tables
-    // This needs to be done before deleting the auth user
-    // Add any other tables that contain user data
-    await supabase.from('profile_photos').delete().eq('user_id', userId);
-    await supabase.from('user_nationalities').delete().eq('user_id', userId);
-    await supabase.from('user_interests').delete().eq('user_id', userId);
-    await supabase.from('language_skills').delete().eq('user_id', userId);
-    await supabase.from('identity_verifications').delete().eq('user_id', userId);
-    await supabase.from('verification_requests').delete().eq('user_id', userId);
+    // Call the RPC function we've created to handle account deletion
+    const { error } = await supabase.rpc('delete_account_rpc');
     
-    // Delete matches and chats
-    await supabase.from('chat_messages')
-      .delete()
-      .or(`match_id.in.(select id from matches where user_id='${userId}' or target_user_id='${userId}')`);
-      
-    await supabase.from('matches')
-      .delete()
-      .or(`user_id.eq.${userId},target_user_id.eq.${userId}`);
-    
-    // Delete notifications
-    await supabase.from('notifications').delete().eq('user_id', userId);
-    
-    // Delete user profile
-    await supabase.from('users').delete().eq('id', userId);
-    
-    // Finally, delete the user from auth.users
-    // This requires admin privileges
-    const { error: deleteError } = await supabase.auth.admin.deleteUser(userId);
-    
-    if (deleteError) {
-      throw deleteError;
+    if (error) {
+      throw error;
     }
 
     return new Response(
@@ -77,6 +51,7 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
+    console.error('Error deleting account:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {
