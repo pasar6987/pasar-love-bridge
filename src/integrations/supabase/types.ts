@@ -371,6 +371,31 @@ export type Database = {
         Args: { photo_id: string }
         Returns: undefined
       }
+      get_recommended_profiles_by_nationality: {
+        Args: { p_user_id: string }
+        Returns: {
+          id: string
+          name: string
+          age: number
+          location: string
+          photo: string
+          bio: string
+          job: string
+          nationality: string
+        }[]
+      }
+      get_user_notifications: {
+        Args: { p_user_id: string }
+        Returns: {
+          id: string
+          type: string
+          title: string
+          body: string
+          related_id: string
+          is_read: boolean
+          created_at: string
+        }[]
+      }
       get_user_onboarding_status: {
         Args: { user_id: string }
         Returns: {
@@ -389,6 +414,10 @@ export type Database = {
           uploaded_at: string
         }[]
       }
+      handle_user_like: {
+        Args: { p_user_id: string; p_target_profile_id: string }
+        Returns: boolean
+      }
       insert_profile_photo: {
         Args: { user_id: string; photo_url: string; order_number: number }
         Returns: {
@@ -401,6 +430,14 @@ export type Database = {
       }
       is_admin: {
         Args: { user_id: string }
+        Returns: boolean
+      }
+      mark_all_notifications_as_read: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      mark_notification_as_read: {
+        Args: { p_notification_id: string }
         Returns: boolean
       }
       update_user_onboarding_step: {

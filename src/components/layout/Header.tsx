@@ -10,9 +10,74 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
+
+interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  is_read: boolean;
+  created_at: string;
+}
 
 export function Header() {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchLatestNotifications = async () => {
+      if (!user) return;
+      
+      setLoading(true);
+      try {
+        // Call our RPC function to get notifications
+        const { data, error } = await supabase.rpc(
+          'get_user_notifications',
+          { p_user_id: user.id }
+        );
+        
+        if (error) throw error;
+        
+        // Only take the most recent 3 unread notifications
+        const recentUnread = (data || [])
+          .filter(n => !n.is_read)
+          .slice(0, 3);
+          
+        setNotifications(recentUnread);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchLatestNotifications();
+    
+    // Set up a subscription to listen for updates
+    // This would be implemented in a real app
+    
+  }, [user]);
+  
+  const hasUnreadNotifications = notifications.length > 0;
+  
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    
+    if (diffMinutes < 60) {
+      return t("notifications.time_ago.minutes", { minutes: diffMinutes || 1 });
+    } else {
+      const diffHours = Math.floor(diffMinutes / 60);
+      return t("notifications.time_ago.hours", { hours: diffHours });
+    }
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 shadow-sm">
@@ -52,33 +117,41 @@ export function Header() {
                   className="relative rounded-full"
                 >
                   <Bell className="h-5 w-5" />
-                  <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-primary border-2 border-white"></span>
+                  {hasUnreadNotifications && (
+                    <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-primary border-2 border-white"></span>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-80 mt-2">
                 <div className="px-4 py-3 font-medium border-b">
                   {t('settings.notifications')}
                 </div>
-                <DropdownMenuItem className="py-2 px-4 cursor-pointer">
-                  <div>
-                    <p className="text-sm font-medium">
-                      {t('notifications.new_match')}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {t('notifications.time_ago.minutes', { minutes: 5 })}
-                    </p>
+                
+                {loading ? (
+                  <div className="py-4 flex justify-center">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                   </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="py-2 px-4 cursor-pointer">
-                  <div>
-                    <p className="text-sm font-medium">
-                      {t('notifications.new_message', { name: 'Ayumi' })}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {t('notifications.time_ago.hours', { hours: 1 })}
-                    </p>
+                ) : notifications.length > 0 ? (
+                  <>
+                    {notifications.map(notification => (
+                      <DropdownMenuItem key={notification.id} className="py-2 px-4 cursor-pointer">
+                        <div>
+                          <p className="text-sm font-medium">
+                            {notification.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatTimeAgo(notification.created_at)}
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                  </>
+                ) : (
+                  <div className="py-4 px-4 text-center text-sm text-muted-foreground">
+                    {t('notification.empty')}
                   </div>
-                </DropdownMenuItem>
+                )}
+                
                 <DropdownMenuItem className="justify-center cursor-pointer">
                   <Link to="/notifications" className="text-sm text-primary">
                     {t('notifications.view_all')}

@@ -1,66 +1,89 @@
+
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
 import { Link } from "react-router-dom";
 import { Heart, MessageSquare, CheckCircle, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface Notification {
   id: string;
   type: "match_accepted" | "match_rejected" | "new_message" | "verify_passed" | "verify_rejected";
   title: string;
   body: string;
-  relatedId?: string;
-  isRead: boolean;
-  createdAt: string;
+  related_id?: string;
+  is_read: boolean;
+  created_at: string;
 }
 
 export default function Notifications() {
   const { t } = useLanguage();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Mock data
+  // Fetch notifications from database
   useEffect(() => {
-    setTimeout(() => {
-      const mockNotifications: Notification[] = [
-        {
-          id: "1",
-          type: "match_accepted",
-          title: t("notification.match_accepted"),
-          body: t("language") === "ko" ? "유카님이 매칭을 수락했습니다." : "ユカさんがマッチングを承認しました。",
-          relatedId: "2",
-          isRead: false,
-          createdAt: new Date(Date.now() - 3600000).toISOString(),
-        },
-        {
-          id: "2",
-          type: "new_message",
-          title: t("notification.new_message"),
-          body: t("language") === "ko" ? "유카님이 메시지를 보냈습니다." : "ユカさんがメッセージを送りました。",
-          relatedId: "2",
-          isRead: false,
-          createdAt: new Date(Date.now() - 7200000).toISOString(),
-        },
-        {
-          id: "3",
-          type: "verify_passed",
-          title: t("notification.verify_passed"),
-          body: t("notification.verify_passed_desc"),
-          isRead: true,
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-        },
-      ];
-      setNotifications(mockNotifications);
-      setLoading(false);
-    }, 1000);
-  }, [t]);
+    const fetchNotifications = async () => {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
 
-  const markAsRead = (id: string) => {
-    setNotifications(
-      notifications.map((notif) =>
-        notif.id === id ? { ...notif, isRead: true } : notif
-      )
-    );
+      setLoading(true);
+      try {
+        // Use the RPC function we created
+        const { data, error } = await supabase.rpc(
+          'get_user_notifications', 
+          { p_user_id: user.id }
+        );
+        
+        if (error) {
+          throw error;
+        }
+        
+        setNotifications(data || []);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+        toast({
+          title: t("common.error"),
+          description: t("common.tryAgain"),
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, [t, user, navigate, toast]);
+
+  const markAsRead = async (id: string) => {
+    try {
+      // Use the RPC function to mark notification as read
+      const { error } = await supabase.rpc(
+        'mark_notification_as_read',
+        { p_notification_id: id }
+      );
+      
+      if (error) {
+        throw error;
+      }
+
+      // Update local state to reflect the change
+      setNotifications(
+        notifications.map((notif) =>
+          notif.id === id ? { ...notif, is_read: true } : notif
+        )
+      );
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -107,9 +130,9 @@ export default function Notifications() {
   const getNotificationLink = (notification: Notification) => {
     switch (notification.type) {
       case "match_accepted":
-        return `/chat/${notification.relatedId}`;
+        return `/chat/${notification.related_id}`;
       case "new_message":
-        return `/chat/${notification.relatedId}`;
+        return `/chat/${notification.related_id}`;
       case "verify_passed":
       case "verify_rejected":
         return "/settings";
@@ -136,7 +159,7 @@ export default function Notifications() {
                 key={notification.id}
                 to={getNotificationLink(notification)}
                 className={`block p-4 rounded-xl border ${
-                  notification.isRead ? "bg-white" : "bg-pastel-mint/10"
+                  notification.is_read ? "bg-white" : "bg-pastel-mint/10"
                 } hover:bg-gray-50 transition-colors`}
                 onClick={() => markAsRead(notification.id)}
               >
@@ -148,7 +171,7 @@ export default function Notifications() {
                     <div className="flex justify-between items-start">
                       <h3 className="font-medium">{notification.title}</h3>
                       <span className="text-xs text-muted-foreground">
-                        {formatDate(notification.createdAt)}
+                        {formatDate(notification.created_at)}
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">
