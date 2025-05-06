@@ -2,8 +2,52 @@
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
 
+// 버킷이 존재하는지 확인하는 함수
+export const ensureBucketExists = async (bucketName: string): Promise<boolean> => {
+  try {
+    // 버킷 목록 조회
+    const { data: buckets, error } = await supabase.storage.listBuckets();
+    if (error) {
+      console.error("버킷 목록 조회 오류:", error);
+      return false;
+    }
+
+    // 버킷이 존재하는지 확인
+    const bucketExists = buckets.some(b => b.name === bucketName);
+    if (!bucketExists) {
+      console.log(`버킷 '${bucketName}'이 존재하지 않습니다. 버킷을 생성합니다.`);
+      
+      // 버킷 생성 시도
+      const { data, error: createError } = await supabase.storage.createBucket(bucketName, {
+        public: bucketName === 'profile_photos', // profile_photos만 공개
+        fileSizeLimit: 5 * 1024 * 1024 // 5MB 제한
+      });
+      
+      if (createError) {
+        console.error(`버킷 '${bucketName}' 생성 오류:`, createError);
+        return false;
+      }
+      
+      console.log(`버킷 '${bucketName}'이 성공적으로 생성되었습니다!`);
+      return true;
+    }
+    
+    console.log(`버킷 '${bucketName}'이 이미 존재합니다.`);
+    return true;
+  } catch (error) {
+    console.error(`버킷 '${bucketName}' 확인 중 오류:`, error);
+    return false;
+  }
+};
+
 export const uploadProfilePhoto = async (userId: string, file: File, sortOrder: number): Promise<string> => {
   try {
+    // 버킷 존재 여부 확인 및 생성
+    const bucketExists = await ensureBucketExists('profile_photos');
+    if (!bucketExists) {
+      throw new Error("버킷 생성에 실패했습니다. 관리자에게 문의하세요.");
+    }
+    
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}/${uuidv4()}.${fileExt}`;
     const filePath = `${fileName}`;
@@ -60,6 +104,12 @@ export const uploadProfilePhoto = async (userId: string, file: File, sortOrder: 
 
 export const uploadIdentityDocument = async (userId: string, file: File): Promise<string> => {
   try {
+    // 버킷 존재 여부 확인 및 생성
+    const bucketExists = await ensureBucketExists('identity_documents');
+    if (!bucketExists) {
+      throw new Error("신분증 문서 저장소 생성에 실패했습니다. 관리자에게 문의하세요.");
+    }
+    
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}/${uuidv4()}.${fileExt}`;
     const filePath = `${fileName}`;
@@ -69,22 +119,6 @@ export const uploadIdentityDocument = async (userId: string, file: File): Promis
     // 파일이 큰 경우 경고 메시지
     if (file.size > 5 * 1024 * 1024) {
       console.warn("Large file detected, may encounter upload issues:", file.size);
-    }
-    
-    // 버킷이 존재하는지 먼저 확인
-    const { data: buckets, error: bucketsError } = await supabase.storage
-      .listBuckets();
-      
-    if (bucketsError) {
-      console.error("Error listing buckets:", bucketsError);
-      throw new Error(`Failed to list buckets: ${bucketsError.message}`);
-    } else {
-      console.log("Available buckets:", buckets.map(b => b.name));
-      const identityBucket = buckets.find(b => b.name === 'identity_documents');
-      if (!identityBucket) {
-        console.error("identity_documents bucket not found! Documents cannot be uploaded!");
-        throw new Error("Storage bucket 'identity_documents' does not exist");
-      }
     }
     
     // Supabase 스토리지 업로드
