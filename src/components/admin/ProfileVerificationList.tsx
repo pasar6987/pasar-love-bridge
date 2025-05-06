@@ -25,7 +25,7 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
     setProcessingId(request.id);
     
     try {
-      // Update profile photo verification status
+      // Update verification request status
       const { error: updateError } = await supabase
         .from('verification_requests')
         .update({ 
@@ -36,42 +36,15 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
         
       if (updateError) throw updateError;
       
-      // Get profile data
-      const { data: profileData, error: profileError } = await supabase
-        .from('profile_photos')
-        .select('*')
-        .eq('user_id', request.user_id);
-        
-      if (profileError) throw profileError;
-      
-      // Add photo to user's profile photos
-      if (request.photo_url) {
-        const photoOrder = profileData ? profileData.length : 0;
-        
-        // Insert the photo to profile_photos
-        const { error: photoUpdateError } = await supabase
-          .from('profile_photos')
-          .insert({ 
-            user_id: request.user_id,
-            url: request.photo_url,
-            sort_order: photoOrder
-          });
-          
-        if (photoUpdateError) throw photoUpdateError;
-      }
-      
-      // Create notification
-      const { error: notificationError } = await supabase
-        .from('notifications')
-        .insert({
-          user_id: request.user_id,
-          type: 'photo_approved',
-          title: language === 'ko' ? '프로필 사진 승인' : 'プロフィール写真承認',
-          body: language === 'ko' 
-            ? '프로필 사진이 승인되었습니다.' 
-            : 'プロフィール写真が承認されました。',
-          is_read: false
-        });
+      // Create notification - Use RPC function to bypass RLS
+      const { error: notificationError } = await supabase.rpc('create_admin_notification', {
+        p_user_id: request.user_id,
+        p_type: 'profile_approved',
+        p_title: language === 'ko' ? '프로필 사진 승인' : 'プロフィール写真承認',
+        p_body: language === 'ko' 
+          ? '프로필 사진이 승인되었습니다.' 
+          : 'プロフィール写真が承認されました。'
+      });
         
       if (notificationError) throw notificationError;
       
@@ -108,7 +81,7 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
     setProcessingId(request.id);
     
     try {
-      // Update profile photo verification status
+      // Update verification request status
       const { error: updateError } = await supabase
         .from('verification_requests')
         .update({ 
@@ -120,16 +93,13 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
         
       if (updateError) throw updateError;
       
-      // Create notification
-      const { error: notificationError } = await supabase
-        .from('notifications')
-        .insert({
-          user_id: request.user_id,
-          type: 'photo_rejected',
-          title: language === 'ko' ? '프로필 사진 거부' : 'プロフィール写真拒否',
-          body: language === 'ko' ? `사유: ${rejectionReason}` : `理由: ${rejectionReason}`,
-          is_read: false
-        });
+      // Create notification - Use RPC function to bypass RLS
+      const { error: notificationError } = await supabase.rpc('create_admin_notification', {
+        p_user_id: request.user_id,
+        p_type: 'profile_rejected',
+        p_title: language === 'ko' ? '프로필 사진 거부' : 'プロフィール写真拒否',
+        p_body: language === 'ko' ? `사유: ${rejectionReason}` : `理由: ${rejectionReason}`
+      });
         
       if (notificationError) throw notificationError;
       
@@ -185,11 +155,18 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
                     </p>
                     {request.photo_url && (
                       <div className="max-w-sm mx-auto">
-                        <img 
-                          src={request.photo_url} 
-                          alt="Profile" 
-                          className="w-full rounded-md border"
-                        />
+                        <a href={request.photo_url} target="_blank" rel="noopener noreferrer">
+                          <img 
+                            src={request.photo_url} 
+                            alt="Profile Photo" 
+                            className="w-full rounded-md border object-contain max-h-64"
+                            onError={(e) => {
+                              console.error("Image failed to load:", request.photo_url);
+                              e.currentTarget.src = "/placeholder.svg";
+                              e.currentTarget.alt = "이미지 로드 실패";
+                            }}
+                          />
+                        </a>
                       </div>
                     )}
                   </div>

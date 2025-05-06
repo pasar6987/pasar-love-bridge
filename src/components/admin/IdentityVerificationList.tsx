@@ -60,18 +60,15 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
         
       if (userUpdateError) throw userUpdateError;
       
-      // Create notification
-      const { error: notificationError } = await supabase
-        .from('notifications')
-        .insert({
-          user_id: request.user_id,
-          type: 'verify_passed',
-          title: language === 'ko' ? '신분증 인증 완료' : '本人確認完了',
-          body: language === 'ko' 
-            ? '신분증 인증이 완료되었습니다. 이제 채팅 기능을 사용할 수 있습니다.' 
-            : '本人確認が完了しました。チャット機能が使えるようになりました。',
-          is_read: false
-        });
+      // Create notification - Use RPC function to bypass RLS
+      const { error: notificationError } = await supabase.rpc('create_admin_notification', {
+        p_user_id: request.user_id,
+        p_type: 'verify_passed',
+        p_title: language === 'ko' ? '신분증 인증 완료' : '本人確認完了',
+        p_body: language === 'ko' 
+          ? '신분증 인증이 완료되었습니다. 이제 채팅 기능을 사용할 수 있습니다.' 
+          : '本人確認が完了しました。チャット機能が使えるようになりました。'
+      });
         
       if (notificationError) throw notificationError;
       
@@ -120,16 +117,13 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
         
       if (updateError) throw updateError;
       
-      // Create notification
-      const { error: notificationError } = await supabase
-        .from('notifications')
-        .insert({
-          user_id: request.user_id,
-          type: 'verify_rejected',
-          title: language === 'ko' ? '신분증 인증 거부' : '本人確認拒否',
-          body: language === 'ko' ? `사유: ${rejectionReason}` : `理由: ${rejectionReason}`,
-          is_read: false
-        });
+      // Create notification - Use RPC function to bypass RLS
+      const { error: notificationError } = await supabase.rpc('create_admin_notification', {
+        p_user_id: request.user_id,
+        p_type: 'verify_rejected',
+        p_title: language === 'ko' ? '신분증 인증 거부' : '本人確認拒否',
+        p_body: language === 'ko' ? `사유: ${rejectionReason}` : `理由: ${rejectionReason}`
+      });
         
       if (notificationError) throw notificationError;
       
@@ -185,11 +179,18 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
                     </p>
                     {request.id_front_url && (
                       <div className="max-w-sm mx-auto">
-                        <img 
-                          src={request.id_front_url} 
-                          alt="ID Document" 
-                          className="w-full rounded-md border"
-                        />
+                        <a href={request.id_front_url} target="_blank" rel="noopener noreferrer">
+                          <img 
+                            src={request.id_front_url} 
+                            alt="ID Document" 
+                            className="w-full rounded-md border object-contain max-h-64"
+                            onError={(e) => {
+                              console.error("Image failed to load:", request.id_front_url);
+                              e.currentTarget.src = "/placeholder.svg";
+                              e.currentTarget.alt = "이미지 로드 실패";
+                            }}
+                          />
+                        </a>
                       </div>
                     )}
                   </div>
