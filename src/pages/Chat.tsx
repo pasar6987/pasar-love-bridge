@@ -7,7 +7,7 @@ import { ChatRoom } from "@/components/chat/ChatRoom";
 import { useLanguage } from "@/i18n/useLanguage";
 import { useAuth } from "@/context/AuthContext";
 import { getUserChats, ChatSession } from "@/utils/chatHelpers";
-import { checkVerificationStatus } from "@/utils/verificationHelpers";
+import { canAccessChat } from "@/utils/verificationHelpers";
 import { useToast } from "@/hooks/use-toast";
 import { Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ export default function Chat() {
   const { toast } = useToast();
   const [activeChat, setActiveChat] = useState<ChatSession | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isVerified, setIsVerified] = useState(true); // Default to true to avoid flash of verification message
+  const [canAccess, setCanAccess] = useState(true); // Default to true to avoid flash of verification message
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,12 +32,12 @@ export default function Chat() {
     // Check verification status
     const checkVerification = async () => {
       try {
-        const { is_verified, verification_status } = await checkVerificationStatus();
-        setIsVerified(is_verified);
-        setVerificationStatus(verification_status);
+        const { canAccess, verificationStatus } = await canAccessChat();
+        setCanAccess(canAccess);
+        setVerificationStatus(verificationStatus);
         
-        // If verified or has ongoing verification, continue loading chat
-        if (is_verified || verification_status === 'approved') {
+        // If verified, continue loading chat
+        if (canAccess) {
           if (id) {
             loadChatDetails(id);
           } else {
@@ -90,7 +90,7 @@ export default function Chat() {
   }
   
   // Show verification required message if not verified
-  if (!isVerified) {
+  if (!canAccess) {
     return (
       <MainLayout>
         <div className="max-w-3xl mx-auto px-4">
@@ -108,12 +108,12 @@ export default function Chat() {
             <p className="text-muted-foreground mb-6">
               {language === "ko"
                 ? verificationStatus === 'submitted' || verificationStatus === 'in_review' 
-                  ? "신분증 인증이 검토 중입니다. 승인 후 채팅이 가능합니다."
+                  ? "신분증 인증이 검토 중입니다. 승인 후 채팅이 가능합니다. 잠시만 기다려 주세요."
                   : verificationStatus === 'rejected'
                   ? "신분증 인증이 거부되었습니다. 다시 제출해 주세요."
                   : "안전한 매칭을 위해 신분증 인증이 필요합니다. 인증 후 채팅이 가능합니다."
                 : verificationStatus === 'submitted' || verificationStatus === 'in_review'
-                  ? "身分証明書の確認が審査中です。承認後にチャットが可能になります。"
+                  ? "身分証明書の確認が審査中です。承認までしばらくお待ちください。承認後にチャットが可能になります。"
                   : verificationStatus === 'rejected'
                   ? "身分証明書の認証が拒否されました。再度提出してください。"
                   : "安全なマッチングのために身分証明書の認証が必要です。認証後にチャットが可能になります。"}

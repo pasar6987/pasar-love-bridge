@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 // Interface for verification status response
@@ -25,7 +24,25 @@ export const checkVerificationStatus = async (): Promise<VerificationStatus> => 
   }
 };
 
-// Function to check if a user can access recommendations
+// Function to check if a user can access chat
+export const canAccessChat = async (): Promise<{
+  canAccess: boolean;
+  verificationStatus: string;
+}> => {
+  try {
+    const status = await checkVerificationStatus();
+    // User can access chat ONLY if they're verified
+    return {
+      canAccess: status.is_verified,
+      verificationStatus: status.verification_status
+    };
+  } catch (error) {
+    console.error("Error checking chat access:", error);
+    return { canAccess: false, verificationStatus: 'error' };
+  }
+};
+
+// This function remains unchanged - recommendations access doesn't require verification
 export const canAccessRecommendations = async (): Promise<boolean> => {
   try {
     const status = await checkVerificationStatus();

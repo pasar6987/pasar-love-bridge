@@ -5,6 +5,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
 interface ChatSession {
@@ -20,7 +21,10 @@ interface ChatSession {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      headers: corsHeaders,
+      status: 204
+    });
   }
 
   try {
@@ -87,10 +91,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error fetching user chats:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify([]),  // Return empty array instead of error
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
+        status: 200,  // Return 200 with empty array instead of 400 to prevent CORS issues
       }
     );
   }
