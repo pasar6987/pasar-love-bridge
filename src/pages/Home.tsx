@@ -28,34 +28,52 @@ export default function Home() {
           return;
         }
         
-        // Call the Edge Function instead of the RPC function
-        const { data, error } = await fetch(
+        // 세션 및 액세스 토큰 가져오기
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !sessionData.session) {
+          console.error("Session error:", sessionError);
+          navigate('/login');
+          return;
+        }
+        
+        const accessToken = sessionData.session.access_token;
+        
+        // Edge Function 호출
+        const response = await fetch(
           'https://jnupeddogxvcrqoolamn.functions.supabase.co/get-recommendations',
           {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+              'Authorization': `Bearer ${accessToken}`
             }
           }
-        ).then(res => res.json());
+        );
         
-        if (error) {
-          console.error("Error fetching recommendations:", error);
-          setLoading(false);
-          return;
+        // 응답 검사
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch recommendations');
         }
+        
+        const data = await response.json();
         
         setRecommendations(data?.recommendations || []);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching profiles:', error);
         setLoading(false);
+        toast({
+          title: t("common.error"),
+          description: t("common.tryAgain"),
+          variant: "destructive"
+        });
       }
     };
 
     fetchProfiles();
-  }, [language, navigate, user]);
+  }, [language, navigate, user, toast, t]);
 
   const handleLike = async (id: string) => {
     try {

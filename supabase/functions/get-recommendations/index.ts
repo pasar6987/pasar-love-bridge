@@ -14,30 +14,38 @@ serve(async (req) => {
   }
 
   try {
-    // Get the authorization header
-    const authorization = req.headers.get('Authorization');
-    if (!authorization) {
-      throw new Error('Missing authorization header');
+    // 요청 헤더에서 토큰 추출
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new Error('Invalid authorization header');
     }
-
-    // Create a Supabase client with the auth header
+    
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Supabase 클라이언트 생성
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { global: { headers: { Authorization: authorization } } }
+      { 
+        global: { 
+          headers: { 
+            Authorization: `Bearer ${token}` 
+          } 
+        } 
+      }
     );
 
-    // Get user from the auth header
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    // 토큰으로 사용자 가져오기
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
+      console.error('Error getting user:', userError);
       throw new Error('Error getting user');
     }
 
-    // Get user nationality from the user_nationalities table
+    console.log('Successfully authenticated user:', user.id);
+
+    // 사용자 국적 가져오기
     const { data: nationalityData, error: nationalityError } = await supabase
       .from('user_nationalities')
       .select('nationality')
@@ -46,7 +54,7 @@ serve(async (req) => {
     
     if (nationalityError) {
       console.log('Error fetching nationality:', nationalityError);
-      // Fallback to the fixed function if we can't get the nationality
+      // 국적 가져오기 실패 시 고정 함수로 대체
       const { data, error } = await supabase.rpc(
         'get_recommended_profiles_by_nationality_fixed',
         { p_user_id: user.id }
@@ -64,8 +72,7 @@ serve(async (req) => {
       );
     }
 
-    // Get recommended profiles based on nationality
-    // We're using the mock function since we don't have real user data yet
+    // 국적 기반 추천 프로필 가져오기
     const { data, error } = await supabase.rpc(
       'get_recommended_profiles_by_nationality_fixed',
       { p_user_id: user.id }
