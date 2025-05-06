@@ -1,8 +1,7 @@
-
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { getUserChats, formatTimeAgo, ChatSession } from "@/utils/chatHelpers";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/i18n/useLanguage";
+import { Link } from "react-router-dom";
+import { formatTimeAgo } from "@/utils/chatHelpers";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";

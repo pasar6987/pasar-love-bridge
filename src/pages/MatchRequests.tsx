@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MatchRequestItem } from "@/components/matches/MatchRequestItem";
-import { fetchSentRequests, fetchReceivedRequests } from "@/utils/matchHelpers";
+import { getMatchRequests, fetchSentRequests, fetchReceivedRequests } from "@/utils/matchHelpers";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 

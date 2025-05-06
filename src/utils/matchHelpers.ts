@@ -85,9 +85,9 @@ export interface MatchRequest {
 // Function to get match requests (both sent and received)
 export const getMatchRequests = async (type: 'sent' | 'received'): Promise<MatchRequest[]> => {
   try {
-    const { data: userId } = await supabase.auth.getUser();
+    const { data: userData } = await supabase.auth.getUser();
     
-    if (!userId.user) {
+    if (!userData.user) {
       throw new Error("User not authenticated");
     }
     
@@ -105,3 +105,17 @@ export const getMatchRequests = async (type: 'sent' | 'received'): Promise<Match
     return [];
   }
 };
+
+// Function to fetch sent requests - added to fix the import error
+export const fetchSentRequests = async (): Promise<MatchRequest[]> => {
+  return getMatchRequests('sent');
+};
+
+// Function to fetch received requests - added to fix the import error
+export const fetchReceivedRequests = async (): Promise<MatchRequest[]> => {
+  return getMatchRequests('received');
+};
+
+// For compatibility with RecommendationList.tsx
+export const fetchDailyRecommendations = getDailyRecommendations;
+

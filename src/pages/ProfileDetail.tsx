@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useParams, useNavigate } from "react-router-dom";
@@ -80,15 +79,18 @@ export default function ProfileDetail() {
         });
         
         // Check if user has already liked this profile
-        const { data: likeData, error: likeError } = await supabase
-          .from('match_requests')
-          .select('id')
-          .eq('sender_id', supabase.auth.user()?.id)
-          .eq('receiver_id', id)
-          .limit(1);
+        const { data: authData } = await supabase.auth.getUser();
+        if (authData.user) {
+          const { data: likeData, error: likeError } = await supabase
+            .from('matches')
+            .select('id')
+            .eq('user_id', authData.user.id)
+            .eq('target_user_id', id)
+            .limit(1);
           
-        if (!likeError && likeData?.length > 0) {
-          setIsLiked(true);
+          if (!likeError && likeData && likeData.length > 0) {
+            setIsLiked(true);
+          }
         }
       } catch (error) {
         console.error("Error fetching profile details:", error);
