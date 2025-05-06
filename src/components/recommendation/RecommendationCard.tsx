@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, X, ChevronRight, ChevronLeft } from "lucide-react";
@@ -80,7 +81,15 @@ export function RecommendationCard({
     
     try {
       setIsProcessing(true);
+      console.log("[RecommendationCard Debug] Attempting to send match request for profile ID:", profile.id);
+      
+      if (!profile.id) {
+        throw new Error("Invalid profile ID");
+      }
+      
       await sendMatchRequest(profile.id);
+      console.log("[RecommendationCard Debug] Match request sent successfully");
+      
       setIsLiked(true);
       onLike(profile.id);
       
@@ -90,9 +99,13 @@ export function RecommendationCard({
       });
     } catch (error) {
       console.error("[RecommendationCard Debug] Error sending match request:", error);
+      console.error("[RecommendationCard Debug] Full error object:", JSON.stringify(error));
+      
       toast({
         title: t("common.error"),
-        description: t("common.tryAgain"),
+        description: language === "ko" ? 
+          "매칭 요청을 보내는 중 오류가 발생했습니다. 나중에 다시 시도해주세요." : 
+          "マッチングリクエストの送信中にエラーが発生しました。後でもう一度お試しください。",
         variant: "destructive"
       });
     } finally {

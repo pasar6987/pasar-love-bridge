@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 // Function to send a match request
@@ -6,12 +5,18 @@ export const sendMatchRequest = async (targetProfileId: string): Promise<boolean
   try {
     console.log("[matchHelpers Debug] Sending match request to:", targetProfileId);
     
+    if (!targetProfileId) {
+      console.error("[matchHelpers Debug] Error: targetProfileId is empty or undefined");
+      throw new Error("Target profile ID is required");
+    }
+    
     const { data, error } = await supabase.functions.invoke('send_match_request', {
       body: { target_profile_id: targetProfileId }
     });
     
     if (error) {
       console.error("[matchHelpers Debug] Error invoking send_match_request:", error);
+      console.error("[matchHelpers Debug] Error details:", JSON.stringify(error));
       throw error;
     }
     
@@ -19,6 +24,7 @@ export const sendMatchRequest = async (targetProfileId: string): Promise<boolean
     return true;
   } catch (error) {
     console.error("[matchHelpers Debug] Error sending match request:", error);
+    console.error("[matchHelpers Debug] Error object details:", JSON.stringify(error));
     throw error;
   }
 };
@@ -76,6 +82,7 @@ export const getDailyRecommendations = async (): Promise<any[]> => {
     
     if (error) {
       console.error("[matchHelpers Debug] Error invoking get_daily_recommendations:", error);
+      console.error("[matchHelpers Debug] Error details:", JSON.stringify(error));
       throw error;
     }
     
@@ -100,6 +107,7 @@ export const getDailyRecommendations = async (): Promise<any[]> => {
     return data;
   } catch (error) {
     console.error("[matchHelpers Debug] Error fetching daily recommendations:", error);
+    console.error("[matchHelpers Debug] Error object details:", JSON.stringify(error));
     return [];
   }
 };
