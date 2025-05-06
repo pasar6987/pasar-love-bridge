@@ -12,7 +12,10 @@ export const uploadProfilePhoto = async (userId: string, file: File, sortOrder: 
     
     const { error: uploadError, data } = await supabase.storage
       .from('profile_photos')
-      .upload(filePath, file);
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
     
     if (uploadError) {
       console.error("Storage upload error:", uploadError);
@@ -57,7 +60,10 @@ export const uploadIdentityDocument = async (userId: string, file: File): Promis
     
     const { error: uploadError } = await supabase.storage
       .from('identity_documents')
-      .upload(filePath, file);
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
     
     if (uploadError) {
       console.error("Storage upload error:", uploadError);
@@ -68,11 +74,31 @@ export const uploadIdentityDocument = async (userId: string, file: File): Promis
       .from('identity_documents')
       .getPublicUrl(filePath);
     
-    console.log("Generated public URL:", urlData.publicUrl);
+    const publicUrl = urlData.publicUrl;
+    console.log("Generated public URL:", publicUrl);
     
-    return urlData.publicUrl;
+    return publicUrl;
   } catch (error) {
     console.error("Error uploading identity document:", error);
     throw error;
+  }
+};
+
+// 파일 존재 여부를 확인하는 새로운 함수
+export const checkFileExists = async (bucket: string, path: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .download(path);
+      
+    if (error) {
+      console.error("File check error:", error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error checking file existence:", error);
+    return false;
   }
 };

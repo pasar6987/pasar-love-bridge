@@ -122,6 +122,17 @@ export const IdentityVerificationList = ({ identityRequests, loading, onRefresh 
         
       if (updateError) throw updateError;
       
+      // Update user is_verified status to false when rejected
+      const { error: userUpdateError } = await supabase
+        .from('users')
+        .update({ 
+          is_verified: false, 
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', request.user_id);
+        
+      if (userUpdateError) throw userUpdateError;
+      
       // Create notification - Use RPC function to bypass RLS
       const { data: notificationData, error: notificationError } = await supabase.rpc(
         'create_admin_notification',
