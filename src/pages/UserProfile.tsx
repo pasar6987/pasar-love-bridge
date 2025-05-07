@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
@@ -97,7 +96,8 @@ export default function UserProfile() {
         description: t("profile.account_deleted_desc"),
       });
       
-      navigate('/');
+      // Changed from '/' to '/login'
+      navigate('/login');
     } catch (error) {
       console.error("Error deleting account:", error);
       toast({

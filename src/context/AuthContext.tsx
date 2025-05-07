@@ -186,7 +186,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      navigate('/');
+      // Changed from '/' to '/login'
+      navigate('/login');
       
       toast({
         title: t("auth.logout_success"),

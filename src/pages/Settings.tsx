@@ -119,7 +119,8 @@ export default function Settings() {
   const handleLogout = () => {
     setIsLoggingOut(true);
     setTimeout(() => {
-      navigate('/');
+      // Changed from '/' to '/login'
+      navigate('/login');
     }, 1000);
   };
 
