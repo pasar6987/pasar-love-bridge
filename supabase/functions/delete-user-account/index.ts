@@ -1,4 +1,3 @@
-
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
@@ -44,92 +43,95 @@ serve(async (req) => {
       throw new Error('Error getting user: ' + (userError?.message || 'User not found'));
     }
 
-    console.log('User found, proceeding with account deletion:', user.id);
+    console.log('User found, proceeding with account soft deletion:', user.id);
 
     // 사용자 ID 가져오기
     const userId = user.id;
-    
-    // 1. 먼저, 관련된 모든 테이블에서 사용자 데이터 삭제
-    console.log('Deleting user data from related tables');
+    const currentTimestamp = new Date().toISOString();
     
     try {
-      // 프로필 사진 삭제
-      await supabase.from('profile_photos').delete().eq('user_id', userId);
-      console.log('Deleted profile photos');
+      // Soft delete the user profile (set deleted_at timestamp)
+      const { error: userUpdateError } = await supabase
+        .from('users')
+        .update({ 
+          deleted_at: currentTimestamp,
+          nickname: `Deleted User ${currentTimestamp}`, // Anonymize the user data
+          bio: null,
+          city: null,
+          country_code: null
+        })
+        .eq('id', userId);
       
-      // 사용자 국적 정보 삭제
-      await supabase.from('user_nationalities').delete().eq('user_id', userId);
-      console.log('Deleted user nationalities');
-      
-      // 사용자 관심사 삭제
-      await supabase.from('user_interests').delete().eq('user_id', userId);
-      console.log('Deleted user interests');
-      
-      // 언어 능력 삭제
-      await supabase.from('language_skills').delete().eq('user_id', userId);
-      console.log('Deleted language skills');
-      
-      // 신원 인증 정보 삭제
-      await supabase.from('identity_verifications').delete().eq('user_id', userId);
-      console.log('Deleted identity verifications');
-      
-      // 인증 요청 삭제
-      await supabase.from('verification_requests').delete().eq('user_id', userId);
-      console.log('Deleted verification requests');
-      
-      // 사용자가 포함된 매치 ID 가져오기
-      const { data: matchIds, error: matchError } = await supabase
-        .from('matches')
-        .select('id')
-        .or(`user_id.eq.${userId},target_user_id.eq.${userId}`);
-      
-      if (matchError) {
-        console.error('Error getting matches:', matchError);
+      if (userUpdateError) {
+        console.error('Error soft-deleting user profile:', userUpdateError);
+        throw userUpdateError;
       }
+      console.log('Successfully soft-deleted user profile');
       
-      if (matchIds && matchIds.length > 0) {
-        console.log('Found matches to delete:', matchIds.length);
+      // Soft delete all profile photos
+      const { error: photosUpdateError } = await supabase
+        .from('profile_photos')
+        .update({ deleted_at: currentTimestamp })
+        .eq('user_id', userId);
         
-        // 해당 매치의 채팅 메시지 삭제
-        await supabase
-          .from('chat_messages')
-          .delete()
-          .in('match_id', matchIds.map(m => m.id));
-        console.log('Deleted chat messages for matches');
-        
-        // 매치 삭제
-        await supabase
-          .from('matches')
-          .delete()
-          .or(`user_id.eq.${userId},target_user_id.eq.${userId}`);
-        console.log('Deleted matches');
+      if (photosUpdateError) {
+        console.error('Error soft-deleting profile photos:', photosUpdateError);
+        // Continue with other operations even if this one fails
       } else {
-        console.log('No matches found for this user');
+        console.log('Successfully soft-deleted profile photos');
       }
       
-      // 알림 삭제
-      await supabase.from('notifications').delete().eq('user_id', userId);
-      console.log('Deleted notifications');
+      // Keep user nationalities but disconnect them from the user?
+      // We could soft delete these too if needed
       
-      // 사용자 프로필 삭제
-      await supabase.from('users').delete().eq('id', userId);
-      console.log('Deleted user profile');
+      // Keep user interests but disconnect them from the user?
+      // We could soft delete these too if needed
       
-      // 마지막으로, auth.users에서 사용자 삭제
-      const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId);
+      // Keep identity verifications for record-keeping but mark as deleted
+      // We could soft delete these too if needed
       
-      if (authDeleteError) {
-        console.error('Error deleting user from auth.users:', authDeleteError);
-        throw authDeleteError;
+      // Keep verification requests for record-keeping
+      // We could soft delete these too if needed
+      
+      // Handle chat messages (optionally anonymize them)
+      // For now, we'll leave them as is for chat history integrity
+      
+      // Handle matches - mark as deleted or keep for analytics
+      // For now, we'll leave them as is
+      
+      // Mark notifications as read to clean up UI for other users
+      const { error: notificationsError } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', userId);
+      
+      if (notificationsError) {
+        console.error('Error updating notifications:', notificationsError);
+        // Continue with other operations
+      } else {
+        console.log('Successfully marked notifications as read');
       }
       
-      console.log('Successfully deleted user from auth.users');
+      // We don't completely delete the auth.users entry
+      // Instead, disable the user account so they can't log in anymore
+      const { error: authDisableError } = await supabase.auth.admin.updateUserById(
+        userId,
+        { banned: true }
+      );
+      
+      if (authDisableError) {
+        console.error('Error disabling user account:', authDisableError);
+        throw authDisableError;
+      }
+      
+      console.log('Successfully disabled user account');
+      
     } catch (deleteError) {
-      console.error('Error during deletion process:', deleteError);
+      console.error('Error during soft deletion process:', deleteError);
       throw deleteError;
     }
 
-    console.log('Account deletion completed successfully for user:', userId);
+    console.log('Account soft deletion completed successfully for user:', userId);
 
     return new Response(
       JSON.stringify({ success: true }),

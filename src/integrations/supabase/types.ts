@@ -209,6 +209,7 @@ export type Database = {
       }
       profile_photos: {
         Row: {
+          deleted_at: string | null
           id: string
           sort_order: number
           uploaded_at: string | null
@@ -216,6 +217,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          deleted_at?: string | null
           id?: string
           sort_order: number
           uploaded_at?: string | null
@@ -223,6 +225,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          deleted_at?: string | null
           id?: string
           sort_order?: number
           uploaded_at?: string | null
@@ -293,6 +296,7 @@ export type Database = {
           city: string | null
           country_code: string | null
           created_at: string | null
+          deleted_at: string | null
           gender: string | null
           id: string
           is_verified: boolean | null
@@ -307,6 +311,7 @@ export type Database = {
           city?: string | null
           country_code?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           gender?: string | null
           id: string
           is_verified?: boolean | null
@@ -321,6 +326,7 @@ export type Database = {
           city?: string | null
           country_code?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           gender?: string | null
           id?: string
           is_verified?: boolean | null
@@ -473,6 +479,7 @@ export type Database = {
       insert_profile_photo: {
         Args: { user_id: string; photo_url: string; order_number: number }
         Returns: {
+          deleted_at: string | null
           id: string
           sort_order: number
           uploaded_at: string | null
@@ -482,6 +489,10 @@ export type Database = {
       }
       is_admin: {
         Args: { user_id: string }
+        Returns: boolean
+      }
+      is_deleted: {
+        Args: { deleted_at: string }
         Returns: boolean
       }
       mark_all_notifications_as_read: {
@@ -516,6 +527,7 @@ export type Database = {
           city: string | null
           country_code: string | null
           created_at: string | null
+          deleted_at: string | null
           gender: string | null
           id: string
           is_verified: boolean | null
@@ -533,6 +545,7 @@ export type Database = {
           city: string | null
           country_code: string | null
           created_at: string | null
+          deleted_at: string | null
           gender: string | null
           id: string
           is_verified: boolean | null

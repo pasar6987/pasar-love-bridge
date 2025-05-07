@@ -51,6 +51,44 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
     setProcessingId(request.id);
     
     try {
+      // Check if the photo URL still exists and hasn't been soft deleted
+      if (request.photo_url) {
+        // Extract user ID and validate if photo still exists
+        const photoPathParts = request.photo_url.split('/');
+        const userIdFromUrl = photoPathParts[photoPathParts.length - 2]; // Assuming URL format: .../userId/uuid.ext
+        
+        if (userIdFromUrl) {
+          const { data: photoExists, error: checkError } = await supabase
+            .from('profile_photos')
+            .select('deleted_at')
+            .eq('url', request.photo_url)
+            .single();
+          
+          if (checkError || !photoExists) {
+            console.error("Photo not found in database:", checkError);
+            toast({
+              title: language === 'ko' ? '사진을 찾을 수 없음' : '写真が見つかりません',
+              description: language === 'ko' ? '해당 사진이 삭제되었거나 존재하지 않습니다.' : 'その写真は削除されたか、存在しません。',
+              variant: "destructive"
+            });
+            onRefresh();
+            setProcessingId(null);
+            return;
+          }
+          
+          if (photoExists.deleted_at) {
+            toast({
+              title: language === 'ko' ? '사진이 삭제됨' : '写真が削除されました',
+              description: language === 'ko' ? '해당 사진은 사용자에 의해 삭제되었습니다.' : 'その写真はユーザーによって削除されました。',
+              variant: "destructive"
+            });
+            onRefresh();
+            setProcessingId(null);
+            return;
+          }
+        }
+      }
+      
       // Update verification request status
       const { error } = await supabase.functions.invoke('update-verification-request', {
         body: {
@@ -119,7 +157,7 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
       
       toast({
         title: language === 'ko' ? '거부 완료' : '拒否完了',
-        description: language === 'ko' ? '요청이 거부되었습니다.' : 'リクエ스トが拒否されました。'
+        description: language === 'ko' ? '요청이 거부되었습니다.' : 'リクエストが拒否されました。'
       });
       
     } catch (error) {

@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { uploadProfilePhoto } from "@/utils/storageHelpers";
+import { useToast } from "@/hooks/use-toast";
 
 export interface UploadPhotoResult {
   success: boolean;
@@ -19,6 +20,7 @@ export const useUploadPhotos = (
   const [isUploading, setIsUploading] = useState(false);
   const [pendingApproval, setPendingApproval] = useState<string[]>([]);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   // Update tempData whenever photos change if updateTempData is provided
   useEffect(() => {
@@ -96,16 +98,72 @@ export const useUploadPhotos = (
       
     } catch (error) {
       console.error("Error uploading photos:", error);
+      toast({
+        title: "Error",
+        description: "Failed to upload photos",
+        variant: "destructive"
+      });
     } finally {
       setIsUploading(false);
     }
   };
   
-  const removePhoto = (index: number) => {
-    // Only remove from the temporary data
-    const newPhotos = [...photos];
-    newPhotos.splice(index, 1);
-    setPhotos(newPhotos);
+  const removePhoto = async (index: number) => {
+    if (!user) return;
+    
+    try {
+      setIsUploading(true);
+      const photoUrl = photos[index];
+      
+      // Find the photo ID in the database
+      const { data: photoData, error: findError } = await supabase
+        .from('profile_photos')
+        .select('id')
+        .eq('url', photoUrl)
+        .eq('user_id', user.id)
+        .single();
+        
+      if (findError) {
+        console.error("Error finding photo:", findError);
+        throw findError;
+      }
+      
+      if (!photoData?.id) {
+        console.error("Photo not found in database");
+        throw new Error("Photo not found in database");
+      }
+      
+      // Soft delete the photo by setting deleted_at
+      const { error: deleteError } = await supabase
+        .from('profile_photos')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', photoData.id);
+        
+      if (deleteError) {
+        console.error("Error soft-deleting photo:", deleteError);
+        throw deleteError;
+      }
+      
+      // Remove from the local state
+      const newPhotos = [...photos];
+      newPhotos.splice(index, 1);
+      setPhotos(newPhotos);
+      
+      toast({
+        title: "Success",
+        description: "Photo has been removed"
+      });
+      
+    } catch (error) {
+      console.error("Error removing photo:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove photo",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
   
   const updateProfilePhoto = async (file: File, index: number): Promise<UploadPhotoResult> => {

@@ -36,7 +36,8 @@ export const uploadProfilePhoto = async (userId: string, file: File, sortOrder: 
       .insert({
         user_id: userId,
         url: publicUrl,
-        sort_order: sortOrder
+        sort_order: sortOrder,
+        deleted_at: null // Explicitly set to null for new photos
       });
       
     if (dbError) {

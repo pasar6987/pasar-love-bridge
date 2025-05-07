@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,6 +24,7 @@ export default function UserProfile() {
     photos, 
     isUploading, 
     updateProfilePhoto,
+    removePhoto,
     isPendingApproval,
     pendingApproval
   } = useUploadPhotos(userPhotos);
@@ -45,11 +47,12 @@ export default function UserProfile() {
         
         setUserProfile(data);
         
-        // Fetch user photos
+        // Fetch user photos - exclude soft deleted photos
         const { data: photosData, error: photosError } = await supabase
           .from('profile_photos')
           .select('*')
           .eq('user_id', user.id)
+          .is('deleted_at', null) // Only fetch non-deleted photos
           .order('sort_order');
           
         if (photosError) throw photosError;
@@ -131,13 +134,18 @@ export default function UserProfile() {
     fileInputRef.current?.click();
   };
 
-  const handleRemovePhoto = (index: number) => {
-    const newPhotos = [...userPhotos];
-    newPhotos.splice(index, 1);
-    setUserPhotos(newPhotos);
-    
-    // Here you would typically also remove the photo from the database,
-    // but since we need admin approval we'll leave that for a separate feature
+  const handleRemovePhoto = async (index: number) => {
+    try {
+      await removePhoto(index);
+      // The UI update will be handled within the removePhoto function
+    } catch (error) {
+      console.error("Error removing photo:", error);
+      toast({
+        title: language === 'ko' ? "오류" : "エラー",
+        description: language === 'ko' ? "프로필 사진 삭제 실패" : "プロフィール写真の削除に失敗しました",
+        variant: "destructive"
+      });
+    }
   };
 
   if (loading) {

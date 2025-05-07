@@ -30,6 +30,13 @@ const ProfilePhotoGrid = ({
 
   const pendingMessage = language === 'ko' ? '검토중입니다' : '審査中です';
   const addPhotoText = language === 'ko' ? '사진 추가' : '写真追加';
+  const confirmDeleteText = language === 'ko' ? '사진을 삭제하시겠습니까?' : '写真を削除しますか？';
+
+  const handleRemovePhoto = (index: number) => {
+    if (window.confirm(confirmDeleteText)) {
+      onRemovePhoto(index);
+    }
+  };
 
   return (
     <div className="grid grid-cols-3 gap-2">
@@ -57,7 +64,7 @@ const ProfilePhotoGrid = ({
                 <Upload className="h-4 w-4" />
               </button>
               <button
-                onClick={() => onRemovePhoto(index)}
+                onClick={() => handleRemovePhoto(index)}
                 className="absolute bottom-2 right-2 p-1 bg-white/80 rounded-full text-gray-700 hover:bg-white"
                 disabled={isUploading}
               >
