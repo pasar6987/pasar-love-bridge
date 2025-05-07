@@ -300,6 +300,7 @@ export type Database = {
           gender: string | null
           id: string
           is_verified: boolean | null
+          nationality: string | null
           nickname: string | null
           onboarding_completed: boolean | null
           onboarding_step: number | null
@@ -315,6 +316,7 @@ export type Database = {
           gender?: string | null
           id: string
           is_verified?: boolean | null
+          nationality?: string | null
           nickname?: string | null
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
@@ -330,6 +332,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_verified?: boolean | null
+          nationality?: string | null
           nickname?: string | null
           onboarding_completed?: boolean | null
           onboarding_step?: number | null
@@ -531,6 +534,7 @@ export type Database = {
           gender: string | null
           id: string
           is_verified: boolean | null
+          nationality: string | null
           nickname: string | null
           onboarding_completed: boolean | null
           onboarding_step: number | null
@@ -549,6 +553,7 @@ export type Database = {
           gender: string | null
           id: string
           is_verified: boolean | null
+          nationality: string | null
           nickname: string | null
           onboarding_completed: boolean | null
           onboarding_step: number | null

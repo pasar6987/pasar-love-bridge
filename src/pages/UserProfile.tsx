@@ -138,6 +138,7 @@ export default function UserProfile() {
     try {
       await removePhoto(index);
       // The UI update will be handled within the removePhoto function
+      // This now properly soft deletes the photo in the database
     } catch (error) {
       console.error("Error removing photo:", error);
       toast({

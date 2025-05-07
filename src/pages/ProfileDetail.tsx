@@ -43,6 +43,7 @@ export default function ProfileDetail() {
             country_code,
             bio,
             gender,
+            nationality, 
             is_verified,
             profile_photos (
               id,

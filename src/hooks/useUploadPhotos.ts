@@ -121,6 +121,7 @@ export const useUploadPhotos = (
         .select('id')
         .eq('url', photoUrl)
         .eq('user_id', user.id)
+        .is('deleted_at', null) // Make sure we're not finding already deleted photos
         .single();
         
       if (findError) {

@@ -32,17 +32,17 @@ export function NationalitySelection({
       if (!user) return;
       
       try {
-        // 사용자 국적 데이터 조회
+        // 사용자 국적 데이터 조회 - now directly from users table
         const { data, error } = await supabase
-          .from('user_nationalities')
+          .from('users')
           .select('nationality')
-          .eq('user_id', user.id)
+          .eq('id', user.id)
           .maybeSingle();
           
         if (error) throw error;
         
         // 기존 데이터가 있으면 설정
-        if (data) {
+        if (data && data.nationality) {
           setNationality(data.nationality as "ko" | "ja");
           updateTempData(data.nationality as "ko" | "ja");
           setExisting(true);
@@ -73,17 +73,18 @@ export function NationalitySelection({
     try {
       let error = null;
       
-      // 기존 데이터가 있으면 업데이트, 없으면 삽입
-      if (existing) {
-        // 업데이트 쿼리
-        const { error: updateError } = await supabase
-          .from('user_nationalities')
-          .update({ nationality })
-          .eq('user_id', user.id);
+      // Update the nationality directly in the users table
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ nationality })
+        .eq('id', user.id);
           
-        error = updateError;
-      } else {
-        // 삽입 쿼리
+      error = updateError;
+      
+      if (error) throw error;
+      
+      // For compatibility with existing code during migration, also update the user_nationalities table
+      if (!existing) {
         const { error: insertError } = await supabase
           .from('user_nationalities')
           .insert({
@@ -91,10 +92,11 @@ export function NationalitySelection({
             nationality
           });
           
-        error = insertError;
+        if (insertError) {
+          console.warn("Error updating user_nationalities table (legacy):", insertError);
+          // Don't throw error here as this is just for compatibility
+        }
       }
-      
-      if (error) throw error;
       
       onComplete();
     } catch (error) {
