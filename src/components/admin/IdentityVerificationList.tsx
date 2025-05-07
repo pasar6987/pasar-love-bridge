@@ -1,4 +1,6 @@
 
+// Update the export to be named instead of default
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,6 +32,7 @@ interface IdentityVerificationListProps {
   onRefresh: () => void;
 }
 
+// Note the named export here (not default export)
 export const IdentityVerificationList = ({ identityRequests, loading, onRefresh }: IdentityVerificationListProps) => {
   const { t, language } = useLanguage();
   const { toast } = useToast();

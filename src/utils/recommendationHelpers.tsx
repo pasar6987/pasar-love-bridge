@@ -18,20 +18,23 @@ export interface Profile {
 export const getDailyRecommendations = async (): Promise<Profile[]> => {
   try {
     // Call the Supabase function that handles recommendations
-    const { data, error } = await supabase.rpc('get_daily_recommendations_rpc');
+    const { data: responseData, error } = await supabase.rpc('get_daily_recommendations_rpc');
     
     if (error) {
       console.error("Error fetching recommendations:", error);
       return [];
     }
     
-    if (!data || !data.success || !data.data) {
-      console.error("Invalid recommendation data structure:", data);
+    // Handle the response based on its actual structure
+    if (!responseData || typeof responseData !== 'object' || !('success' in responseData) || !('data' in responseData)) {
+      console.error("Invalid recommendation data structure:", responseData);
       return [];
     }
     
     // Add front-end transformations if needed
-    return data.data.map((profile: Profile) => {
+    const profileData = responseData.data as Profile[];
+    
+    return profileData.map((profile: Profile) => {
       // Format the photos array if needed
       const photos = profile.photos || [];
       if (profile.photo_url && photos.length === 0) {
@@ -52,7 +55,7 @@ export const getDailyRecommendations = async (): Promise<Profile[]> => {
 // Function to handle user liking a profile
 export const likeProfile = async (profileId: string): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.rpc('send_match_request_rpc', {
+    const { data: responseData, error } = await supabase.rpc('send_match_request_rpc', {
       target_profile_id: profileId
     });
     
@@ -61,7 +64,11 @@ export const likeProfile = async (profileId: string): Promise<boolean> => {
       return false;
     }
     
-    return data?.success || false;
+    if (typeof responseData === 'object' && responseData !== null && 'success' in responseData) {
+      return responseData.success as boolean;
+    }
+    
+    return false;
   } catch (error) {
     console.error("Error in likeProfile:", error);
     return false;

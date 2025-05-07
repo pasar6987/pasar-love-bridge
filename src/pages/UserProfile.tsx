@@ -1,4 +1,6 @@
 
+// Let's add the missing handleFileChange, handleAddPhoto, handleUpdatePhoto, handleRemovePhoto functions
+
 import React, { useState, useRef, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -52,7 +54,7 @@ export default function UserProfile() {
         setUserProfile(data);
         
         // Check for pending bio verification
-        if (data.verification_requests && data.verification_requests.length > 0) {
+        if (data.verification_requests && Array.isArray(data.verification_requests)) {
           const pendingBioRequest = data.verification_requests.find(
             (req: any) => req.type === 'bio_update' && req.status === 'pending'
           );

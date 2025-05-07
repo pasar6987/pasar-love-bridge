@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,13 +16,7 @@ interface ProfileVerificationListProps {
   onRefresh: () => void;
 }
 
-interface GroupedRequests {
-  [userId: string]: {
-    displayName: string;
-    requests: VerificationRequest[];
-  };
-}
-
+// Note the named export here (not default export)
 export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: ProfileVerificationListProps) => {
   const { t, language } = useLanguage();
   const { toast } = useToast();
