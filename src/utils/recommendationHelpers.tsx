@@ -26,13 +26,15 @@ export const getDailyRecommendations = async (): Promise<Profile[]> => {
     }
     
     // Handle the response based on its actual structure
-    if (!responseData || typeof responseData !== 'object' || !('success' in responseData) || !('data' in responseData)) {
+    const typedResponse = responseData as any; // Using any temporarily for type conversion
+    
+    if (!typedResponse || typeof typedResponse !== 'object' || !('success' in typedResponse) || !('data' in typedResponse)) {
       console.error("Invalid recommendation data structure:", responseData);
       return [];
     }
     
     // Add front-end transformations if needed
-    const profileData = responseData.data as Profile[];
+    const profileData = typedResponse.data as Profile[];
     
     return profileData.map((profile: Profile) => {
       // Format the photos array if needed
@@ -64,8 +66,9 @@ export const likeProfile = async (profileId: string): Promise<boolean> => {
       return false;
     }
     
-    if (typeof responseData === 'object' && responseData !== null && 'success' in responseData) {
-      return responseData.success as boolean;
+    const typedResponse = responseData as any; // Type cast for safety
+    if (typeof typedResponse === 'object' && typedResponse !== null && 'success' in typedResponse) {
+      return typedResponse.success as boolean;
     }
     
     return false;

@@ -1,4 +1,3 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileVerificationList } from "@/components/admin/ProfileVerificationList";
 import { IdentityVerificationList } from "@/components/admin/IdentityVerificationList";

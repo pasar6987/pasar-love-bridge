@@ -16,6 +16,16 @@ interface ProfileVerificationListProps {
   onRefresh: () => void;
 }
 
+// Add the missing GroupedRequests interface
+interface GroupedRequestItem {
+  displayName: string;
+  requests: VerificationRequest[];
+}
+
+interface GroupedRequests {
+  [userId: string]: GroupedRequestItem;
+}
+
 // Note the named export here (not default export)
 export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: ProfileVerificationListProps) => {
   const { t, language } = useLanguage();
@@ -298,4 +308,4 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
       </CardContent>
     </Card>
   );
-}
+};
