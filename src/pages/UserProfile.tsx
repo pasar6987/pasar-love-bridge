@@ -1,6 +1,4 @@
 
-// Let's add the missing handleFileChange, handleAddPhoto, handleUpdatePhoto, handleRemovePhoto functions
-
 import React, { useState, useRef, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,23 +40,28 @@ export default function UserProfile() {
       try {
         setLoading(true);
         
-        // Fetch user profile with all details
-        const { data, error } = await supabase
+        // Fetch user profile without joining verification_requests
+        const { data: profileData, error: profileError } = await supabase
           .from('users')
-          .select('*, verification_requests(*)')
+          .select('*')
           .eq('id', user.id)
           .single();
           
-        if (error) throw error;
+        if (profileError) throw profileError;
         
-        setUserProfile(data);
+        setUserProfile(profileData);
         
-        // Check for pending bio verification
-        if (data.verification_requests && Array.isArray(data.verification_requests)) {
-          const pendingBioRequest = data.verification_requests.find(
-            (req: any) => req.type === 'bio_update' && req.status === 'pending'
-          );
-          setPendingBioApproval(!!pendingBioRequest);
+        // Fetch bio verification requests separately
+        const { data: verificationData, error: verificationError } = await supabase
+          .from('verification_requests')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('type', 'bio_update')
+          .eq('status', 'pending');
+          
+        if (!verificationError) {
+          // Check if there are any pending bio verification requests
+          setPendingBioApproval(verificationData && verificationData.length > 0);
         }
         
         // Fetch user photos - exclude soft deleted photos
@@ -232,18 +235,18 @@ export default function UserProfile() {
             </Card>
             
             <ProfileBio 
-              initialBio={userProfile.bio} 
-              userId={userProfile.id}
+              initialBio={userProfile?.bio} 
+              userId={userProfile?.id}
               isPendingApproval={pendingBioApproval}
             />
             
             <ProfileBasicInfo
-              nickname={userProfile.nickname}
-              birthdate={userProfile.birthdate}
-              gender={userProfile.gender}
-              city={userProfile.city}
-              countryCode={userProfile.country_code}
-              nationality={userProfile.nationality}
+              nickname={userProfile?.nickname}
+              birthdate={userProfile?.birthdate}
+              gender={userProfile?.gender}
+              city={userProfile?.city}
+              countryCode={userProfile?.country_code}
+              nationality={userProfile?.nationality}
             />
           </TabsContent>
           
