@@ -3,6 +3,13 @@ import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { uploadProfilePhoto } from "@/utils/storageHelpers";
+
+export interface UploadPhotoResult {
+  success: boolean;
+  publicUrl?: string;
+  error?: string;
+}
 
 export const useUploadPhotos = (
   initialPhotos: string[] = [],
@@ -12,7 +19,7 @@ export const useUploadPhotos = (
   const [isUploading, setIsUploading] = useState(false);
   const { user } = useAuth();
 
-  // updateTempData가 있을 때마다 photos가 변경되면 tempData 업데이트
+  // Update tempData whenever photos change if updateTempData is provided
   useEffect(() => {
     if (updateTempData) {
       updateTempData(photos);
@@ -27,36 +34,27 @@ export const useUploadPhotos = (
     try {
       const newPhotos = [...photos];
       
-      // 업로드 가능한 사진 수 제한 (최대 6장)
+      // Limit to maximum 6 photos
       const availableSlots = 6 - photos.length;
       const filesToUpload = Array.from(files).slice(0, availableSlots);
       
       for (const file of filesToUpload) {
-        // 5MB 크기 제한
+        // 5MB size limit
         if (file.size > 5 * 1024 * 1024) {
           console.error("File size exceeds 5MB limit");
           continue;
         }
         
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${uuidv4()}.${fileExt}`;
-        const filePath = `${user.id}/${fileName}`;
+        // Calculate the sort order for the new photo
+        const sortOrder = photos.length + newPhotos.length - photos.length;
         
-        // 파일 업로드
-        const { error: uploadError, data } = await supabase.storage
-          .from('profile_photos')
-          .upload(filePath, file);
-          
-        if (uploadError) {
-          throw uploadError;
+        // Use the uploadProfilePhoto utility function to handle the upload and database entry
+        const publicUrl = await uploadProfilePhoto(user.id, file, sortOrder);
+        
+        if (publicUrl) {
+          newPhotos.push(publicUrl);
+          console.log("Photo uploaded successfully:", publicUrl);
         }
-        
-        // 공개 URL 가져오기
-        const { data: { publicUrl } } = supabase.storage
-          .from('profile_photos')
-          .getPublicUrl(filePath);
-          
-        newPhotos.push(publicUrl);
       }
       
       setPhotos(newPhotos);
@@ -69,16 +67,84 @@ export const useUploadPhotos = (
   };
   
   const removePhoto = (index: number) => {
-    // 임시 데이터에서만 삭제 (실제 스토리지에서는 삭제하지 않음)
+    // Only remove from the temporary data
     const newPhotos = [...photos];
     newPhotos.splice(index, 1);
     setPhotos(newPhotos);
+  };
+  
+  const updateProfilePhoto = async (file: File, index: number): Promise<UploadPhotoResult> => {
+    if (!user) return { success: false, error: "Not authenticated" };
+    
+    try {
+      setIsUploading(true);
+      
+      // 5MB size limit
+      if (file.size > 5 * 1024 * 1024) {
+        return { success: false, error: "File size exceeds 5MB limit" };
+      }
+      
+      // Create a verification request for the photo
+      const { data: requestData, error: requestError } = await supabase
+        .from('verification_requests')
+        .insert({
+          user_id: user.id,
+          type: 'profile_photo',
+          status: 'pending',
+          user_display_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+          photo_url: null // Will be updated after upload
+        })
+        .select('id')
+        .single();
+        
+      if (requestError) throw requestError;
+      
+      // Upload the file
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${uuidv4()}.${fileExt}`;
+      const filePath = `${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('profile_photos')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+        
+      if (uploadError) throw uploadError;
+      
+      // Get the public URL
+      const { data: urlData } = supabase.storage
+        .from('profile_photos')
+        .getPublicUrl(filePath);
+        
+      const publicUrl = urlData.publicUrl;
+      
+      // Update the verification request with the photo URL
+      const { error: updateError } = await supabase
+        .from('verification_requests')
+        .update({
+          photo_url: publicUrl,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', requestData.id);
+        
+      if (updateError) throw updateError;
+      
+      return { success: true, publicUrl };
+    } catch (error) {
+      console.error("Error updating profile photo:", error);
+      return { success: false, error: String(error) };
+    } finally {
+      setIsUploading(false);
+    }
   };
   
   return {
     photos,
     isUploading,
     handleFileUpload,
-    removePhoto
+    removePhoto,
+    updateProfilePhoto
   };
 };

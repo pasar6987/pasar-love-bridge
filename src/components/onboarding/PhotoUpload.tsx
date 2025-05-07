@@ -1,9 +1,10 @@
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/useLanguage";
 import { X, Loader2 } from "lucide-react";
 import { useUploadPhotos } from "@/hooks/useUploadPhotos";
+import { useToast } from "@/hooks/use-toast";
 
 interface PhotoUploadProps {
   onComplete: () => void;
@@ -17,6 +18,7 @@ export function PhotoUpload({
   updateTempData 
 }: PhotoUploadProps) {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const { photos, isUploading, handleFileUpload, removePhoto } = useUploadPhotos(tempData, updateTempData);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
