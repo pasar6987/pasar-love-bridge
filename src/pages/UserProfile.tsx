@@ -2,13 +2,16 @@
 import React, { useState, useRef, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/i18n/useLanguage";
 import ProfilePhotoGrid from "@/components/ProfilePhotoGrid";
 import { useUploadPhotos } from "@/hooks/useUploadPhotos";
+import { ProfileBasicInfo } from "@/components/profile/ProfileBasicInfo";
+import { ProfileBio } from "@/components/profile/ProfileBio";
+import { AccountManagement } from "@/components/profile/AccountManagement";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function UserProfile() {
   const { user } = useAuth();
@@ -18,6 +21,7 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
+  const [pendingBioApproval, setPendingBioApproval] = useState(false);
 
   const [userPhotos, setUserPhotos] = useState<string[]>([]);
   const { 
@@ -36,16 +40,24 @@ export default function UserProfile() {
       try {
         setLoading(true);
         
-        // Fetch user profile
+        // Fetch user profile with all details
         const { data, error } = await supabase
           .from('users')
-          .select('*')
+          .select('*, verification_requests(*)')
           .eq('id', user.id)
           .single();
           
         if (error) throw error;
         
         setUserProfile(data);
+        
+        // Check for pending bio verification
+        if (data.verification_requests && data.verification_requests.length > 0) {
+          const pendingBioRequest = data.verification_requests.find(
+            (req: any) => req.type === 'bio_update' && req.status === 'pending'
+          );
+          setPendingBioApproval(!!pendingBioRequest);
+        }
         
         // Fetch user photos - exclude soft deleted photos
         const { data: photosData, error: photosError } = await supabase
@@ -177,53 +189,73 @@ export default function UserProfile() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">{t("profile.my_profile")}</h1>
         
-        <Card className="mb-8">
-          <CardContent className="pt-6">
-            <h2 className="text-xl font-semibold mb-4">{t("profile.photos")}</h2>
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="mb-8">
+            <TabsTrigger value="profile">
+              {language === "ko" ? "프로필" : "プロフィール"}
+            </TabsTrigger>
+            <TabsTrigger value="account">
+              {language === "ko" ? "계정 관리" : "アカウント管理"}
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="profile">
+            <Card className="mb-8">
+              <CardContent className="pt-6">
+                <h2 className="text-xl font-semibold mb-4">{t("profile.photos")}</h2>
+                
+                <ProfilePhotoGrid
+                  photos={userPhotos}
+                  isPendingApproval={isPendingApproval}
+                  onAddPhoto={handleAddPhoto}
+                  onRemovePhoto={handleRemovePhoto}
+                  onUpdatePhoto={handleUpdatePhoto}
+                  isUploading={isUploading}
+                />
+                
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*" 
+                  className="hidden" 
+                />
+                
+                <p className="text-sm text-gray-500 mt-4">
+                  {language === 'ko' 
+                    ? '프로필 사진은 관리자 승인 후 공개됩니다. 최대 9장까지 등록 가능합니다.' 
+                    : 'プロフィール写真は管理者の承認後に公開されます。最大9枚まで登録できます。'}
+                </p>
+              </CardContent>
+            </Card>
             
-            <ProfilePhotoGrid
-              photos={userPhotos}
-              isPendingApproval={isPendingApproval}
-              onAddPhoto={handleAddPhoto}
-              onRemovePhoto={handleRemovePhoto}
-              onUpdatePhoto={handleUpdatePhoto}
-              isUploading={isUploading}
+            <ProfileBio 
+              initialBio={userProfile.bio} 
+              userId={userProfile.id}
+              isPendingApproval={pendingBioApproval}
             />
             
-            <input 
-              type="file" 
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*" 
-              className="hidden" 
+            <ProfileBasicInfo
+              nickname={userProfile.nickname}
+              birthdate={userProfile.birthdate}
+              gender={userProfile.gender}
+              city={userProfile.city}
+              countryCode={userProfile.country_code}
+              nationality={userProfile.nationality}
             />
-            
-            <p className="text-sm text-gray-500 mt-4">
-              {language === 'ko' 
-                ? '프로필 사진은 관리자 승인 후 공개됩니다. 최대 9장까지 등록 가능합니다.' 
-                : 'プロフィール写真は管理者の承認後に公開されます。最大9枚まで登録できます。'}
-            </p>
-          </CardContent>
-        </Card>
-        
-        {/* Rest of user profile details remain the same */}
-        <Card>
-          <CardContent>
-            <h2 className="text-xl font-semibold mb-4">{t("profile.details")}</h2>
-            <div className="grid gap-4">
-              <div>
-                <label className="text-gray-700">{t("profile.nickname")}</label>
-                <p>{userProfile.nickname || "N/A"}</p>
-              </div>
-              <div>
-                <label className="text-gray-700">{t("profile.bio")}</label>
-                <p>{userProfile.bio || "N/A"}</p>
-              </div>
-              {/* Add more profile details here */}
-            </div>
-            <Button>{t("profile.edit")}</Button>
-          </CardContent>
-        </Card>
+          </TabsContent>
+          
+          <TabsContent value="account">
+            <Card>
+              <CardContent className="py-6">
+                <h2 className="text-xl font-semibold mb-6">
+                  {language === "ko" ? "계정 관리" : "アカウント管理"}
+                </h2>
+                <AccountManagement />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </MainLayout>
   );

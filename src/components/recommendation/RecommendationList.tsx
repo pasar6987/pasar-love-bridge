@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { RecommendationCard } from "@/components/recommendation/RecommendationCard";
-import { getDailyRecommendations } from "@/utils/matchHelpers";
+import { getDailyRecommendations, likeProfile, passProfile } from "@/utils/recommendationHelpers";
 import { useLanguage } from "@/i18n/useLanguage";
 import { useToast } from "@/hooks/use-toast";
 
@@ -73,8 +73,17 @@ export function RecommendationList() {
     loadRecommendations();
   }, [toast, language]);
 
-  const handleLike = (id: string) => {
+  const handleLike = async (id: string) => {
     console.log("[RecommendationList Debug] Like clicked for profile:", id);
+    
+    const success = await likeProfile(id);
+    if (success) {
+      toast({
+        title: language === "ko" ? "좋아요!" : "いいね！",
+        description: language === "ko" ? "매치 요청을 보냈습니다" : "マッチリクエストを送信しました",
+      });
+    }
+    
     if (currentIndex < profiles.length - 1) {
       setCurrentIndex(prev => prev + 1);
     } else {
@@ -83,8 +92,11 @@ export function RecommendationList() {
     }
   };
 
-  const handlePass = (id: string) => {
+  const handlePass = async (id: string) => {
     console.log("[RecommendationList Debug] Pass clicked for profile:", id);
+    
+    await passProfile(id);
+    
     if (currentIndex < profiles.length - 1) {
       setCurrentIndex(prev => prev + 1);
     } else {
