@@ -66,6 +66,9 @@ export function ProfilePhotoEditor({ currentPhotoUrl, username }: ProfilePhotoEd
         setIsDialogOpen(false);
         setSelectedFile(null);
         setPreviewPhoto(null);
+        
+        // Reload the page to show the "검토중입니다" status
+        window.location.reload();
       } else {
         toast({
           title: language === 'ko' ? '업로드 실패' : 'アップロード失敗',

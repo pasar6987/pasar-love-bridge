@@ -84,21 +84,6 @@ export const useUploadPhotos = (
         return { success: false, error: "File size exceeds 5MB limit" };
       }
       
-      // Create a verification request for the photo
-      const { data: requestData, error: requestError } = await supabase
-        .from('verification_requests')
-        .insert({
-          user_id: user.id,
-          type: 'profile_photo',
-          status: 'pending',
-          user_display_name: user.user_metadata?.full_name || user.email?.split('@')[0],
-          photo_url: null // Will be updated after upload
-        })
-        .select('id')
-        .single();
-        
-      if (requestError) throw requestError;
-      
       // Upload the file
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${uuidv4()}.${fileExt}`;
@@ -120,16 +105,27 @@ export const useUploadPhotos = (
         
       const publicUrl = urlData.publicUrl;
       
-      // Update the verification request with the photo URL
-      const { error: updateError } = await supabase
-        .from('verification_requests')
-        .update({
+      // Create a verification request for the photo
+      const { data: requestData, error: requestError } = await supabase
+        .rpc('create_admin_notification', {
+          p_user_id: user.id,
+          p_type: 'profile_photo_request',
+          p_title: '프로필 사진 변경 요청',
+          p_body: '새 프로필 사진이 요청되었습니다'
+        });
+      
+      if (requestError) throw requestError;
+      
+      // Add the verification request
+      const { data, error } = await supabase.functions.invoke('create-verification-request', {
+        body: {
+          type: 'profile_photo',
           photo_url: publicUrl,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', requestData.id);
-        
-      if (updateError) throw updateError;
+          display_name: user.user_metadata?.full_name || user.email?.split('@')[0]
+        }
+      });
+      
+      if (error) throw error;
       
       return { success: true, publicUrl };
     } catch (error) {

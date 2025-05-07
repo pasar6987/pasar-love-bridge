@@ -28,30 +28,14 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
     
     try {
       // Update verification request status
-      const { error: updateError } = await supabase
-        .from('verification_requests')
-        .update({ 
-          status: 'approved', 
-          updated_at: new Date().toISOString() 
-        })
-        .eq('id', request.id);
-        
-      if (updateError) throw updateError;
-      
-      // Create notification - Use RPC function to bypass RLS
-      const { data: notificationData, error: notificationError } = await supabase.rpc(
-        'create_admin_notification',
-        {
-          p_user_id: request.user_id,
-          p_type: 'profile_approved',
-          p_title: language === 'ko' ? '프로필 사진 승인' : 'プロフィール写真承認',
-          p_body: language === 'ko' 
-            ? '프로필 사진이 승인되었습니다.' 
-            : 'プロフィール写真が承認されました。'
+      const { error } = await supabase.functions.invoke('update-verification-request', {
+        body: {
+          request_id: request.id,
+          status: 'approved'
         }
-      );
+      });
         
-      if (notificationError) throw notificationError;
+      if (error) throw error;
       
       // Refresh requests
       onRefresh();
@@ -87,29 +71,15 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
     
     try {
       // Update verification request status
-      const { error: updateError } = await supabase
-        .from('verification_requests')
-        .update({ 
-          status: 'rejected', 
-          rejection_reason: rejectionReason,
-          updated_at: new Date().toISOString() 
-        })
-        .eq('id', request.id);
-        
-      if (updateError) throw updateError;
-      
-      // Create notification - Use RPC function to bypass RLS
-      const { data: notificationData, error: notificationError } = await supabase.rpc(
-        'create_admin_notification',
-        {
-          p_user_id: request.user_id,
-          p_type: 'profile_rejected',
-          p_title: language === 'ko' ? '프로필 사진 거부' : 'プロフィール写真拒否',
-          p_body: language === 'ko' ? `사유: ${rejectionReason}` : `理由: ${rejectionReason}`
+      const { error } = await supabase.functions.invoke('update-verification-request', {
+        body: {
+          request_id: request.id,
+          status: 'rejected',
+          rejection_reason: rejectionReason
         }
-      );
+      });
         
-      if (notificationError) throw notificationError;
+      if (error) throw error;
       
       // Refresh requests
       onRefresh();
@@ -117,7 +87,7 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
       
       toast({
         title: language === 'ko' ? '거부 완료' : '拒否完了',
-        description: language === 'ko' ? '요청이 거부되었습니다.' : 'リクエ스트が拒否されました。'
+        description: language === 'ko' ? '요청이 거부되었습니다.' : 'リクエ스トが拒否されました。'
       });
       
     } catch (error) {
@@ -243,4 +213,4 @@ export const ProfileVerificationList = ({ photoRequests, loading, onRefresh }: P
       </CardContent>
     </Card>
   );
-};
+}

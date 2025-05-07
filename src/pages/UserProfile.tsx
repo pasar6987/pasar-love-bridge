@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useLanguage } from "@/i18n/useLanguage";
@@ -20,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { ProfilePhotoEditor } from "@/components/profile/ProfilePhotoEditor";
 
 export default function UserProfile() {
   const { t } = useLanguage();
@@ -28,12 +30,39 @@ export default function UserProfile() {
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [pendingPhotoRequest, setPendingPhotoRequest] = useState<boolean>(false);
 
   useEffect(() => {
     if (!user) {
       navigate('/login');
+    } else {
+      // Check if there's a pending photo verification request
+      checkPendingPhotoRequest();
     }
   }, [user, navigate]);
+
+  const checkPendingPhotoRequest = async () => {
+    if (!user) return;
+    
+    try {
+      // Check if there's a pending photo verification request
+      const { data, error } = await supabase
+        .from('verification_requests')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('type', 'profile_photo')
+        .eq('status', 'pending')
+        .single();
+        
+      if (error && error.code !== 'PGRST116') {
+        console.error("Error checking pending photo request:", error);
+      }
+      
+      setPendingPhotoRequest(!!data);
+    } catch (error) {
+      console.error("Error checking pending photo request:", error);
+    }
+  };
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -127,14 +156,20 @@ export default function UserProfile() {
 
         <Card className="mb-8">
           <CardHeader className="flex flex-row items-center gap-4">
-            <Avatar className="h-20 w-20">
-              <AvatarFallback className="bg-primary/10">
-                <UserCircle className="h-12 w-12 text-primary" />
-              </AvatarFallback>
-              {user.user_metadata?.avatar_url && (
-                <AvatarImage src={user.user_metadata.avatar_url} alt={user.user_metadata?.full_name || user.email || ""} />
+            <div className="relative">
+              <ProfilePhotoEditor 
+                currentPhotoUrl={user.user_metadata?.avatar_url || null}
+                username={user.user_metadata?.full_name || user.email?.split('@')[0] || ""}
+              />
+              
+              {pendingPhotoRequest && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                  <span className="text-white text-xs font-medium px-2 py-1 bg-amber-600/80 rounded">
+                    검토중입니다
+                  </span>
+                </div>
               )}
-            </Avatar>
+            </div>
             <div>
               <CardTitle className="text-2xl">
                 {user.user_metadata?.full_name || user.email?.split('@')[0]}
