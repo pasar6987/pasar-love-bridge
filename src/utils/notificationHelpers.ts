@@ -3,7 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface Notification {
   id: string;
-  type: "match_accepted" | "match_rejected" | "new_message" | "verify_passed" | "verify_rejected";
+  type: "match_accepted" | "match_rejected" | "new_message" | 
+        "verify_passed" | "verify_rejected" | "profile_photo_approved" | 
+        "profile_photo_rejected" | "profile_photo_request" | "match_request";
   title: string;
   body: string;
   related_id?: string;
@@ -84,9 +86,15 @@ export const getNotificationIcon = (type: string) => {
     case "new_message":
       return "message-square";
     case "verify_passed":
+    case "profile_photo_approved":
       return "check-circle";
     case "verify_rejected":
+    case "profile_photo_rejected":
       return "alert-circle";
+    case "profile_photo_request":
+      return "image";
+    case "match_request":
+      return "user-plus";
     default:
       return "bell";
   }
@@ -102,9 +110,15 @@ export const getNotificationColor = (type: string) => {
     case "new_message":
       return "var(--pastel-blue)";
     case "verify_passed":
+    case "profile_photo_approved":
       return "var(--pastel-green)";
     case "verify_rejected":
+    case "profile_photo_rejected":
       return "var(--pastel-lavender)";
+    case "profile_photo_request":
+      return "var(--pastel-peach)";
+    case "match_request":
+      return "var(--pastel-pink)";
     default:
       return "var(--pastel-blue)";
   }
@@ -121,7 +135,12 @@ export const getNotificationLink = (notification: Notification): string => {
       return notification.related_id ? `/chat/${notification.related_id}` : "/chat";
     case "verify_passed":
     case "verify_rejected":
+    case "profile_photo_approved":
+    case "profile_photo_rejected":
+    case "profile_photo_request":
       return "/settings";
+    case "match_request":
+      return "/match-requests";
     default:
       return "/notifications";
   }

@@ -77,6 +77,22 @@ serve(async (req) => {
       );
     }
     
+    // Create a notification to admin
+    const { error: notificationError } = await supabaseClient.rpc(
+      'create_admin_notification',
+      {
+        p_user_id: user.id,
+        p_type: 'profile_photo_request',
+        p_title: '프로필 사진 변경 요청',
+        p_body: '새 프로필 사진이 요청되었습니다'
+      }
+    );
+    
+    if (notificationError) {
+      console.error("Error creating notification:", notificationError);
+      // Continue execution - the request was still created successfully
+    }
+    
     return new Response(
       JSON.stringify({ 
         success: true, 

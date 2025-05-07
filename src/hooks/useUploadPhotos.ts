@@ -17,6 +17,7 @@ export const useUploadPhotos = (
 ) => {
   const [photos, setPhotos] = useState<string[]>(initialPhotos);
   const [isUploading, setIsUploading] = useState(false);
+  const [pendingApproval, setPendingApproval] = useState<string[]>([]);
   const { user } = useAuth();
 
   // Update tempData whenever photos change if updateTempData is provided
@@ -26,6 +27,36 @@ export const useUploadPhotos = (
     }
   }, [photos, updateTempData]);
 
+  // Check if any photos are pending approval
+  useEffect(() => {
+    const checkPendingApprovals = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('verification_requests')
+          .select('photo_url')
+          .eq('user_id', user.id)
+          .eq('type', 'profile_photo')
+          .eq('status', 'pending');
+          
+        if (error) {
+          console.error("Error checking pending approvals:", error);
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          const pendingUrls = data.map(item => item.photo_url).filter(Boolean);
+          setPendingApproval(pendingUrls as string[]);
+        }
+      } catch (error) {
+        console.error("Error in checkPendingApprovals:", error);
+      }
+    };
+    
+    checkPendingApprovals();
+  }, [user]);
+
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || !user) return;
 
@@ -34,8 +65,12 @@ export const useUploadPhotos = (
     try {
       const newPhotos = [...photos];
       
-      // Limit to maximum 6 photos
-      const availableSlots = 6 - photos.length;
+      // Limit to maximum 9 photos
+      const availableSlots = 9 - photos.length;
+      if (availableSlots <= 0) {
+        throw new Error("Maximum 9 photos allowed");
+      }
+      
       const filesToUpload = Array.from(files).slice(0, availableSlots);
       
       for (const file of filesToUpload) {
@@ -106,17 +141,6 @@ export const useUploadPhotos = (
       const publicUrl = urlData.publicUrl;
       
       // Create a verification request for the photo
-      const { data: requestData, error: requestError } = await supabase
-        .rpc('create_admin_notification', {
-          p_user_id: user.id,
-          p_type: 'profile_photo_request',
-          p_title: '프로필 사진 변경 요청',
-          p_body: '새 프로필 사진이 요청되었습니다'
-        });
-      
-      if (requestError) throw requestError;
-      
-      // Add the verification request
       const { data, error } = await supabase.functions.invoke('create-verification-request', {
         body: {
           type: 'profile_photo',
@@ -127,6 +151,9 @@ export const useUploadPhotos = (
       
       if (error) throw error;
       
+      // Add to pending approval
+      setPendingApproval(prev => [...prev, publicUrl]);
+      
       return { success: true, publicUrl };
     } catch (error) {
       console.error("Error updating profile photo:", error);
@@ -136,11 +163,17 @@ export const useUploadPhotos = (
     }
   };
   
+  const isPendingApproval = (url: string): boolean => {
+    return pendingApproval.includes(url);
+  };
+  
   return {
     photos,
     isUploading,
     handleFileUpload,
     removePhoto,
-    updateProfilePhoto
+    updateProfilePhoto,
+    isPendingApproval,
+    pendingApproval
   };
 };

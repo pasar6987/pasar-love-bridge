@@ -105,40 +105,58 @@ serve(async (req) => {
       );
     }
     
-    // Create a notification for the user about the status change
-    let notificationTitle = '';
-    let notificationBody = '';
+    // Determine notification type based on the verification request type
+    let notificationType: string;
+    let notificationTitle: string;
+    let notificationBody: string;
     
-    if (status === 'approved') {
-      notificationTitle = '프로필 사진 승인됨';
-      notificationBody = '프로필 사진 변경이 승인되었습니다.';
-      
-      // If approved and it's a profile photo, update the user metadata
-      if (requestInfo.type === 'profile_photo' && requestInfo.photo_url) {
-        // Update the user metadata with the new photo URL
-        const { error: metadataError } = await supabaseClient.auth.updateUser({
-          data: { avatar_url: requestInfo.photo_url }
-        });
+    if (requestInfo.type === 'profile_photo') {
+      if (status === 'approved') {
+        notificationType = 'profile_photo_approved';
+        notificationTitle = '프로필 사진 승인됨';
+        notificationBody = '프로필 사진 변경이 승인되었습니다.';
         
-        if (metadataError) {
-          console.error("Error updating user metadata:", metadataError);
-          // Continue execution - notification will still be sent
+        // If approved and it's a profile photo, update the user metadata with the new photo URL
+        if (requestInfo.photo_url) {
+          // Update the user metadata with the new photo URL
+          const { error: metadataError } = await supabaseClient.auth.updateUser({
+            data: { avatar_url: requestInfo.photo_url }
+          });
+          
+          if (metadataError) {
+            console.error("Error updating user metadata:", metadataError);
+            // Continue execution - notification will still be sent
+          }
         }
+      } else if (status === 'rejected') {
+        notificationType = 'profile_photo_rejected';
+        notificationTitle = '프로필 사진 거부됨';
+        notificationBody = rejection_reason 
+          ? `프로필 사진이 거부되었습니다. 사유: ${rejection_reason}`
+          : '프로필 사진이 거부되었습니다.';
       }
-    } else if (status === 'rejected') {
-      notificationTitle = '프로필 사진 거부됨';
-      notificationBody = rejection_reason 
-        ? `프로필 사진이 거부되었습니다. 사유: ${rejection_reason}`
-        : '프로필 사진이 거부되었습니다.';
+    } else {
+      // Default for other verification types
+      if (status === 'approved') {
+        notificationType = 'verify_passed';
+        notificationTitle = '프로필 사진 승인됨';
+        notificationBody = '프로필 사진 변경이 승인되었습니다.';
+      } else if (status === 'rejected') {
+        notificationType = 'verify_rejected';
+        notificationTitle = '프로필 사진 거부됨';
+        notificationBody = rejection_reason 
+          ? `프로필 사진이 거부되었습니다. 사유: ${rejection_reason}`
+          : '프로필 사진이 거부되었습니다.';
+      }
     }
     
-    // Send notification
-    if (notificationTitle && notificationBody) {
+    // Send notification if we have notification content
+    if (notificationType && notificationTitle && notificationBody) {
       const { error: notificationError } = await supabaseClient.rpc(
         'create_admin_notification',
         {
           p_user_id: requestInfo.user_id,
-          p_type: status === 'approved' ? 'profile_photo_approved' : 'profile_photo_rejected',
+          p_type: notificationType,
           p_title: notificationTitle,
           p_body: notificationBody
         }
