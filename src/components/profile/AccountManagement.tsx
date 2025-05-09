@@ -52,6 +52,7 @@ export function AccountManagement() {
     
     setIsDeleting(true);
     try {
+      // 현재 세션 토큰 가져오기
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
       
@@ -59,26 +60,29 @@ export function AccountManagement() {
         throw new Error("Authentication token not found");
       }
       
-      // Call the edge function to delete the account
+      // Edge function 호출하여 계정 삭제
       const { data, error } = await supabase.functions.invoke("delete-user-account", {
         body: { token },
       });
       
       if (error) throw error;
       
-      // If successful, log out and redirect to login page
+      // 로그아웃 처리
       await signOut();
-      navigate("/login");
       
+      // 성공 메시지 표시
       toast({
         title: language === "ko" ? "계정 삭제 완료" : "アカウント削除完了",
         description: language === "ko" ? "계정이 성공적으로 삭제되었습니다" : "アカウントが正常に削除されました",
       });
+      
+      // 로그인 페이지로 리디렉션
+      navigate("/login", { replace: true });
     } catch (error) {
       console.error("Delete account error:", error);
       toast({
         title: language === "ko" ? "오류 발생" : "エラーが発生しました",
-        description: language === "ko" ? "계정 삭제 중 문제가 발생했습니다" : "アカウント削除中に問題が発生しました",
+        description: language === "ko" ? "계정 삭제 중 문제가 발생했습니다. 나중에 다시 시도해주세요." : "アカウント削除中に問題が発生しました。後でもう一度お試しください。",
         variant: "destructive",
       });
     } finally {
@@ -122,8 +126,8 @@ export function AccountManagement() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {language === "ko" 
-                ? "이 작업은 되돌릴 수 없으며 모든 데이터가 삭제됩니다." 
-                : "この操作は元に戻せず、すべてのデータが削除されます。"}
+                ? "이 작업은 되돌릴 수 없으며 모든 데이터가 영구적으로 삭제됩니다." 
+                : "この操作は元に戻せず、すべてのデータが永久に削除されます。"}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

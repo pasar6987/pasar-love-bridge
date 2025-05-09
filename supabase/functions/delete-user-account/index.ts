@@ -43,100 +43,34 @@ serve(async (req) => {
       throw new Error('Error getting user: ' + (userError?.message || 'User not found'));
     }
 
-    console.log('User found, proceeding with account soft deletion:', user.id);
+    console.log('User found, proceeding with account deletion:', user.id);
 
     // 사용자 ID 가져오기
     const userId = user.id;
-    const currentTimestamp = new Date().toISOString();
-    
-    try {
-      // Soft delete the user profile (set deleted_at timestamp)
-      const { error: userUpdateError } = await supabase
-        .from('users')
-        .update({ 
-          deleted_at: currentTimestamp,
-          nickname: `Deleted User ${currentTimestamp}`, // Anonymize the user data
-          bio: null,
-          city: null,
-          country_code: null
-        })
-        .eq('id', userId);
-      
-      if (userUpdateError) {
-        console.error('Error soft-deleting user profile:', userUpdateError);
-        throw userUpdateError;
-      }
-      console.log('Successfully soft-deleted user profile');
-      
-      // Soft delete all profile photos
-      const { error: photosUpdateError } = await supabase
-        .from('profile_photos')
-        .update({ deleted_at: currentTimestamp })
-        .eq('user_id', userId);
-        
-      if (photosUpdateError) {
-        console.error('Error soft-deleting profile photos:', photosUpdateError);
-        // Continue with other operations even if this one fails
-      } else {
-        console.log('Successfully soft-deleted profile photos');
-      }
-      
-      // Keep user nationalities but disconnect them from the user?
-      // We could soft delete these too if needed
-      
-      // Keep user interests but disconnect them from the user?
-      // We could soft delete these too if needed
-      
-      // Keep identity verifications for record-keeping but mark as deleted
-      // We could soft delete these too if needed
-      
-      // Keep verification requests for record-keeping
-      // We could soft delete these too if needed
-      
-      // Handle chat messages (optionally anonymize them)
-      // For now, we'll leave them as is for chat history integrity
-      
-      // Handle matches - mark as deleted or keep for analytics
-      // For now, we'll leave them as is
-      
-      // Mark notifications as read to clean up UI for other users
-      const { error: notificationsError } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('user_id', userId);
-      
-      if (notificationsError) {
-        console.error('Error updating notifications:', notificationsError);
-        // Continue with other operations
-      } else {
-        console.log('Successfully marked notifications as read');
-      }
-      
-      // We don't completely delete the auth.users entry
-      // Instead, disable the user account so they can't log in anymore
-      const { error: authDisableError } = await supabase.auth.admin.updateUserById(
-        userId,
-        { banned: true }
-      );
-      
-      if (authDisableError) {
-        console.error('Error disabling user account:', authDisableError);
-        throw authDisableError;
-      }
-      
-      console.log('Successfully disabled user account');
-      
-    } catch (deleteError) {
-      console.error('Error during soft deletion process:', deleteError);
+    console.log('Starting account deletion for user:', userId);
+
+    // 트랜잭션으로 모든 사용자 데이터 삭제
+    const { error: deleteError } = await supabase.rpc('delete_user_data', {
+      user_id: userId
+    });
+
+    if (deleteError) {
       throw deleteError;
     }
 
-    console.log('Account soft deletion completed successfully for user:', userId);
+    // 마지막으로 auth.users에서 사용자 삭제
+    const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId);
+
+    if (authDeleteError) {
+      throw authDeleteError;
+    }
+
+    console.log('Account deletion completed successfully for user:', userId);
 
     return new Response(
       JSON.stringify({ success: true }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    );
   } catch (error) {
     console.error('Error in delete-user-account function:', error);
     return new Response(
@@ -145,6 +79,6 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
       }
-    )
+    );
   }
-})
+});
