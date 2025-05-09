@@ -14,10 +14,35 @@
     {
       "src": "/assets/(.*)",
       "headers": {
-        "cache-control": "public, max-age=31536000, immutable",
-        "Content-Type": "application/javascript"
+        "cache-control": "public, max-age=31536000, immutable"
       },
       "continue": true
+    },
+    {
+      "src": "/assets/(.*)\\.js",
+      "headers": {
+        "Content-Type": "application/javascript",
+        "cache-control": "public, max-age=31536000, immutable"
+      },
+      "continue": true
+    },
+    {
+      "src": "/assets/(.*)\\.css",
+      "headers": {
+        "Content-Type": "text/css",
+        "cache-control": "public, max-age=31536000, immutable"
+      },
+      "continue": true
+    },
+    {
+      "src": "/assets/(.*)\\.(png|jpg|jpeg|gif|svg|ico)",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      },
+      "continue": true
+    },
+    {
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
