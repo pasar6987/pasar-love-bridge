@@ -3,6 +3,8 @@ RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
+DECLARE
+  v_error_message TEXT;
 BEGIN
   -- 트랜잭션 시작
   BEGIN
@@ -21,6 +23,9 @@ BEGIN
     -- 인증 요청 삭제
     DELETE FROM verification_requests WHERE user_id = $1;
     
+    -- 신분증 인증 삭제
+    DELETE FROM identity_verifications WHERE user_id = $1;
+    
     -- 사용자 관심사 삭제
     DELETE FROM user_interests WHERE user_id = $1;
     
@@ -36,7 +41,8 @@ BEGIN
     WHEN OTHERS THEN
       -- 오류 발생 시 롤백
       ROLLBACK;
-      RAISE;
+      v_error_message := 'Error deleting user data: ' || SQLERRM;
+      RAISE EXCEPTION '%', v_error_message;
   END;
 END;
 $$; 

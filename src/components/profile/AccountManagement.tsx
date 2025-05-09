@@ -52,20 +52,21 @@ export function AccountManagement() {
     
     setIsDeleting(true);
     try {
-      // 현재 세션 토큰 가져오기
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-      
-      if (!token) {
-        throw new Error("Authentication token not found");
-      }
-      
       // Edge function 호출하여 계정 삭제
       const { data, error } = await supabase.functions.invoke("delete-user-account", {
-        body: { token },
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Delete account error:", error);
+        throw new Error(error.message || "Failed to delete account");
+      }
+      
+      if (!data.success) {
+        throw new Error(data.error || "Failed to delete account");
+      }
       
       // 로그아웃 처리
       await signOut();
@@ -82,7 +83,9 @@ export function AccountManagement() {
       console.error("Delete account error:", error);
       toast({
         title: language === "ko" ? "오류 발생" : "エラーが発生しました",
-        description: language === "ko" ? "계정 삭제 중 문제가 발생했습니다. 나중에 다시 시도해주세요." : "アカウント削除中に問題が発生しました。後でもう一度お試しください。",
+        description: language === "ko" 
+          ? `계정 삭제 중 문제가 발생했습니다: ${error instanceof Error ? error.message : "알 수 없는 오류"}`
+          : `アカウント削除中に問題が発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
         variant: "destructive",
       });
     } finally {
@@ -126,8 +129,8 @@ export function AccountManagement() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {language === "ko" 
-                ? "이 작업은 되돌릴 수 없으며 모든 데이터가 영구적으로 삭제됩니다." 
-                : "この操作は元に戻せず、すべてのデータが永久に削除されます。"}
+                ? "이 작업은 되돌릴 수 없으며 모든 데이터가 영구적으로 삭제됩니다. 계정 삭제 후에는 모든 정보를 복구할 수 없습니다." 
+                : "この操作は元に戻せず、すべてのデータが永久に削除されます。アカウント削除後は、すべての情報を復元することはできません。"}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

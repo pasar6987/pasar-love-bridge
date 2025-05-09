@@ -15,15 +15,24 @@ serve(async (req) => {
   console.log('Delete user account function called')
 
   try {
-    // 요청 본문에서 JWT 토큰 가져오기
-    const { token } = await req.json();
-    
-    if (!token) {
-      console.error('Missing token in request body');
-      throw new Error('Missing token in request body');
+    // 요청 헤더에서 Authorization 토큰 가져오기
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('Missing or invalid Authorization header');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Missing or invalid Authorization header',
+          success: false
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401
+        }
+      );
     }
-    
-    console.log('Token received from client');
+
+    const token = authHeader.replace('Bearer ', '');
+    console.log('Token received from Authorization header');
 
     // 서비스 롤 키를 사용하여 Supabase 클라이언트 생성
     const supabase = createClient(
@@ -40,7 +49,16 @@ serve(async (req) => {
 
     if (userError || !user) {
       console.error('Error getting user:', userError?.message || 'User not found');
-      throw new Error('Error getting user: ' + (userError?.message || 'User not found'));
+      return new Response(
+        JSON.stringify({ 
+          error: 'Error getting user: ' + (userError?.message || 'User not found'),
+          success: false
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401
+        }
+      );
     }
 
     console.log('User found, proceeding with account deletion:', user.id);
@@ -55,26 +73,56 @@ serve(async (req) => {
     });
 
     if (deleteError) {
-      throw deleteError;
+      console.error('Error deleting user data:', deleteError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to delete user data: ' + deleteError.message,
+          success: false
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        }
+      );
     }
 
     // 마지막으로 auth.users에서 사용자 삭제
     const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId);
 
     if (authDeleteError) {
-      throw authDeleteError;
+      console.error('Error deleting user from auth:', authDeleteError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to delete user from auth: ' + authDeleteError.message,
+          success: false
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        }
+      );
     }
 
     console.log('Account deletion completed successfully for user:', userId);
 
     return new Response(
-      JSON.stringify({ success: true }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        success: true,
+        message: 'Account deleted successfully'
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      }
     );
   } catch (error) {
     console.error('Error in delete-user-account function:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Unknown error occurred' }),
+      JSON.stringify({ 
+        error: error.message || 'Unknown error occurred',
+        details: error instanceof Error ? error.stack : undefined,
+        success: false
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
