@@ -1,4 +1,3 @@
-
 export const translations = {
   "chat.type_message": {
     ko: "메세지를 입력 해 주세요",
@@ -343,6 +342,14 @@ export const translations = {
   "profile.mypage": {
     ko: "마이페이지",
     ja: "マイページ"
+  },
+  "profile.my_profile": {
+    ko: "내 프로필",
+    ja: "マイプロフィール"
+  },
+  "profile.photos": {
+    ko: "프로필 사진",
+    ja: "プロフィール写真"
   },
   "profile.basic_info": {
     ko: "기본 정보",
