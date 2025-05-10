@@ -168,19 +168,31 @@ export function Verification({ onComplete, tempData, countryCode, updateTempData
               <SelectValue placeholder={language === "ko" ? "신분증 종류 선택" : "身分証明書の種類を選択"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="resident_card">
-                {language === "ko" ? "주민등록증" : "住民基本台帳カード"}
-              </SelectItem>
-              <SelectItem value="driver_license">
-                {language === "ko" ? "운전면허증" : "運転免許証"}
-              </SelectItem>
-              <SelectItem value="passport">
-                {language === "ko" ? "여권" : "パスポート"}
-              </SelectItem>
-              {language === "ja" && (
-                <SelectItem value="my_number_card">
-                  マイナンバーカード
-                </SelectItem>
+              {/* 일본 국적일 때만 운전면허증, 마이넘버카드, 여권만 노출 */}
+              {countryCode === 'ja' ? (
+                <>
+                  <SelectItem value="driver_license">
+                    {language === "ko" ? "운전면허증" : "運転免許証"}
+                  </SelectItem>
+                  <SelectItem value="my_number_card">
+                    {language === "ko" ? "마이넘버카드" : "マイナンバーカード"}
+                  </SelectItem>
+                  <SelectItem value="passport">
+                    {language === "ko" ? "여권" : "パスポート"}
+                  </SelectItem>
+                </>
+              ) : (
+                <>
+                  <SelectItem value="resident_card">
+                    {language === "ko" ? "주민등록증" : "住民基本台帳カード"}
+                  </SelectItem>
+                  <SelectItem value="driver_license">
+                    {language === "ko" ? "운전면허증" : "運転免許証"}
+                  </SelectItem>
+                  <SelectItem value="passport">
+                    {language === "ko" ? "여권" : "パスポート"}
+                  </SelectItem>
+                </>
               )}
             </SelectContent>
           </Select>
