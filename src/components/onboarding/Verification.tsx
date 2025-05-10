@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/useLanguage";
@@ -11,9 +12,9 @@ import {
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { uploadIdentityDocument } from "@/utils/storageHelpers";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface VerificationProps {
   onComplete: () => void;
@@ -60,35 +61,26 @@ export function Verification({ onComplete, tempData, countryCode, updateTempData
   
   const handleSubmit = async () => {
     if (!file || !docType || !user) return;
-    
     setIsSubmitting(true);
-    
     try {
-      // Upload ID document to Storage
-      const filePath = await uploadIdentityDocument(user.id, file);
-      
-      // Save verification record in the database
-      const { error } = await supabase
-        .from('identity_verifications')
-        .insert({
-          user_id: user.id,
-          country_code: countryCode === "ko" ? "KR" : countryCode === "ja" ? "JP" : null,
-          doc_type: docType,
-          id_front_url: filePath,
-          status: 'submitted',
-          submitted_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
-      
+      // 1. 신분증 파일 업로드
+      const idFrontUrl = await uploadIdentityDocument(user.id, file);
+      // 2. DB 저장 (identity_verifications 테이블에 insert)
+      const { error } = await supabase.from('identity_verifications').insert({
+        user_id: user.id,
+        doc_type: docType,
+        country_code: countryCode,
+        id_front_url: idFrontUrl,
+        status: 'pending',
+        submitted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
       if (error) throw error;
-      
       toast({
         title: language === "ko" ? "신분증이 제출되었습니다" : "身分証明書が提出されました",
         description: language === "ko" ? "검토 후 알림으로 알려드립니다" : "審査後、通知でお知らせします"
       });
-      
       navigate('/home');
-      
     } catch (error) {
       console.error("Error submitting verification:", error);
       toast({
