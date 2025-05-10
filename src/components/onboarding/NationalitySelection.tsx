@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,16 +34,16 @@ export function NationalitySelection({
         // 사용자 국적 데이터 조회 - now directly from users table
         const { data, error } = await supabase
           .from('users')
-          .select('nationality')
+          .select('country_code')
           .eq('id', user.id)
           .maybeSingle();
           
         if (error) throw error;
         
         // 기존 데이터가 있으면 설정
-        if (data && data.nationality) {
-          setNationality(data.nationality as "ko" | "ja");
-          updateTempData(data.nationality as "ko" | "ja");
+        if (data && data.country_code) {
+          setNationality(data.country_code as "ko" | "ja");
+          updateTempData(data.country_code as "ko" | "ja");
           setExisting(true);
         }
       } catch (error) {
@@ -76,27 +75,12 @@ export function NationalitySelection({
       // Update the nationality directly in the users table
       const { error: updateError } = await supabase
         .from('users')
-        .update({ nationality })
+        .update({ country_code: nationality })
         .eq('id', user.id);
           
       error = updateError;
       
       if (error) throw error;
-      
-      // For compatibility with existing code during migration, also update the user_nationalities table
-      if (!existing) {
-        const { error: insertError } = await supabase
-          .from('user_nationalities')
-          .insert({
-            user_id: user.id,
-            nationality
-          });
-          
-        if (insertError) {
-          console.warn("Error updating user_nationalities table (legacy):", insertError);
-          // Don't throw error here as this is just for compatibility
-        }
-      }
       
       onComplete();
     } catch (error) {

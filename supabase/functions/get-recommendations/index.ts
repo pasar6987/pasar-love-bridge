@@ -1,4 +1,3 @@
-
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
@@ -47,9 +46,9 @@ serve(async (req) => {
 
     // 사용자 국적 가져오기
     const { data: nationalityData, error: nationalityError } = await supabase
-      .from('user_nationalities')
-      .select('nationality')
-      .eq('user_id', user.id)
+      .from('users')
+      .select('country_code')
+      .eq('id', user.id)
       .single();
     
     if (nationalityError) {

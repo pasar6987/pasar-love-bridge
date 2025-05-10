@@ -1,3 +1,4 @@
+
 import { createContext, useState, ReactNode, useEffect } from "react";
 import { translations } from "./translations";
 import { Language, LanguageContextProps } from "./types";
@@ -45,47 +46,29 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   
   // 번역 함수 - 매개변수 처리 추가
   const t = (key: string, params?: Record<string, any>): string => {
-    try {
-      // 중첩된 키 처리 (예: "profile.settings.title")
-      const keys = key.split('.');
-      let currentTranslation: any = translations;
-      
-      // 중첩된 객체를 순회하며 번역 찾기
-      for (const k of keys) {
-        if (!currentTranslation || !currentTranslation[k]) {
-          console.warn(`Translation missing for key: ${key}`);
-          return key;
-        }
-        currentTranslation = currentTranslation[k];
-      }
-      
-      // 현재 언어의 번역 가져오기
-      let translatedText = currentTranslation[language];
-      
-      // 번역 텍스트가 없는 경우 다른 언어의 번역을 시도
-      if (!translatedText) {
-        const fallbackLang = language === 'ko' ? 'ja' : 'ko';
-        translatedText = currentTranslation[fallbackLang];
-        
-        if (!translatedText) {
-          console.warn(`Translation missing for key ${key} in both languages`);
-          return key;
-        }
-      }
-      
-      // 매개변수가 있는 경우 처리
-      if (params) {
-        Object.keys(params).forEach(param => {
-          const regex = new RegExp(`{${param}}`, 'g');
-          translatedText = translatedText.replace(regex, String(params[param]));
-        });
-      }
-      
-      return translatedText;
-    } catch (error) {
-      console.error(`Translation error for key ${key}:`, error);
+    // 번역 키가 존재하지 않는 경우 경고 출력 및 키 그대로 반환
+    if (!translations[key]) {
+      console.warn(`Translation missing for key: ${key}`);
       return key;
     }
+    
+    let translatedText = translations[key][language];
+    
+    // 번역 텍스트가 없는 경우 키 자체를 반환
+    if (!translatedText) {
+      console.warn(`Translation missing for key ${key} in language ${language}`);
+      return key;
+    }
+    
+    // 매개변수가 있는 경우 처리
+    if (params) {
+      Object.keys(params).forEach(param => {
+        const regex = new RegExp(`{${param}}`, 'g');
+        translatedText = translatedText.replace(regex, String(params[param]));
+      });
+    }
+    
+    return translatedText;
   };
   
   return (

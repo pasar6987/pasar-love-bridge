@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,23 +58,20 @@ export function BasicInfo({ onComplete, tempData, updateTempData }: BasicInfoPro
   useEffect(() => {
     const fetchNationality = async () => {
       if (!user) return;
-      
       try {
         const { data, error } = await supabase
-          .from('user_nationalities')
-          .select('nationality')
-          .eq('user_id', user.id)
+          .from('users')
+          .select('country_code')
+          .eq('id', user.id)
           .maybeSingle();
-          
         if (error) throw error;
         if (data) {
-          setNationality(data.nationality as "ko" | "ja");
+          setNationality(data.country_code as "ko" | "ja");
         }
       } catch (error) {
         console.error("Error fetching nationality:", error);
       }
     };
-    
     fetchNationality();
   }, [user]);
   

@@ -1,4 +1,13 @@
+
 export const translations = {
+  "profile.photos": {
+    ko: "프로필 사진",
+    ja: "プロフィール写真"
+  },
+  "profile.my_profile": {
+    ko: "마이페이지",
+    ja: "マイページ"
+  },
   "chat.type_message": {
     ko: "메세지를 입력 해 주세요",
     ja: "メッセージを入力してください"
@@ -343,14 +352,6 @@ export const translations = {
     ko: "마이페이지",
     ja: "マイページ"
   },
-  "profile.my_profile": {
-    ko: "내 프로필",
-    ja: "マイプロフィール"
-  },
-  "profile.photos": {
-    ko: "프로필 사진",
-    ja: "プロフィール写真"
-  },
   "profile.basic_info": {
     ko: "기본 정보",
     ja: "基本情報"
@@ -518,29 +519,5 @@ export const translations = {
   "verify.later": {
     ko: "나중에 하기",
     ja: "後でする"
-  },
-  "profile.settings": {
-    ko: "프로필 설정",
-    ja: "プロフィール設定"
-  },
-  "profile.edit_photos": {
-    ko: "사진 수정",
-    ja: "写真を編集"
-  },
-  "profile.add_photo": {
-    ko: "사진 추가",
-    ja: "写真を追加"
-  },
-  "profile.remove_photo": {
-    ko: "사진 삭제",
-    ja: "写真を削除"
-  },
-  "profile.photo_requirements": {
-    ko: "프로필 사진 요구사항",
-    ja: "プロフィール写真の要件"
-  },
-  "profile.photo_requirements_desc": {
-    ko: "얼굴이 잘 보이는 사진을 업로드해주세요. 최소 1장, 최대 6장까지 업로드 가능합니다.",
-    ja: "顔がよく見える写真をアップロードしてください。最低1枚、最大6枚までアップロードできます。"
   }
 };
