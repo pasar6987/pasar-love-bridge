@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,13 +20,6 @@ export const useUploadPhotos = (
   const [pendingApproval, setPendingApproval] = useState<string[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
-
-  // Update tempData whenever photos change if updateTempData is provided
-  useEffect(() => {
-    if (updateTempData) {
-      updateTempData(photos);
-    }
-  }, [photos, updateTempData]);
 
   // Check if any photos are pending approval
   useEffect(() => {
@@ -226,6 +218,13 @@ export const useUploadPhotos = (
     return pendingApproval.includes(url);
   };
   
+  useEffect(() => {
+    if (updateTempData) {
+      updateTempData(photos);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photos]);
+
   return {
     photos,
     isUploading,
