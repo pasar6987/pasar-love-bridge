@@ -95,6 +95,16 @@ const Onboarding = () => {
           setIsUpdating(false);
           return;
         }
+        const allowedCountryCodes = ['ko', 'ja'];
+        if (!allowedCountryCodes.includes(tempData.countryCode)) {
+          toast({
+            title: t("error.generic"),
+            description: "국적 값이 올바르지 않습니다. 다시 선택해 주세요.",
+            variant: "destructive"
+          });
+          setIsUpdating(false);
+          return;
+        }
         console.log('[Onboarding] 최종 저장 tempData:', tempData);
         const { error } = await supabase
           .from('users')
