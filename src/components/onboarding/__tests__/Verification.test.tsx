@@ -90,6 +90,29 @@ describe('Verification 컴포넌트', () => {
       },
       countryCode: 'ko',
       updateTempData: jest.fn(),
+      allTempData: {
+        countryCode: 'ko',
+        photos: [],
+        basicInfo: {
+          name: '홍길동',
+          gender: 'male',
+          birthdate: '1990-01-01',
+          city: '서울',
+        },
+        questions: {
+          job: '개발자',
+          education: 'bachelors',
+          bio: '테스트 소개',
+          interests: ['음악'],
+          koreanLevel: 'native',
+          japaneseLevel: 'beginner',
+        },
+        verification: {
+          docType: 'passport',
+          frontUploaded: false,
+          file: null,
+        },
+      },
     });
 
     // 파일 업로드 input이 등장할 때까지 대기 후 업로드

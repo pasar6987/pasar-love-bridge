@@ -29,9 +29,10 @@ interface VerificationProps {
     frontUploaded: boolean;
     file: File | null;
   }) => void;
+  allTempData: any; // 추가: 4단계까지의 모든 임시 데이터
 }
 
-export function Verification({ onComplete, tempData, countryCode, updateTempData }: VerificationProps) {
+export function Verification({ onComplete, tempData, countryCode, updateTempData, allTempData }: VerificationProps) {
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -63,9 +64,24 @@ export function Verification({ onComplete, tempData, countryCode, updateTempData
     if (!file || !docType || !user) return;
     setIsSubmitting(true);
     try {
-      // 1. 신분증 파일 업로드
+      // 1. 4단계까지의 온보딩 결과 users 테이블에 저장
+      const { countryCode, basicInfo, questions } = allTempData;
+      const { error: userError } = await supabase.from('users').update({
+        country_code: countryCode,
+        name: basicInfo.name,
+        gender: basicInfo.gender,
+        birthdate: basicInfo.birthdate,
+        city: basicInfo.city,
+        bio: questions.bio,
+        // 기타 필요한 필드 추가 가능
+        onboarding_completed: false,
+        onboarding_step: 5,
+        updated_at: new Date().toISOString(),
+      }).eq('id', user.id);
+      if (userError) throw userError;
+      // 2. 신분증 파일 업로드
       const idFrontUrl = await uploadIdentityDocument(user.id, file);
-      // 2. DB 저장 (identity_verifications 테이블에 insert)
+      // 3. DB 저장 (identity_verifications 테이블에 insert)
       const { error } = await supabase.from('identity_verifications').insert({
         user_id: user.id,
         doc_type: docType,

@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -7,7 +8,6 @@ import { PhotoUpload } from "@/components/onboarding/PhotoUpload";
 import { BasicInfo } from "@/components/onboarding/BasicInfo";
 import { Questions } from "@/components/onboarding/Questions";
 import { Verification } from "@/components/onboarding/Verification";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/i18n/useLanguage";
 import { ArrowLeft, LogOut } from "lucide-react";
@@ -106,21 +106,6 @@ const Onboarding = () => {
           return;
         }
         console.log('[Onboarding] 최종 저장 tempData:', tempData);
-        const { error } = await supabase
-          .from('users')
-          .update({
-            country_code: tempData.countryCode,
-            nickname: tempData.basicInfo.name,
-            gender: tempData.basicInfo.gender,
-            birthdate: tempData.basicInfo.birthdate,
-            city: tempData.basicInfo.city
-          })
-          .eq('id', user.id);
-        if (error) {
-          console.error('[Onboarding] DB 저장 에러:', error);
-          throw error;
-        }
-        console.log('[Onboarding] DB 저장 성공');
       }
       // 기존 로직 유지
       if (nextStep > TOTAL_STEPS) {
@@ -145,20 +130,7 @@ const Onboarding = () => {
       setIsUpdating(true);
       
       try {
-        if (user) {
-          // 이전 단계로 이동 시 DB 업데이트
-          const { error } = await supabase.rpc(
-            'update_user_onboarding_step',
-            { 
-              user_id: user.id,
-              step_number: currentStep - 1,
-              is_completed: false
-            }
-          );
-          
-          if (error) throw error;
-        }
-        
+        // DB 접근 코드 제거됨
         // 이전 온보딩 단계로 이동
         navigate(`/onboarding/${currentStep - 1}`);
       } catch (error) {
@@ -238,6 +210,7 @@ const Onboarding = () => {
             tempData={tempData.verification} 
             countryCode={tempData.countryCode}
             updateTempData={(value) => updateTempData("verification", value)} 
+            allTempData={tempData}
           />
         );
       default:
