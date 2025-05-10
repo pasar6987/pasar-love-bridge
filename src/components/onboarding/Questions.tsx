@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,6 @@ import {
 import { useLanguage } from "@/i18n/useLanguage";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -89,48 +88,7 @@ export function Questions({ onComplete, tempData, updateTempData }: QuestionsPro
     setIsSubmitting(true);
     
     try {
-      // Update user bio
-      const { error: bioError } = await supabase
-        .from('users')
-        .update({ bio })
-        .eq('id', user.id);
-      
-      if (bioError) throw bioError;
-      
-      // Save interests
-      if (interests.length > 0) {
-        const interestsData = interests.map(interest => ({
-          user_id: user.id,
-          interest
-        }));
-        
-        const { error: interestsError } = await supabase
-          .from('user_interests')
-          .insert(interestsData);
-        
-        if (interestsError) throw interestsError;
-      }
-      
-      // Save language skills
-      const languageData = [
-        {
-          user_id: user.id,
-          language_code: "korean",
-          proficiency: koreanLevel
-        },
-        {
-          user_id: user.id,
-          language_code: "japanese",
-          proficiency: japaneseLevel
-        }
-      ];
-      
-      const { error: languageError } = await supabase
-        .from('language_skills')
-        .insert(languageData);
-      
-      if (languageError) throw languageError;
-      
+      // DB 저장 코드 제거됨
       onComplete();
     } catch (error) {
       console.error("Error saving profile data:", error);

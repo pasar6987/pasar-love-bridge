@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import React from 'react';
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/i18n/useLanguage";
@@ -24,37 +24,6 @@ export function NationalitySelection({
   const [countryCode, setCountryCode] = useState<"ko" | "ja" | null>(tempData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existing, setExisting] = useState<boolean>(false);
-  
-  // 기존 사용자 국적 데이터 확인
-  useEffect(() => {
-    const checkExistingCountryCode = async () => {
-      if (!user) return;
-      
-      try {
-        // 사용자 국적 데이터 조회 - now directly from users table
-        const { data, error } = await supabase
-          .from('users')
-          .select('country_code')
-          .eq('id', user.id)
-          .maybeSingle();
-          
-        if (error) throw error;
-        
-        // 기존 데이터가 있으면 설정
-        if (data && data.country_code) {
-          setCountryCode(data.country_code as "ko" | "ja");
-          updateTempData(data.country_code as "ko" | "ja");
-          setExisting(true);
-        }
-      } catch (error) {
-        console.error("Error checking countryCode:", error);
-      }
-    };
-    
-    if (!countryCode) {
-      checkExistingCountryCode();
-    }
-  }, [user, countryCode, updateTempData]);
   
   // 국적이 선택되면 임시 데이터 업데이트
   const handleCountryCodeChange = (value: "ko" | "ja") => {

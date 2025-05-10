@@ -109,8 +109,34 @@ export function Verification({ onComplete, tempData, countryCode, updateTempData
     }
   };
   
-  const handleSkip = () => {
-    onComplete();
+  const handleSkip = async () => {
+    if (!user) return;
+    setIsSubmitting(true);
+    try {
+      // 4단계까지의 온보딩 결과 users 테이블에 저장
+      const { countryCode, basicInfo, questions } = allTempData;
+      await supabase.from('users').update({
+        country_code: countryCode,
+        name: basicInfo.name,
+        gender: basicInfo.gender,
+        birthdate: basicInfo.birthdate,
+        city: basicInfo.city,
+        bio: questions.bio,
+        onboarding_completed: false,
+        onboarding_step: 5,
+        updated_at: new Date().toISOString(),
+      }).eq('id', user.id);
+      onComplete();
+    } catch (error) {
+      console.error("Error skipping verification and saving user info:", error);
+      toast({
+        title: t("error.generic"),
+        description: error instanceof Error ? error.message : t("error.try_again"),
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   return (

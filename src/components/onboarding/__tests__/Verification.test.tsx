@@ -66,6 +66,10 @@ jest.mock('@/context/AuthContext', () => {
 });
 
 describe('Verification 컴포넌트', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   function renderWithProvider(props: any) {
     return render(
       <MemoryRouter>
@@ -78,7 +82,7 @@ describe('Verification 컴포넌트', () => {
     );
   }
 
-  it('필수 입력값 입력 후 제출 시 supabase DB 저장 함수가 호출된다', async () => {
+  it('필수 입력값 입력 후 제출 시 users, identity_verifications 모두 DB 저장 함수가 호출된다', async () => {
     const { supabase } = require('@/integrations/supabase/client');
     const onComplete = jest.fn();
     const { container } = renderWithProvider({
@@ -118,7 +122,6 @@ describe('Verification 컴포넌트', () => {
     // 파일 업로드 input이 등장할 때까지 대기 후 업로드
     let fileInput;
     try {
-      // file input은 label이 없으므로 container.querySelector로 직접 찾음
       fileInput = container.querySelector('input[type="file"]');
       if (!fileInput) throw new Error();
     } catch (e) {
@@ -128,17 +131,62 @@ describe('Verification 컴포넌트', () => {
     const file = new File(['dummy'], 'test.png', { type: 'image/png' });
     fireEvent.change(fileInput, { target: { files: [file] } });
 
-    // 제출 버튼 클릭 (버튼 텍스트에 맞게 조정)
+    // 제출 버튼 클릭
     const submitButton = await screen.findByRole('button', { name: /제출|submit|신분증이 제출되었습니다|완료|finish/i });
-    // 버튼 상태 출력
-    // eslint-disable-next-line no-console
-    console.log('제출 버튼 텍스트:', submitButton.textContent, 'disabled:', (submitButton as HTMLButtonElement).disabled);
     fireEvent.click(submitButton);
 
-    // supabase.from('users').update 또는 rpc가 호출되는지 확인
+    // users update, identity_verifications insert가 모두 호출되는지 확인
     await waitFor(() => {
-      expect(supabase.from).toHaveBeenCalled();
-      // 또는 expect(supabase.rpc).toHaveBeenCalled();
+      expect(supabase.from).toHaveBeenCalledWith('users');
+      expect(supabase.from).toHaveBeenCalledWith('identity_verifications');
+    });
+  });
+
+  it('건너뛰기 버튼 클릭 시 users만 DB 저장 함수가 호출되고 identity_verifications는 호출되지 않는다', async () => {
+    const { supabase } = require('@/integrations/supabase/client');
+    const onComplete = jest.fn();
+    const { container } = renderWithProvider({
+      onComplete,
+      tempData: {
+        docType: '',
+        frontUploaded: false,
+        file: null,
+      },
+      countryCode: 'ko',
+      updateTempData: jest.fn(),
+      allTempData: {
+        countryCode: 'ko',
+        photos: [],
+        basicInfo: {
+          name: '홍길동',
+          gender: 'male',
+          birthdate: '1990-01-01',
+          city: '서울',
+        },
+        questions: {
+          job: '개발자',
+          education: 'bachelors',
+          bio: '테스트 소개',
+          interests: ['음악'],
+          koreanLevel: 'native',
+          japaneseLevel: 'beginner',
+        },
+        verification: {
+          docType: '',
+          frontUploaded: false,
+          file: null,
+        },
+      },
+    });
+
+    // 건너뛰기 버튼 클릭
+    const skipButton = await screen.findByRole('button', { name: /나중에 하기|skip|later/i });
+    fireEvent.click(skipButton);
+
+    // users는 호출되어야 하고, identity_verifications는 호출되지 않아야 함
+    await waitFor(() => {
+      expect(supabase.from).toHaveBeenCalledWith('users');
+      expect(supabase.from).not.toHaveBeenCalledWith('identity_verifications');
     });
   });
 }); 

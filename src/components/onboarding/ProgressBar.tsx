@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { useLanguage } from "@/i18n/useLanguage";
 
 interface ProgressBarProps {

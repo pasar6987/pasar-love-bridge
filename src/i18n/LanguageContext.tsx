@@ -1,5 +1,4 @@
-
-import { createContext, useState, ReactNode, useEffect } from "react";
+import React, { createContext, useState, ReactNode, useEffect } from "react";
 import { translations } from "./translations";
 import { Language, LanguageContextProps } from "./types";
 import { determineBestLanguage } from "@/utils/ipLanguageDetection";
