@@ -86,6 +86,15 @@ const Onboarding = () => {
     setIsUpdating(true);
     try {
       if (user && nextStep > TOTAL_STEPS) {
+        if (!tempData.countryCode) {
+          toast({
+            title: t("error.generic"),
+            description: "국적을 선택해야 온보딩을 완료할 수 있습니다.",
+            variant: "destructive"
+          });
+          setIsUpdating(false);
+          return;
+        }
         console.log('[Onboarding] 최종 저장 tempData:', tempData);
         const { error } = await supabase
           .from('users')
