@@ -41,7 +41,7 @@ export function BasicInfo({ onComplete, tempData, updateTempData }: BasicInfoPro
   const [birthdate, setBirthdate] = useState(tempData.birthdate || "");
   const [city, setCity] = useState(tempData.city || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [nationality, setNationality] = useState<"ko" | "ja" | null>(null);
+  const [countryCode, setCountryCode] = useState<"ko" | "ja" | null>(null);
   const [ageError, setAgeError] = useState<string | null>(null);
   
   // 임시 데이터 업데이트
@@ -56,7 +56,7 @@ export function BasicInfo({ onComplete, tempData, updateTempData }: BasicInfoPro
   
   // 사용자 국적 조회
   useEffect(() => {
-    const fetchNationality = async () => {
+    const fetchCountryCode = async () => {
       if (!user) return;
       try {
         const { data, error } = await supabase
@@ -66,29 +66,29 @@ export function BasicInfo({ onComplete, tempData, updateTempData }: BasicInfoPro
           .maybeSingle();
         if (error) throw error;
         if (data) {
-          setNationality(data.country_code as "ko" | "ja");
+          setCountryCode(data.country_code as "ko" | "ja");
         }
       } catch (error) {
-        console.error("Error fetching nationality:", error);
+        console.error("Error fetching countryCode:", error);
       }
     };
-    fetchNationality();
+    fetchCountryCode();
   }, [user]);
   
   // 나이 검증 함수
   const validateAge = (birthdate: string): boolean => {
-    if (!birthdate || !nationality) return false;
+    if (!birthdate || !countryCode) return false;
     
     try {
       const birthdateObj = parse(birthdate, 'yyyy-MM-dd', new Date());
       const age = differenceInYears(new Date(), birthdateObj);
       
       // 한국인은 만 19세 이상, 일본인은 만 18세 이상 가입 가능
-      const minAge = nationality === 'ko' ? 19 : 18;
+      const minAge = countryCode === 'ko' ? 19 : 18;
       
       if (age < minAge) {
         setAgeError(
-          nationality === 'ko' 
+          countryCode === 'ko' 
             ? language === 'ko' 
               ? '한국인은 만 19세 이상만 가입할 수 있습니다.' 
               : '韓国人は満19歳以上のみ登録できます。'
@@ -116,7 +116,7 @@ export function BasicInfo({ onComplete, tempData, updateTempData }: BasicInfoPro
     }
     // 나이 검증
     if (!validateAge(birthdate)) {
-      console.log('[BasicInfo] 나이 검증 실패', { birthdate, nationality });
+      console.log('[BasicInfo] 나이 검증 실패', { birthdate, countryCode });
       return;
     }
     setIsSubmitting(true);

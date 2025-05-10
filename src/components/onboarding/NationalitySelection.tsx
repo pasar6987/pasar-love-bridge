@@ -21,13 +21,13 @@ export function NationalitySelection({
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const [nationality, setNationality] = useState<"ko" | "ja" | null>(tempData);
+  const [countryCode, setCountryCode] = useState<"ko" | "ja" | null>(tempData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existing, setExisting] = useState<boolean>(false);
   
   // 기존 사용자 국적 데이터 확인
   useEffect(() => {
-    const checkExistingNationality = async () => {
+    const checkExistingCountryCode = async () => {
       if (!user) return;
       
       try {
@@ -42,35 +42,35 @@ export function NationalitySelection({
         
         // 기존 데이터가 있으면 설정
         if (data && data.country_code) {
-          setNationality(data.country_code as "ko" | "ja");
+          setCountryCode(data.country_code as "ko" | "ja");
           updateTempData(data.country_code as "ko" | "ja");
           setExisting(true);
         }
       } catch (error) {
-        console.error("Error checking nationality:", error);
+        console.error("Error checking countryCode:", error);
       }
     };
     
-    if (!nationality) {
-      checkExistingNationality();
+    if (!countryCode) {
+      checkExistingCountryCode();
     }
-  }, [user, nationality, updateTempData]);
+  }, [user, countryCode, updateTempData]);
   
   // 국적이 선택되면 임시 데이터 업데이트
-  const handleNationalityChange = (value: "ko" | "ja") => {
-    setNationality(value);
+  const handleCountryCodeChange = (value: "ko" | "ja") => {
+    setCountryCode(value);
     updateTempData(value);
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nationality) return;
+    if (!countryCode) return;
     setIsSubmitting(true);
     try {
       // DB 저장 없이 상위로만 전달
       onComplete();
     } catch (error) {
-      console.error("Error saving nationality:", error);
+      console.error("Error saving countryCode:", error);
       toast({
         title: t("error.generic"),
         description: t("error.try_again"),
@@ -97,10 +97,10 @@ export function NationalitySelection({
           <Button
             type="button"
             className={`pasar-card flex flex-col items-center justify-center p-6 h-auto aspect-square transition-all ${
-              nationality === "ko" ? "ring-2 ring-primary bg-primary/5" : ""
+              countryCode === "ko" ? "ring-2 ring-primary bg-primary/5" : ""
             }`}
             variant="outline"
-            onClick={() => handleNationalityChange("ko")}
+            onClick={() => handleCountryCodeChange("ko")}
           >
             <span className="text-3xl mb-2">🇰🇷</span>
             <span className="font-medium">한국</span>
@@ -110,10 +110,10 @@ export function NationalitySelection({
           <Button
             type="button"
             className={`pasar-card flex flex-col items-center justify-center p-6 h-auto aspect-square transition-all ${
-              nationality === "ja" ? "ring-2 ring-primary bg-primary/5" : ""
+              countryCode === "ja" ? "ring-2 ring-primary bg-primary/5" : ""
             }`}
             variant="outline"
-            onClick={() => handleNationalityChange("ja")}
+            onClick={() => handleCountryCodeChange("ja")}
           >
             <span className="text-3xl mb-2">🇯🇵</span>
             <span className="font-medium">日本</span>
@@ -125,7 +125,7 @@ export function NationalitySelection({
           <Button
             type="submit"
             className="pasar-btn"
-            disabled={!nationality || isSubmitting}
+            disabled={!countryCode || isSubmitting}
           >
             {isSubmitting ? (
               <div className="flex items-center">

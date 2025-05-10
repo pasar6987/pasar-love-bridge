@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 
 // 임시 데이터를 위한 인터페이스 정의
 interface OnboardingTempData {
-  nationality: "ko" | "ja" | null;
+  countryCode: "ko" | "ja" | null;
   photos: string[];
   basicInfo: {
     name: string;
@@ -51,7 +51,7 @@ const Onboarding = () => {
 
   // 임시 데이터 상태 관리
   const [tempData, setTempData] = useState<OnboardingTempData>({
-    nationality: null,
+    countryCode: null,
     photos: [],
     basicInfo: {
       name: "",
@@ -90,7 +90,7 @@ const Onboarding = () => {
         const { error } = await supabase
           .from('users')
           .update({
-            country_code: tempData.nationality,
+            country_code: tempData.countryCode,
             nickname: tempData.basicInfo.name,
             gender: tempData.basicInfo.gender,
             birthdate: tempData.basicInfo.birthdate,
@@ -179,8 +179,8 @@ const Onboarding = () => {
         return (
           <NationalitySelection 
             onComplete={() => handleStepComplete(2)} 
-            tempData={tempData.nationality} 
-            updateTempData={(value) => updateTempData("nationality", value)} 
+            tempData={tempData.countryCode} 
+            updateTempData={(value) => updateTempData("countryCode", value)} 
           />
         );
       case 2:
@@ -219,8 +219,8 @@ const Onboarding = () => {
         return (
           <NationalitySelection 
             onComplete={() => handleStepComplete(2)} 
-            tempData={tempData.nationality} 
-            updateTempData={(value) => updateTempData("nationality", value)} 
+            tempData={tempData.countryCode} 
+            updateTempData={(value) => updateTempData("countryCode", value)} 
           />
         );
     }
