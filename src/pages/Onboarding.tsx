@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -85,33 +84,29 @@ const Onboarding = () => {
 
   const handleStepComplete = async (nextStep: number) => {
     setIsUpdating(true);
-    
     try {
-      if (user) {
-        // 로그인한 경우만 DB 업데이트
-        const { error } = await supabase.rpc(
-          'update_user_onboarding_step',
-          { 
-            user_id: user.id,
-            step_number: nextStep,
-            is_completed: nextStep > TOTAL_STEPS
-          }
-        );
-        
+      if (user && nextStep > TOTAL_STEPS) {
+        // 온보딩 완료 시 users 테이블에 한 번에 저장
+        const { error } = await supabase
+          .from('users')
+          .update({
+            country_code: tempData.nationality,
+            nickname: tempData.basicInfo.name,
+            gender: tempData.basicInfo.gender,
+            birthdate: tempData.basicInfo.birthdate,
+            city: tempData.basicInfo.city
+          })
+          .eq('id', user.id);
         if (error) throw error;
       }
-      
-      // 로그인 상태와 관계없이 다음 단계로 이동
+      // 기존 로직 유지
       if (nextStep > TOTAL_STEPS) {
-        // 온보딩 완료 후 홈으로 이동
         navigate('/home');
       } else {
-        // 다음 온보딩 단계로 이동
         navigate(`/onboarding/${nextStep}`);
       }
-      
     } catch (error) {
-      console.error("Error updating onboarding step:", error);
+      console.error("Error updating onboarding step or saving user info:", error);
       toast({
         title: t("error.generic"),
         description: t("error.try_again"),

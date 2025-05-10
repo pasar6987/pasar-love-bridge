@@ -64,24 +64,10 @@ export function NationalitySelection({
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!nationality || !user) return;
-    
+    if (!nationality) return;
     setIsSubmitting(true);
-    
     try {
-      let error = null;
-      
-      // Update the nationality directly in the users table
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ country_code: nationality })
-        .eq('id', user.id);
-          
-      error = updateError;
-      
-      if (error) throw error;
-      
+      // DB 저장 없이 상위로만 전달
       onComplete();
     } catch (error) {
       console.error("Error saving nationality:", error);
