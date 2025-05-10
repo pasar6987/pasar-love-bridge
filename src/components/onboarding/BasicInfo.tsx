@@ -22,12 +22,14 @@ interface BasicInfoProps {
     gender: string;
     birthdate: string;
     city: string;
+    countryCode: "ko" | "ja" | null;
   };
   updateTempData: (value: {
     name: string;
     gender: string;
     birthdate: string;
     city: string;
+    countryCode: "ko" | "ja" | null;
   }) => void;
 }
 
@@ -41,7 +43,7 @@ export function BasicInfo({ onComplete, tempData, updateTempData }: BasicInfoPro
   const [birthdate, setBirthdate] = useState(tempData.birthdate || "");
   const [city, setCity] = useState(tempData.city || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [countryCode, setCountryCode] = useState<"ko" | "ja" | null>(null);
+  const countryCode = tempData.countryCode;
   const [ageError, setAgeError] = useState<string | null>(null);
   
   // 임시 데이터 업데이트
@@ -50,30 +52,10 @@ export function BasicInfo({ onComplete, tempData, updateTempData }: BasicInfoPro
       name,
       gender,
       birthdate,
-      city
+      city,
+      countryCode: tempData.countryCode ?? null
     });
-  }, [name, gender, birthdate, city, updateTempData]);
-  
-  // 사용자 국적 조회
-  useEffect(() => {
-    const fetchCountryCode = async () => {
-      if (!user) return;
-      try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('country_code')
-          .eq('id', user.id)
-          .maybeSingle();
-        if (error) throw error;
-        if (data) {
-          setCountryCode(data.country_code as "ko" | "ja");
-        }
-      } catch (error) {
-        console.error("Error fetching countryCode:", error);
-      }
-    };
-    fetchCountryCode();
-  }, [user]);
+  }, [name, gender, birthdate, city, tempData.countryCode, updateTempData]);
   
   // 나이 검증 함수
   const validateAge = (birthdate: string): boolean => {
