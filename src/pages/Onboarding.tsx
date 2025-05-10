@@ -86,7 +86,7 @@ const Onboarding = () => {
     setIsUpdating(true);
     try {
       if (user && nextStep > TOTAL_STEPS) {
-        // 온보딩 완료 시 users 테이블에 한 번에 저장
+        console.log('[Onboarding] 최종 저장 tempData:', tempData);
         const { error } = await supabase
           .from('users')
           .update({
@@ -97,7 +97,11 @@ const Onboarding = () => {
             city: tempData.basicInfo.city
           })
           .eq('id', user.id);
-        if (error) throw error;
+        if (error) {
+          console.error('[Onboarding] DB 저장 에러:', error);
+          throw error;
+        }
+        console.log('[Onboarding] DB 저장 성공');
       }
       // 기존 로직 유지
       if (nextStep > TOTAL_STEPS) {
