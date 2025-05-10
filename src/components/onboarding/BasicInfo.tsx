@@ -109,37 +109,27 @@ export function BasicInfo({ onComplete, tempData, updateTempData }: BasicInfoPro
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!name || !birthdate || !city || !user) return;
-    
+    console.log('[BasicInfo] handleSubmit called', { name, birthdate, city, user });
+    if (!name || !birthdate || !city || !user) {
+      console.log('[BasicInfo] 필수값 누락', { name, birthdate, city, user });
+      return;
+    }
     // 나이 검증
-    if (!validateAge(birthdate)) return;
-    
+    if (!validateAge(birthdate)) {
+      console.log('[BasicInfo] 나이 검증 실패', { birthdate, nationality });
+      return;
+    }
     setIsSubmitting(true);
-    
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          nickname: name,
-          gender,
-          birthdate,
-          city
-        })
-        .eq('id', user.id);
-      
-      if (error) throw error;
-      
+      console.log('[BasicInfo] DB 저장 시도');
+      // DB 저장은 온보딩 마지막에만 하므로 여기서는 생략됨
+      console.log('[BasicInfo] onComplete 호출');
       onComplete();
     } catch (error) {
-      console.error("Error saving basic info:", error);
-      toast({
-        title: t("error.generic"),
-        description: t("error.try_again"),
-        variant: "destructive"
-      });
+      console.error('[BasicInfo] Error saving basic info:', error);
     } finally {
       setIsSubmitting(false);
+      console.log('[BasicInfo] handleSubmit finally');
     }
   };
   
