@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { ProgressBar } from "@/components/onboarding/ProgressBar";
@@ -75,12 +75,12 @@ const Onboarding = () => {
   });
 
   // 데이터 업데이트 함수
-  const updateTempData = (field: keyof OnboardingTempData, value: any) => {
+  const updateTempData = useCallback((field: keyof OnboardingTempData, value: any) => {
     setTempData(prev => ({
       ...prev,
       [field]: value
     }));
-  };
+  }, []);
 
   const handleStepComplete = async (nextStep: number) => {
     setIsUpdating(true);
