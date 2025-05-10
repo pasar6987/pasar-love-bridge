@@ -135,7 +135,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // 온보딩이 완료되지 않은 경우, 마지막 단계로 리디렉션
           const nextStep = userProfile.onboarding_step ? userProfile.onboarding_step : 1;
           logAuthDebug(`온보딩 ${nextStep}단계로 리디렉션`);
-          navigate(`/onboarding/${nextStep}`);
+          // 이미 온보딩 경로에 있으면 navigate를 호출하지 않음
+          if (!window.location.pathname.startsWith('/onboarding')) {
+            navigate(`/onboarding/${nextStep}`);
+          }
         } else {
           logAuthDebug("온보딩 완료됨");
         }
