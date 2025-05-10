@@ -138,9 +138,15 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
+    // 에러 전체 객체를 JSON.stringify로 출력
+    try {
+      console.error('Error in delete-user-account function (stringified):', JSON.stringify(error));
+    } catch (stringifyErr) {
+      console.error('Error in delete-user-account function (raw):', error);
+    }
     console.error('Error in delete-user-account function:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Unknown error occurred' }),
+      JSON.stringify({ error: error.message || 'Unknown error occurred', raw: String(error) }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,

@@ -25,30 +25,38 @@ globalThis.fetch = jest.fn(() =>
   } as unknown as Response)
 );
 
-// supabase 클라이언트 mock
-jest.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: jest.fn(() => ({
-      update: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      select: jest.fn().mockResolvedValue({ data: [], error: null }),
-      insert: jest.fn().mockResolvedValue({ data: {}, error: null }),
-    })),
-    rpc: jest.fn().mockResolvedValue({ data: {}, error: null }),
-    storage: {
-      from: jest.fn(() => ({
-        upload: jest.fn().mockResolvedValue({ data: {}, error: null }),
-        getPublicUrl: jest.fn(() => ({ data: { publicUrl: 'https://test-url.com/test.png' } })),
-      })),
+// supabase 클라이언트 mock 구조 개선 (global에 할당)
+jest.mock('@/integrations/supabase/client', () => {
+  global.usersUpdateMock = jest.fn().mockReturnThis();
+  global.usersEqMock = jest.fn().mockReturnThis();
+  global.identityInsertMock = jest.fn().mockReturnThis();
+  return {
+    supabase: {
+      from: jest.fn((table) => {
+        if (table === 'users') {
+          return { update: global.usersUpdateMock, eq: global.usersEqMock };
+        }
+        if (table === 'identity_verifications') {
+          return { insert: global.identityInsertMock };
+        }
+        return {};
+      }),
+      rpc: jest.fn().mockResolvedValue({ data: {}, error: null }),
+      storage: {
+        from: jest.fn(() => ({
+          upload: jest.fn().mockResolvedValue({ data: {}, error: null }),
+          getPublicUrl: jest.fn(() => ({ data: { publicUrl: 'https://test-url.com/test.png' } })),
+        })),
+      },
+      auth: {
+        getSession: jest.fn().mockResolvedValue({ data: { session: { user: { id: 'test-user' } } } }),
+        onAuthStateChange: jest.fn(() => ({ data: { subscription: { unsubscribe: jest.fn() } } })),
+        signInWithOAuth: jest.fn(),
+        signOut: jest.fn(),
+      },
     },
-    auth: {
-      getSession: jest.fn().mockResolvedValue({ data: { session: { user: { id: 'test-user' } } } }),
-      onAuthStateChange: jest.fn(() => ({ data: { subscription: { unsubscribe: jest.fn() } } })),
-      signInWithOAuth: jest.fn(),
-      signOut: jest.fn(),
-    },
-  },
-}));
+  };
+});
 
 // useAuth mock (user 항상 존재)
 jest.mock('@/context/AuthContext', () => {
@@ -137,9 +145,15 @@ describe('Verification 컴포넌트', () => {
 
     // users update, identity_verifications insert가 모두 호출되는지 확인
     await waitFor(() => {
-      expect(supabase.from).toHaveBeenCalledWith('users');
-      expect(supabase.from).toHaveBeenCalledWith('identity_verifications');
+      expect(global.usersUpdateMock).toHaveBeenCalled();
+      expect(global.identityInsertMock).toHaveBeenCalled();
     });
+
+    // users update mock의 호출 인자에 onboarding_completed: true가 포함되는지 확인
+    const hasCompletedTrue = global.usersUpdateMock.mock.calls.some(
+      call => call[0] && call[0].onboarding_completed === true
+    );
+    expect(hasCompletedTrue).toBe(true);
   });
 
   it('건너뛰기 버튼 클릭 시 users만 DB 저장 함수가 호출되고 identity_verifications는 호출되지 않는다', async () => {

@@ -74,7 +74,7 @@ export function Verification({ onComplete, tempData, countryCode, updateTempData
         birthdate: basicInfo.birthdate,
         city: basicInfo.city,
         bio: questions.bio,
-        onboarding_completed: false,
+        onboarding_completed: true,
         onboarding_step: 5,
         updated_at: new Date().toISOString(),
       }).eq('id', user.id);
