@@ -236,6 +236,7 @@ const Onboarding = () => {
           <Verification 
             onComplete={() => handleStepComplete(6)} 
             tempData={tempData.verification} 
+            countryCode={tempData.countryCode}
             updateTempData={(value) => updateTempData("verification", value)} 
           />
         );

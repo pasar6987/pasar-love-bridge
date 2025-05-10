@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/useLanguage";
@@ -23,6 +22,7 @@ interface VerificationProps {
     frontUploaded: boolean;
     file: File | null;
   };
+  countryCode: "ko" | "ja" | null;
   updateTempData: (value: {
     docType: string;
     frontUploaded: boolean;
@@ -30,7 +30,7 @@ interface VerificationProps {
   }) => void;
 }
 
-export function Verification({ onComplete, tempData, updateTempData }: VerificationProps) {
+export function Verification({ onComplete, tempData, countryCode, updateTempData }: VerificationProps) {
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -72,7 +72,7 @@ export function Verification({ onComplete, tempData, updateTempData }: Verificat
         .from('identity_verifications')
         .insert({
           user_id: user.id,
-          country_code: language === "ko" ? "KR" : "JP",
+          country_code: countryCode === "ko" ? "KR" : countryCode === "ja" ? "JP" : null,
           doc_type: docType,
           id_front_url: filePath,
           status: 'submitted',
