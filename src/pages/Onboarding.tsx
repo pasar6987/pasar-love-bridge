@@ -196,6 +196,7 @@ const Onboarding = () => {
           <BasicInfo 
             onComplete={() => handleStepComplete(4)} 
             tempData={tempData.basicInfo} 
+            countryCode={tempData.countryCode}
             updateTempData={(value) => updateTempData("basicInfo", value)} 
           />
         );

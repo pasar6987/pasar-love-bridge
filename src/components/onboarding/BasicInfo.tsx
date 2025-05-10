@@ -22,18 +22,17 @@ interface BasicInfoProps {
     gender: string;
     birthdate: string;
     city: string;
-    countryCode: "ko" | "ja" | null;
   };
+  countryCode: "ko" | "ja" | null;
   updateTempData: (value: {
     name: string;
     gender: string;
     birthdate: string;
     city: string;
-    countryCode: "ko" | "ja" | null;
   }) => void;
 }
 
-export function BasicInfo({ onComplete, tempData, updateTempData }: BasicInfoProps) {
+export function BasicInfo({ onComplete, tempData, countryCode, updateTempData }: BasicInfoProps) {
   const { t, language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -43,7 +42,6 @@ export function BasicInfo({ onComplete, tempData, updateTempData }: BasicInfoPro
   const [birthdate, setBirthdate] = useState(tempData.birthdate || "");
   const [city, setCity] = useState(tempData.city || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const countryCode = tempData.countryCode;
   const [ageError, setAgeError] = useState<string | null>(null);
   
   // 임시 데이터 업데이트
@@ -52,10 +50,9 @@ export function BasicInfo({ onComplete, tempData, updateTempData }: BasicInfoPro
       name,
       gender,
       birthdate,
-      city,
-      countryCode: tempData.countryCode ?? null
+      city
     });
-  }, [name, gender, birthdate, city, tempData.countryCode, updateTempData]);
+  }, [name, gender, birthdate, city, updateTempData]);
   
   // 나이 검증 함수
   const validateAge = (birthdate: string): boolean => {
